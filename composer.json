@@ -1,0 +1,14 @@
+{
+    "name": "turnto/social-commerce",
+    "type": "magento2-module",
+    "version": "0.1.0",
+    "require": {
+        "magento/framework": "100.0.*"
+    },
+    "autoload": {
+        "files": [ "registration.php" ],
+        "psr-4": {
+            "TurnTo\\SocialCommerce\\": ""
+        }
+    }
+}
