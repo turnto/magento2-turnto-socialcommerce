@@ -2,109 +2,133 @@
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
+/**
+ * Class AbstractExport
+ * @package TurnTo\SocialCommerce\Model\Export
+ */
 class AbstractExport
 {
     /**
      * @var null|\TurnTo\SocialCommerce\Helper\Config
      */
-    protected $_config = null;
+    protected $config = null;
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface|null
      */
-    protected $_storeManager = null;
+    protected $storeManager = null;
 
     /**
      * @var \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory|null
      */
-    protected $_productCollection = null;
+    protected $productCollectionFactory = null;
 
     /**
      * @var null|\Zend\Http\Client
      */
-    protected $_httpClient = null;
+    protected $httpClient = null;
 
     /**
-     * @var \Magento\Framework\Logger\Monolog|null
+     * @var null|\TurnTo\SocialCommerce\Logger\Monolog
      */
-    protected $_logger = null;
+    protected $logger = null;
 
     /**
      * @var \Magento\Framework\Stdlib\DateTime\DateTimeFactory|null
      */
-    protected $_datetimefactory = null;
+    protected $datetimefactory = null;
 
     /**
      * @var \Magento\Catalog\Model\CategoryFactory|null
      */
-    protected $_categoryFactory = null;
+    protected $categoryFactory = null;
+
+    /**
+     * @var \Magento\Catalog\Model\Category\Tree|null
+     */
+    protected $categoryTreeManager = null;
+
+    /**
+     * @var \Magento\Catalog\Helper\Product|null
+     */
+    protected $productHelper = null;
 
     /**
      * AbstractExport constructor.
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollection
+     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \Zend\Http\Client $httpClient
-     * @param \Magento\Framework\Logger\Monolog $logger
-     * @param \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dtf
+     * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
+     * @param \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory
      * @param \Magento\Catalog\Model\CategoryFactory $catFactory
+     * @param \Magento\Catalog\Model\Category\Tree $categoryTreeManager
+     * @param \Magento\Catalog\Helper\Product $productHelper
      */
     public function __construct(\TurnTo\SocialCommerce\Helper\Config $config,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollection,
+        \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
         \Zend\Http\Client $httpClient,
-        \Magento\Framework\Logger\Monolog $logger,
-        \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dtf,
-        \Magento\Catalog\Model\CategoryFactory $catFactory
+        \TurnTo\SocialCommerce\Logger\Monolog $logger,
+        \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory,
+        \Magento\Catalog\Model\CategoryFactory $catFactory,
+        \Magento\Catalog\Model\Category\Tree $categoryTreeManager,
+        \Magento\Catalog\Helper\Product $productHelper
     ) {
-        $this->_config = $config;
-        $this->_storeManager = $storeManager;
-        $this->_productCollection = $productCollection;
-        $this->_httpClient = $httpClient;
-        $this->_logger = $logger;
-        $this->_datetimefactory = $dtf;
-        $this->_categoryFactory = $catFactory;
+        $this->config = $config;
+        $this->storeManager = $storeManager;
+        $this->productCollectionFactory = $productCollectionFactory;
+        $this->httpClient = $httpClient;
+        $this->logger = $logger;
+        $this->datetimefactory = $dateTimeFactory;
+        $this->categoryFactory = $catFactory;
+        $this->categoryTreeManager = $categoryTreeManager;
+        $this->productHelper = $productHelper;
     }
 
     /**
      * Get store related url, if $urlInterface is null then baseUrl is returned
-     *  note: This is a convenience wrapper around StoreManager->getStore()->getBaseUrl($urlInterface)
-     *  ex: $storeMediaUrl = getStoreUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA)
-     *
      * @param null|\Magento\Framework\UrlInterface::Type $urlInterface
-     *
      * @return mixed
      */
-    protected function getStoreUrl($urlInterface = null) {
-        return $this->_storeManager->getStore()->getBaseUrl($urlInterface);
+    protected function getStoreUrl($urlInterface = null)
+    {
+        return $this->storeManager->getStore()->getBaseUrl($urlInterface);
     }
 
     /**
      * Get store name
-     *  note: This is a convenience wrapper around StoreManager->getStore()->getName()
-     *
      * @return string
      */
-    protected function getStoreName() {
-        return $this->_storeManager->getStore()->getName();
+    protected function getStoreName()
+    {
+        return $this->storeManager->getStore()->getName();
     }
 
     /**
      * Retrieves a product collection filtered for visibility == 4 and selecting only attributes necessary for TurnTo Feed
-     *
      * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
      */
-    protected function getProducts() {
-        $collection = $this->_productCollection->create();
-        $collection->addAttributeToSelect('id');
-        $collection->addAttributeToSelect('name');
-        $collection->addAttributeToSelect('sku');
-        $collection->addAttributeToSelect('url_in_store');
-        $collection->addAttributeToSelect('image');
-        $collection->addAttributeToSelect('quantity_and_stock_status');
-        $collection->addAttributeToSelect('price');
+    protected function getProducts()
+    {
+        $collection = $this->productCollection->create()
+            ->addAttributeToSelect('id')
+            ->addAttributeToSelect('name')
+            ->addAttributeToSelect('sku')
+            ->addAttributeToSelect('url_in_store')
+            ->addAttributeToSelect('image')
+            ->addAttributeToSelect('quantity_and_stock_status')
+            ->addAttributeToSelect('price')
+            ->addAttributeToSelect('description');
 
-        $collection->addFieldToFilter('visibility', 4);
+        $gtinMap = $this->config->getGtinAttributesMap();
+        if (!empty($gtinMap)) {
+            foreach($gtinMap as $key => $attributeName) {
+                $collection->addAttributeToSelect($attributeName);
+            }
+        }
+        
+        $collection->addFieldToFilter('visibility', \Magento\Catalog\Model\Product\Visibility::VISIBILITY_BOTH);
         
         return $collection;
     }

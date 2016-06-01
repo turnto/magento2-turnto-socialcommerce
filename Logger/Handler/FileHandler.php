@@ -10,7 +10,15 @@ namespace TurnTo\SocialCommerce\Logger\Handler;
 
 use \Magento\Framework\Logger\Handler;
 
+/**
+ * Class FileHandler
+ * @package TurnTo\SocialCommerce\Logger\Handler
+ */
 class FileHandler extends \Magento\Framework\Logger\Handler\System
 {
+    /**
+     * Overrides the default log file path
+     * @var string
+     */
     protected $fileName = '/var/log/turnto.log';
 }
