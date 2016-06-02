@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="turnto_socialcommerce" translate="label" sortOrder="1000">
+            <label>TurnTo Social Commerce</label>
+        </tab>
+        <section id="turnto_socialcommerce_configuration" translate="label" sortOrder="1" showInStore="1" showInWebsite="1" showInDefault="1">
+            <label>Configuration</label>
+            <tab>turnto_socialcommerce</tab>
+            <resource>TurnTo_SocialCommerce::socialcommerce_general_config</resource>
+            <group id="general" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General Settings</label>
+                <field id="site_key" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Site Key</label>
+                </field>
+                <field id="authorization_key" translate="label comment" type="text" sortOrder="2" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Authorization Key</label>
+                </field>
+                <field id="version" translate="label comment" type="text" sortOrder="3" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Version</label>
+                </field>
+                <field id="static_url" translate="label comment" type="text" sortOrder="4" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Static URL</label>
+                </field>
+                <field id="url" translate="label comment" type="text" sortOrder="5" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>URL</label>
+                </field>
+                <field id="image_store_base" translate="label comment" type="text" sortOrder="6" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Image Store Base</label>
+                </field>
+                <field id="static_content_cache_time" translate="label comment" type="text" sortOrder="7" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Static Content Cache Time</label>
+                </field>
+                <field id="teaser_cache_time" translate="label comment" type="text" sortOrder="8" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Teaser Cache Time</label>
+                </field>
+                <field id="upc_attribute"   translate="label comment" type="select" sortOrder="9" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>UPC Attribute</label>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                </field>
+                <field id="mpn_attribute"   translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>MPN Attribute</label>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                </field>
+                <field id="brand_attribute"   translate="label comment" type="select" sortOrder="11" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Brand Attribute</label>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                </field>
+                <field id="isbn_attribute"   translate="label comment" type="select" sortOrder="12" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>ISBN Attribute</label>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                </field>
+                <field id="ean_attribute"   translate="label comment" type="select" sortOrder="13" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>EAN Attribute</label>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                </field>
+                <field id="jan_attribute"   translate="label comment" type="select" sortOrder="14" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>JAN Attribute</label>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                </field>
+                <field id="asin_attribute"   translate="label comment" type="select" sortOrder="15" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>ASIN Attribute</label>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                </field>
+            </group>
+            <group id="checkout_comments" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Checkout Comments</label>
+                <field id="enable_checkout_comments" type="select" translate="label" sortOrder="1" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+            <group id="question_answer" translate="label" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Questions and Answers</label>
+                <field id="setup_type"   translate="label comment" type="select" sortOrder="1" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Setup Type</label>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\SetupTypeSelect</source_model>
+                </field>
+                <field id="use_custom_teaser" type="select" translate="label" sortOrder="2" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Use Custom Teaser</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="custom_teaser_definition" translate="label comment" type="textarea" sortOrder="3" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Custom Teaser Function Definition</label>
+                </field>
+                <field id="custom_teaser_name" translate="label comment" type="text" sortOrder="4" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Custom Teaser Function Name</label>
+                </field>
+            </group>
+            <group id="reviews" translate="label" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Reviews</label>
+                <field id="reviews_setup_type" translate="label comment" type="select" sortOrder="1" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Setup Type</label>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\SetupTypeSelect</source_model>
+                </field>
+                <field id="reviews_use_custom_teaser" type="select" translate="label" sortOrder="2" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Use Custom Teaser</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="reviews_custom_teaser_definition" translate="label comment" type="textarea" sortOrder="3" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Custom Teaser Function Definition</label>
+                </field>
+                <field id="reviews_custom_teaser_name" translate="label comment" type="text" sortOrder="4" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Custom Teaser Function Name</label>
+                </field>
+            </group>
+            <group id="mobile" translate="label" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Mobile</label>
+                <field id="mobile_page_title" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Mobile Landing Page Title</label>
+                </field>
+            </group>
+            <group id="product_feed" translate="label" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Product Feed</label>
+                <field id="product_feed_url" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Product Ratings Feed URL*</label>
+                </field>
+                <field id="feed_submission_url" translate="label comment" type="text" sortOrder="2" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Product Feed Submission URL</label>
+                </field>
+                <field id="enable_nightly_submission" type="select" translate="label" sortOrder="1" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Enable Nightly Submission</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+            <group id="historical_orders_feed" translate="label" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Historical Orders Feed</label>
+                <field id="enable_historical_feed" type="select" translate="label" sortOrder="1" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Enable Nightly Push</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="website_id" translate="label comment" type="text" sortOrder="2" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Website ID</label>
+                </field>
+                <field id="store_id" translate="label comment" type="text" sortOrder="3" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Store ID</label>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>
