@@ -4,12 +4,15 @@
     <default>
         <turnto_socialcommerce_configuration>
             <general>
+                <enabled>0</enabled>
                 <version>4.3</version>
                 <static_url>http://static.www.turnto.com</static_url>
                 <url>http://www.turnto.com</url>
                 <image_store_base>http://wac.edgecastcdn.net/001A39/prod</image_store_base>
                 <static_content_cache_time>900</static_content_cache_time>
                 <teaser_cache_time>900</teaser_cache_time>
+            </general>
+            <product_attribute_mappings>
                 <upc_attribute></upc_attribute>
                 <mpn_attribute></mpn_attribute>
                 <brand_attribute></brand_attribute>
@@ -17,89 +20,15 @@
                 <ean_attribute></ean_attribute>
                 <jan_attribute></jan_attribute>
                 <asin_attribute></asin_attribute>
-            </general>
+            </product_attribute_mappings>
             <checkout_comments>
                 <enable_checkout_comments>0</enable_checkout_comments>
             </checkout_comments>
             <question_answer>
                 <setup_type>0</setup_type>
-                <use_custom_teaser>1</use_custom_teaser>
-                <custom_teaser_definition><![CDATA[<script type="text/javascript">
-/**
-*
-* This is a way to implement a teaser function that returns the html of the actual teaser.
-* This is called with the parameter TurnToItemData, which contains the item counts.
-* The clicks are calling clickQaTabFromTeaser() in this example.
-*
-*/
-function itemTeaserDisplay(data) {
-    var iteaserhtml = '<h2>Get FAST answers from customers</h2><a class="TurntoItemTeaserClick"
-    href="javascript:clickQaTabFromTeaser()">Ask a Question</a>';
-    iteaserhtml += '<div id="TT2ILTcount-line">';
-    if (data.counts.q > 0 || data.counts.a > 0) {
-    iteaserhtml += '<p><a class="TurntoItemTeaserClick TurnToIteaSee"
-    href="javascript:clickQaTabFromTeaser()">See ';
-        if (data.counts.q > 0) {
-        iteaserhtml += '<strong>' + data.counts.q + '</strong>' +
-        (data.counts.q > 1 ? ' questions' : ' question');
-        }
-        if (data.counts.a > 0) {
-        iteaserhtml += ' <strong>' + data.counts.a + '</strong>' +
-        (data.counts.a > 1 ? ' answers' : ' answer');
-        }
-        iteaserhtml += '</a></p>';
-    }
-    iteaserhtml += '</div>';
-    return iteaserhtml;
-}
-
-// todo: this should handle opening the tab if Q&A is under a tab.
-function clickQaTabFromTeaser() {
-    var qa = TurnTojQuery('#TurnToContent')
-    window.scrollTo(0,qa.offset().top);
-}
-</script>]]></custom_teaser_definition>
-                <custom_teaser_name>itemTeaserDisplay</custom_teaser_name>
             </question_answer>
             <reviews>
                 <reviews_setup_type>0</reviews_setup_type>
-                <reviews_use_custom_teaser>1</reviews_use_custom_teaser>
-                <reviews_custom_teaser_definition><![CDATA[<script type="text/javascript">
-/**
- * This is the function that triggers the custom teaser, this function's name should be
- * set in the review's configuration for custom teaser name
- */
-function reviewsItemTeaserDisplay(clazz, data) {
-    var clazzNam = clazz || "TurnToReviewsTeaser";
-
-    var iteasers = TurnTojQuery("." + clazzNam);
-
-    // round the average rating to the nearest tenth
-    var rating = Math.round((TurnToItemData.counts.ar + 0.25) * 100.0) / 100.0;
-    rating = rating.toString();
-    var decimal = parseInt(rating.substring(2, 3))
-    rating = rating.substring(0, 1) + "-" + (decimal >= 5 ? '5' : '0')
-
-    iteasers.html(TurnToHTML.reviewTeaser({rating: rating}));
-
-    //if in multi-sku page, TurnToItemData.sku is defined
-    var teaserSku = TurnToItemData.sku;
-
-    iteasers.find('.TTreadReviews').click(function() {clickReviewsTabFromTeaser();});
-    iteasers.find('.TTwriteReview')
-        .click(function(){clickReviewsTabFromTeaser();TurnTo.writeReview();});
-}
-
-/**
- * todo: this should handle opening the tab if
- * reviews are under a tab AND scrolling to the content
- */
-function clickReviewsTabFromTeaser() {
-    var rev = TurnTojQuery('#TurnToReviewsContent')
-    window.scrollTo(0,rev.offset().top);
-}
-</script>]]></reviews_custom_teaser_definition>
-                <reviews_custom_teaser_name>reviewsItemTeaserDisplay</reviews_custom_teaser_name>
             </reviews>
             <mobile>
                 <mobile_page_title>TurnTo - Social Commerce</mobile_page_title>
@@ -107,7 +36,7 @@ function clickReviewsTabFromTeaser() {
             <product_feed>
                 <product_feed_url>http://static.www.turnto.com/static/export/</product_feed_url>
                 <feed_submission_url>https://www.turnto.com/feedUpload/postfile</feed_submission_url>
-                <enable_nightly_submission>1</enable_nightly_submission>
+                <enable_automatic_submission>1</enable_automatic_submission>
             </product_feed>
             <historical_orders_feed>
                 <enable_historical_feed>0</enable_historical_feed>

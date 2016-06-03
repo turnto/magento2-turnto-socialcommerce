@@ -8,7 +8,6 @@
 
 namespace TurnTo\SocialCommerce\Model\Config\Source;
 
-
 /**
  * Class SetupTypeSelect
  * @package TurnTo\SocialCommerce\Model\Config\Source
@@ -20,7 +19,7 @@ class SetupTypeSelect implements \Magento\Framework\Option\ArrayInterface
      *
      * @return array
      */
-    public function toOptionArray()
+    public function toOptionArray ()
     {
         return [
             ['value' => 2, 'label' => __('Static Embed')],
@@ -34,7 +33,7 @@ class SetupTypeSelect implements \Magento\Framework\Option\ArrayInterface
      *
      * @return array
      */
-    public function toArray()
+    public function toArray ()
     {
         return [
             0 => __('Overlay'),
