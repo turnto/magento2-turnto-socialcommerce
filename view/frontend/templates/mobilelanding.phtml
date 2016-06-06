@@ -8,7 +8,14 @@
 
         <script  type="text/javascript">
             var  turnToConfig  = {
-                siteKey:  "<?php echo $this->helper('TurnTo\SocialCommerce\Helper\Config')->getSiteKey(); ?>",
+                siteKey:
+                    "<?php
+                        $helper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
+                        echo $helper->getSiteKey(
+                            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+                            $helper->getCurrentStoreCode()
+                        );
+                    ?>",
                 setupType:"mobileTT"
             };
         </script>

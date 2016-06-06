@@ -94,6 +94,33 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_PATH_PRODUCT_GROUP = 'turnto_socialcommerce_configuration/product_attribute_mappings/';
 
     /**
+     * @var \Magento\Store\Model\StoreManagerInterface|null
+     */
+    protected $storeManager = null;
+
+    /**
+     * Config constructor.
+     * @param \Magento\Framework\App\Helper\Context $context
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     */
+    public function __construct(
+        \Magento\Framework\App\Helper\Context $context,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
+    ) {
+        $this->storeManager = $storeManager;
+        parent::__construct($context);
+    }
+
+    /**
+     * Gets the store code from the currently set/scoped store
+     * @return string
+     */
+    public function getCurrentStoreCode()
+    {
+        return $this->storeManager->getStore()->getCode();
+    }
+
+    /**
      * Gets the value of the setting that determines if TurnTo's configuration is enabled
      *
      * @param $scopeType
