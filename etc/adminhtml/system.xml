@@ -1,139 +1,268 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
-        <tab id="turnto_socialcommerce" translate="label" sortOrder="1000">
+        <tab id="turnto_socialcommerce" translate="label" sortOrder="500">
             <label>TurnTo Social Commerce</label>
         </tab>
-        <section id="turnto_socialcommerce_configuration" translate="label" sortOrder="1" showInStore="1" showInWebsite="1" showInDefault="1">
+        <section id="turnto_socialcommerce_configuration" translate="label" sortOrder="500" showInStore="1"
+                 showInWebsite="1" showInDefault="1">
             <label>Configuration</label>
             <tab>turnto_socialcommerce</tab>
             <resource>TurnTo_SocialCommerce::socialcommerce_general_config</resource>
-            <group id="general" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="general" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>General Settings</label>
-                <field id="site_key" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInStore="1" showInWebsite="1">
+                <field id="enabled" type="select" translate="label" sortOrder="1" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
+                    <label>Enable Social Commerce</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="site_key" translate="label comment" type="text" sortOrder="10" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
                     <label>Site Key</label>
+                    <comment>Site Key from a TurnTo.com configuration</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
                 </field>
-                <field id="authorization_key" translate="label comment" type="text" sortOrder="2" showInDefault="1" showInStore="1" showInWebsite="1">
+                <field id="authorization_key" translate="label comment" type="obscure" sortOrder="20" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
                     <label>Authorization Key</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment>Authorization key from a TurnTo.com configuration</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
                 </field>
-                <field id="version" translate="label comment" type="text" sortOrder="3" showInDefault="1" showInStore="1" showInWebsite="1">
+                <field id="version" translate="label comment" type="text" sortOrder="30" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
                     <label>Version</label>
+                    <comment>TurnTo API version.  Uses (major).(minor) form, the default is 4.3</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
                 </field>
-                <field id="static_url" translate="label comment" type="text" sortOrder="4" showInDefault="1" showInStore="1" showInWebsite="1">
+                <field id="static_url" translate="label comment" type="text" sortOrder="40" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
                     <label>Static URL</label>
+                    <comment>Default is http://static.www.turnto.com. Should not ever be changed,
+                        unless instructed by TurnTo.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
                 </field>
-                <field id="url" translate="label comment" type="text" sortOrder="5" showInDefault="1" showInStore="1" showInWebsite="1">
+                <field id="url" translate="label comment" type="text" sortOrder="50" showInStore="1" showInWebsite="1"
+                       showInDefault="1">
                     <label>URL</label>
+                    <comment>Default is http://www.turnto.com. Should not ever be changed,
+                        unless instructed by TurnTo.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
                 </field>
-                <field id="image_store_base" translate="label comment" type="text" sortOrder="6" showInDefault="1" showInStore="1" showInWebsite="1">
+                <field id="image_store_base" translate="label comment" type="text" sortOrder="60" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
                     <label>Image Store Base</label>
+                    <comment>Default is wac.edgecastcdn.net/001A39/prod. Should not ever be changed,
+                        unless instructed by TurnTo.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
                 </field>
-                <field id="static_content_cache_time" translate="label comment" type="text" sortOrder="7" showInDefault="1" showInStore="1" showInWebsite="1">
+                <field id="static_content_cache_time" translate="label comment" type="text" sortOrder="70"
+                       showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Static Content Cache Time</label>
+                    <comment>This setting only applies when using a Setup Type of Static Embed. Value is in seconds.
+                        Default is 900 (15 minutes).</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
                 </field>
-                <field id="teaser_cache_time" translate="label comment" type="text" sortOrder="8" showInDefault="1" showInStore="1" showInWebsite="1">
+                <field id="teaser_cache_time" translate="label comment" type="text" sortOrder="80" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
                     <label>Teaser Cache Time</label>
+                    <comment>The amount of time to cache the TurnTo teasers. Value is in seconds.
+                        Default is 900 (15 minutes)</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
                 </field>
-                <field id="upc_attribute"   translate="label comment" type="select" sortOrder="9" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>UPC Attribute</label>
-                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
-                </field>
-                <field id="mpn_attribute"   translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>MPN Attribute</label>
-                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
-                </field>
-                <field id="brand_attribute"   translate="label comment" type="select" sortOrder="11" showInDefault="1" showInStore="1" showInWebsite="1">
+            </group>
+            <group id="product_attribute_mappings" translate="label comment" sortOrder="20" showInStore="1"
+                   showInWebsite="1" showInDefault="1">
+                <label>Product Attributes and Identification</label>
+                <comment>Select the Product Attribute (if any) that corresponds to the given identifier, the identifier
+                    will only be applied if it is set for a given product.</comment>
+                <field id="brand_attribute" translate="label comment" type="select" sortOrder="10" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
                     <label>Brand Attribute</label>
+                    <comment>Brand Name</comment>
                     <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
-                <field id="isbn_attribute"   translate="label comment" type="select" sortOrder="12" showInDefault="1" showInStore="1" showInWebsite="1">
+                <field id="upc_attribute" translate="label comment" type="select" sortOrder="20" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
+                    <label>UPC Attribute</label>
+                    <comment>Universal Product Code (12 digit UPC-A)</comment>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="mpn_attribute" translate="label comment" type="select" sortOrder="30" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
+                    <label>MPN Attribute</label>
+                    <comment>Manufacturer Part Number</comment>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="isbn_attribute" translate="label comment" type="select" sortOrder="40" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
                     <label>ISBN Attribute</label>
+                    <comment>International Standard Book Number (ISBN-13)</comment>
                     <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
-                <field id="ean_attribute"   translate="label comment" type="select" sortOrder="13" showInDefault="1" showInStore="1" showInWebsite="1">
+                <field id="ean_attribute" translate="label comment" type="select" sortOrder="50" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
                     <label>EAN Attribute</label>
+                    <comment>International (formerly European) Article Number (EAN-13)</comment>
                     <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
-                <field id="jan_attribute"   translate="label comment" type="select" sortOrder="14" showInDefault="1" showInStore="1" showInWebsite="1">
+                <field id="jan_attribute" translate="label comment" type="select" sortOrder="60" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
                     <label>JAN Attribute</label>
+                    <comment>Japanese Article Number (8 or 13 digit)</comment>
                     <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
-                <field id="asin_attribute"   translate="label comment" type="select" sortOrder="15" showInDefault="1" showInStore="1" showInWebsite="1">
+                <field id="asin_attribute" translate="label comment" type="select" sortOrder="70" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
                     <label>ASIN Attribute</label>
+                    <comment>Amazon Standard Identification Number</comment>
                     <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
             </group>
-            <group id="checkout_comments" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="checkout_comments" translate="label" sortOrder="30" showInStore="1" showInWebsite="1"
+                   showInDefault="1">
                 <label>Checkout Comments</label>
-                <field id="enable_checkout_comments" type="select" translate="label" sortOrder="1" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Enable</label>
+                <field id="enable_checkout_comments" type="select" translate="label" sortOrder="10" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
+                    <label>Enable Checkout Comments</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
             </group>
-            <group id="question_answer" translate="label" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="question_answer" translate="label" sortOrder="40" showInStore="1" showInWebsite="1"
+                   showInDefault="1">
                 <label>Questions and Answers</label>
-                <field id="setup_type"   translate="label comment" type="select" sortOrder="1" showInDefault="1" showInStore="1" showInWebsite="1">
+                <field id="setup_type" translate="label comment" type="select" sortOrder="10" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
                     <label>Setup Type</label>
+                    <comment>Type of presentation used for TurnTo Q and A functionality</comment>
                     <source_model>TurnTo\SocialCommerce\Model\Config\Source\SetupTypeSelect</source_model>
-                </field>
-                <field id="use_custom_teaser" type="select" translate="label" sortOrder="2" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Use Custom Teaser</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="custom_teaser_definition" translate="label comment" type="textarea" sortOrder="3" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Custom Teaser Function Definition</label>
-                </field>
-                <field id="custom_teaser_name" translate="label comment" type="text" sortOrder="4" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Custom Teaser Function Name</label>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
             </group>
-            <group id="reviews" translate="label" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="reviews" translate="label" sortOrder="50" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Reviews</label>
-                <field id="reviews_setup_type" translate="label comment" type="select" sortOrder="1" showInDefault="1" showInStore="1" showInWebsite="1">
+                <field id="reviews_setup_type" translate="label comment" type="select" sortOrder="10" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
                     <label>Setup Type</label>
+                    <comment>Type of presentation used for TurnTo Reviews functionality</comment>
                     <source_model>TurnTo\SocialCommerce\Model\Config\Source\SetupTypeSelect</source_model>
-                </field>
-                <field id="reviews_use_custom_teaser" type="select" translate="label" sortOrder="2" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Use Custom Teaser</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="reviews_custom_teaser_definition" translate="label comment" type="textarea" sortOrder="3" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Custom Teaser Function Definition</label>
-                </field>
-                <field id="reviews_custom_teaser_name" translate="label comment" type="text" sortOrder="4" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Custom Teaser Function Name</label>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
             </group>
-            <group id="mobile" translate="label" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="mobile" translate="label" sortOrder="60" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Mobile</label>
-                <field id="mobile_page_title" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInStore="1" showInWebsite="1">
+                <comment>The TurnTo Mobile Landing Page URL is [baseUrl]/turnto/frontend/mobilelanding which will need
+                    to be set on the TurnTo.com configuration </comment>
+                <field id="mobile_page_title" translate="label comment" type="text" sortOrder="10" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
                     <label>Mobile Landing Page Title</label>
+                    <comment>The title for the mobile landing page</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
             </group>
-            <group id="product_feed" translate="label" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="product_feed" translate="label" sortOrder="70" showInStore="1" showInWebsite="1"
+                   showInDefault="1">
                 <label>Product Feed</label>
-                <field id="product_feed_url" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Product Ratings Feed URL*</label>
-                </field>
-                <field id="feed_submission_url" translate="label comment" type="text" sortOrder="2" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Product Feed Submission URL</label>
-                </field>
-                <field id="enable_nightly_submission" type="select" translate="label" sortOrder="1" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Enable Nightly Submission</label>
+                <field id="enable_automatic_submission" type="select" translate="label" sortOrder="10" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
+                    <label>Enable Automated Feed Submission</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="product_feed_url" translate="label comment" type="text" sortOrder="20" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
+                    <label>Product Ratings Feed URL</label>
+                    <comment>The URL to submit product ratings feed to,
+                        the default is: http://static.www.turnto.com/static/export/</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="feed_submission_url" translate="label comment" type="text" sortOrder="30" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
+                    <label>Product Feed Submission URL</label>
+                    <comment>The URL to submit Product Information Feed to,
+                        the default is: https://www.turnto.com/feedUpload/postfile</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
             </group>
-            <group id="historical_orders_feed" translate="label" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="historical_orders_feed" translate="label" sortOrder="80" showInStore="1" showInWebsite="1"
+                   showInDefault="1">
                 <label>Historical Orders Feed</label>
-                <field id="enable_historical_feed" type="select" translate="label" sortOrder="1" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Enable Nightly Push</label>
+                <field id="enable_historical_feed" type="select" translate="label" sortOrder="10" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
+                    <label>Enable Automated Feed Submission</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
-                <field id="website_id" translate="label comment" type="text" sortOrder="2" showInDefault="1" showInStore="1" showInWebsite="1">
+                <field id="website_id" translate="label comment" type="text" sortOrder="20" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
                     <label>Website ID</label>
+                    <comment>Website Identifier</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
-                <field id="store_id" translate="label comment" type="text" sortOrder="3" showInDefault="1" showInStore="1" showInWebsite="1">
+                <field id="store_id" translate="label comment" type="text" sortOrder="30" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
                     <label>Store ID</label>
+                    <comment>Store Identifier</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
             </group>
         </section>
