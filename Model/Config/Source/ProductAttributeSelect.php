@@ -29,7 +29,7 @@ class ProductAttributeSelect implements \Magento\Framework\Option\ArrayInterface
      * @param \Magento\Catalog\Model\Product $productModel
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      */
-    public function __construct (
+    public function __construct(
         \Magento\Catalog\Model\ProductFactory $productFactory,
         \TurnTo\SocialCommerce\Helper\Config $config
     ) {
@@ -41,7 +41,7 @@ class ProductAttributeSelect implements \Magento\Framework\Option\ArrayInterface
      * Options getter
      * @return array
      */
-    public function toOptionArray ()
+    public function toOptionArray()
     {
         $optionArray = [
             [
