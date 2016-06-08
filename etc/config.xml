@@ -24,11 +24,15 @@
             <checkout_comments>
                 <enable_checkout_comments>0</enable_checkout_comments>
             </checkout_comments>
-            <question_answer>
-                <setup_type>0</setup_type>
-            </question_answer>
+            <qa>
+                <enable_qa>1</enable_qa>
+                <enable_qa_teaser>1</enable_qa_teaser>
+                <setup_type>dynamicEmbed</setup_type>
+            </qa>
             <reviews>
-                <reviews_setup_type>0</reviews_setup_type>
+                <enable_reviews>1</enable_reviews>
+                <enable_reviews_teaser>1</enable_reviews_teaser>
+                <reviews_setup_type>dynamicEmbed</reviews_setup_type>
             </reviews>
             <mobile>
                 <mobile_page_title>TurnTo - Social Commerce</mobile_page_title>

@@ -24,6 +24,7 @@
                     <depends>
                         <field id="enabled">1</field>
                     </depends>
+                    <can_be_empty>0</can_be_empty>
                 </field>
                 <field id="authorization_key" translate="label comment" type="obscure" sortOrder="20" showInStore="1"
                        showInWebsite="1" showInDefault="1">
@@ -33,6 +34,7 @@
                     <depends>
                         <field id="enabled">1</field>
                     </depends>
+                    <can_be_empty>0</can_be_empty>
                 </field>
                 <field id="version" translate="label comment" type="text" sortOrder="30" showInStore="1"
                        showInWebsite="1" showInDefault="1">
@@ -41,6 +43,7 @@
                     <depends>
                         <field id="enabled">1</field>
                     </depends>
+                    <can_be_empty>0</can_be_empty>
                 </field>
                 <field id="static_url" translate="label comment" type="text" sortOrder="40" showInStore="1"
                        showInWebsite="1" showInDefault="1">
@@ -50,6 +53,7 @@
                     <depends>
                         <field id="enabled">1</field>
                     </depends>
+                    <can_be_empty>0</can_be_empty>
                 </field>
                 <field id="url" translate="label comment" type="text" sortOrder="50" showInStore="1" showInWebsite="1"
                        showInDefault="1">
@@ -169,28 +173,69 @@
                     </depends>
                 </field>
             </group>
-            <group id="question_answer" translate="label" sortOrder="40" showInStore="1" showInWebsite="1"
+            <group id="qa" translate="label" sortOrder="40" showInStore="1" showInWebsite="1"
                    showInDefault="1">
                 <label>Questions and Answers</label>
-                <field id="setup_type" translate="label comment" type="select" sortOrder="10" showInStore="1"
+                <field id="enable_qa" translate="label comment" type="select" sortOrder="10" showInDefault="1"
+                       showInStore="1" showInWebsite="1">
+                    <label>Enable Q&amp;A</label>
+                    <comment>Enable the Q&amp;A functionality.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="enable_qa_teaser" translate="label comment" type="select" sortOrder="20"
+                       showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Enable Q&amp;A Teaser</label>
+                    <comment>Enable the Q&amp;A teaser below the product name on the product details page.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/qa/enable_qa">1</field>
+                    </depends>
+                </field>
+                <field id="setup_type" translate="label comment" type="select" sortOrder="30" showInStore="1"
                        showInWebsite="1" showInDefault="1">
                     <label>Setup Type</label>
-                    <comment>Type of presentation used for TurnTo Q and A functionality</comment>
+                    <comment>Type of presentation used for TurnTo Q&amp;A functionality</comment>
                     <source_model>TurnTo\SocialCommerce\Model\Config\Source\SetupTypeSelect</source_model>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/qa/enable_qa">1</field>
                     </depends>
                 </field>
             </group>
             <group id="reviews" translate="label" sortOrder="50" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Reviews</label>
-                <field id="reviews_setup_type" translate="label comment" type="select" sortOrder="10" showInStore="1"
+                <field id="enable_reviews" translate="label comment" type="select" sortOrder="10" showInDefault="1"
+                       showInStore="1" showInWebsite="1">
+                    <label>Enable Reviews</label>
+                    <comment>Enable the TurnTo SocialCommerce reviews feature and disable the native reviews functionality.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="enable_reviews_teaser" translate="label comment" type="select" sortOrder="20" showInDefault="1"
+                       showInStore="1" showInWebsite="1">
+                    <label>Enable Reviews Teaser</label>
+                    <comment>Enable the reviews teaser below the product name on the product details page.</comment>
+                    <comment>Enable the TurnTo SocialCommerce reviews feature and disable the native reviews functionality.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/reviews/enable_reviews">1</field>
+                    </depends>
+                </field>
+                <field id="reviews_setup_type" translate="label comment" type="select" sortOrder="30" showInStore="1"
                        showInWebsite="1" showInDefault="1">
                     <label>Setup Type</label>
                     <comment>Type of presentation used for TurnTo Reviews functionality</comment>
                     <source_model>TurnTo\SocialCommerce\Model\Config\Source\SetupTypeSelect</source_model>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/reviews/enable_reviews">1</field>
                     </depends>
                 </field>
             </group>
