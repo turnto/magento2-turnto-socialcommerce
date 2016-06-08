@@ -1,26 +1,24 @@
-<!DOCTYPE  HTML  PUBLIC  "-­//W3C//DTD  HTML  4.01//EN"  "http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-­//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
     <head>
-        <title>mobile  item  page</title>
-        <meta  name="viewport"  content="width=device-width,  initial-scale=1.0, maximum-scale=1.0,  user-scalable=0"/>
-        <meta  name="apple-mobile-web-app-capable"  content="yes"/>
-        <meta  name="apple-mobile-web-app-status-bar-style"  content="black-translucent"/>
+        <title>mobile item page</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+        <meta name="apple-mobile-web-app-capable" content="yes"/>
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 
-        <script  type="text/javascript">
-            var  turnToConfig  = {
+        <script type="text/javascript">
+            var turnToConfig = {
                 siteKey:
                     "<?php
                         $helper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
-                        echo $helper->getSiteKey(
-                            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-                            $helper->getCurrentStoreCode()
-                        );
+                        echo $helper->getSiteKey($helper->getCurrentStoreCode());
                     ?>",
                 setupType:"mobileTT"
             };
         </script>
-        <script  type="text/javascript"
-                 src="//static.www.turnto.com/tra4_3/mobile-landing.js"></script>
+        <script type="text/javascript" src="//static.www.turnto.com/tra<?php
+            echo $helper->getTurnToVersion($helper->getCurrentStoreCode());
+        ?>/mobile-landing.js"></script>
     </head>
     <body>
         <div id="mobileTT-content"></div>
