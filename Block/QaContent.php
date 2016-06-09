@@ -11,6 +11,9 @@ class QaContent extends AbstractBlock
     // This is supposed to be blank
     protected static $contentType = '';
 
+    /**
+     * @return mixed
+     */
     public function getSetupType()
     {
         return $this->config->getSetupType();

@@ -18,7 +18,7 @@ abstract class AbstractBlock extends \Magento\Catalog\Block\Product\View
     protected $config;
 
     /**
-     * @var \Zend\Http\Client
+     * @var \TurnTo\SocialCommerce\Model\Embed\HttpClient
      */
     protected $httpClient;
 
@@ -36,7 +36,7 @@ abstract class AbstractBlock extends \Magento\Catalog\Block\Product\View
      * @param ProductRepositoryInterface $productRepository
      * @param \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency
      * @param \TurnTo\SocialCommerce\Helper\Config $config
-     * @param \Zend\Http\Client $httpClient
+     * @param \TurnTo\SocialCommerce\Model\Embed\HttpClient $httpClient
      * @param array $data
      */
     public function __construct(
@@ -51,7 +51,7 @@ abstract class AbstractBlock extends \Magento\Catalog\Block\Product\View
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
         \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency,
         Config $config,
-        \Zend\Http\Client $httpClient,
+        \TurnTo\SocialCommerce\Model\Embed\HttpClient $httpClient,
         array $data = []
     ) {
         $this->config = $config;
@@ -74,6 +74,9 @@ abstract class AbstractBlock extends \Magento\Catalog\Block\Product\View
         $this->addData($this->getCacheData());
     }
 
+    /**
+     * @return array
+     */
     protected function getCacheData()
     {
         $cacheKey = static::$staticCacheKey
@@ -97,6 +100,10 @@ abstract class AbstractBlock extends \Magento\Catalog\Block\Product\View
         ];
     }
 
+    /**
+     * @return string
+     * @throws \Exception
+     */
     public function getContentHtml()
     {
         $setupType = static::getSetupType();
@@ -109,39 +116,13 @@ abstract class AbstractBlock extends \Magento\Catalog\Block\Product\View
         } else if ($setupType == Config::SETUP_TYPE_STATIC_EMBED) {
             $sku = $this->getProduct()->getSku();
             $url = $staticUrl . '/sitedata/' . $siteKey . '/v' . $version . '/' . $sku . '/d/catitem' . static::$contentType . 'html';
-            //TODO: return the file loaded from the model
-            return $this->httpContent($url);
+            return $this->httpClient->getTurnToHtml($url);
         }
         return '';
     }
 
-    public function httpContent($url)
-    {
-        try{
-            $response = null;
-            $this->httpClient
-                ->setUri($url)
-                ->setMethod(\Zend_Http_Client::GET);
-
-            $response = $this->httpClient->send();
-
-            if (!$response || !$response->isSuccess()) {
-                throw new \Exception('TurnTo catalog feed submission failed silently');
-            }
-
-            $body = $response->getBody();
-
-            return $body;
-        } catch (\Exception $e) {
-//            $this->logger->error('An error occurred while transmitting the catalog feed to TurnTo',
-//                [
-//                    'exception' => $e,
-//                    'response' => $response ? 'null' : $response->getBody()
-//                ]
-//            );
-            throw $e;
-        }
-    }
-
+    /**
+     * @return mixed
+     */
     abstract public function getSetupType();
 }
