@@ -49,8 +49,32 @@ class AbstractExport
     protected $encryptor = null;
 
     /**
+     * @var \Magento\Review\Model\ReviewFactory|null
+     */
+    protected $reviewFactory = null;
+
+    /**
+     * @var \Magento\Review\Model\ResourceModel\Review\CollectionFactory|null
+     */
+    protected $reviewCollectionFactory = null;
+
+    /**
+     * @var \Magento\Catalog\Model\ProductFactory|null
+     */
+    protected $productFactory = null;
+
+    /**
+     * @var \Magento\Customer\Model\CustomerFactory|null
+     */
+    protected $customerFactory = null;
+
+    /**
+     * @var \Magento\Review\Model\Rating\Option\VoteFactory|null
+     */
+    protected $voteFactory = null;
+
+    /**
      * AbstractExport constructor.
-     *
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
@@ -61,8 +85,13 @@ class AbstractExport
      * @param \Magento\Catalog\Model\Category\Tree $categoryTreeManager
      * @param \Magento\Catalog\Helper\Product $productHelper
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
+     * @param \Magento\Review\Model\ReviewFactory $reviewFactory
+     * @param \Magento\Review\Model\ResourceModel\Review\CollectionFactory $reviewCollectionFactory
+     * @param \Magento\Catalog\Model\ProductFactory $productFactory
+     * @param \Magento\Customer\Model\CustomerFactory $customerFactory
+     * @param \Magento\Review\Model\Rating\Option\VoteFactory $voteFactory
      */
-    public function __construct (
+    public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
@@ -72,7 +101,12 @@ class AbstractExport
         \Magento\Catalog\Model\CategoryFactory $categoryFactory,
         \Magento\Catalog\Model\Category\Tree $categoryTreeManager,
         \Magento\Catalog\Helper\Product $productHelper,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor
+        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
+        \Magento\Review\Model\ReviewFactory $reviewFactory,
+        \Magento\Review\Model\ResourceModel\Review\CollectionFactory $reviewCollectionFactory,
+        \Magento\Catalog\Model\ProductFactory $productFactory,
+        \Magento\Customer\Model\CustomerFactory $customerFactory,
+        \Magento\Review\Model\Rating\Option\VoteFactory $voteFactory
     ) {
         $this->config = $config;
         $this->storeManager = $storeManager;
@@ -82,6 +116,11 @@ class AbstractExport
         $this->dateTimeFactory = $dateTimeFactory;
         $this->productHelper = $productHelper;
         $this->encryptor = $encryptor;
+        $this->reviewFactory = $reviewFactory;
+        $this->reviewCollectionFactory = $reviewCollectionFactory;
+        $this->productFactory = $productFactory;
+        $this->customerFactory = $customerFactory;
+        $this->voteFactory = $voteFactory;
     }
 
     /**
@@ -90,7 +129,7 @@ class AbstractExport
      * @param \Magento\Store\Api\Data\StoreInterface $store
      * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
      */
-    protected function getProducts (\Magento\Store\Api\Data\StoreInterface $store)
+    protected function getProducts(\Magento\Store\Api\Data\StoreInterface $store)
     {
         $collection = $this->productCollectionFactory->create()
             ->addAttributeToSelect('id')
@@ -102,16 +141,17 @@ class AbstractExport
             ->addAttributeToSelect('price')
             ->addAttributeToSelect('description');
 
-        $gtinMap = $this->config
-            ->getGtinAttributesMap(\Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store->getCode());
+        $gtinMap = $this->config->getGtinAttributesMap($store->getCode());
+        
         if (!empty($gtinMap)) {
-            foreach ($gtinMap as $key => $attributeName) {
+            foreach ($gtinMap as $attributeName) {
                 $collection->addAttributeToSelect($attributeName);
             }
         }
         
         $collection->addFieldToFilter('visibility',
-            ['in' =>
+            [
+                'in' =>
                 [
                     \Magento\Catalog\Model\Product\Visibility::VISIBILITY_BOTH,
                     \Magento\Catalog\Model\Product\Visibility::VISIBILITY_IN_CATALOG
