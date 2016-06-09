@@ -32,6 +32,7 @@ if ($reviewsEnabled || $qaEnabled):
             var answerCount = TurnToItemData.counts.a;
             var questionCount = TurnToItemData.counts.q;
             var teaserContainer = TurnTojQuery(".TurnToItemTeaser");
+            var teaserHtml = '';
             <?php
                 if ($qaEnabled && $qaTeaserEnabled && $reviewsEnabled && $reviewsTeaserEnabled):
             ?>
@@ -52,9 +53,9 @@ if ($reviewsEnabled || $qaEnabled):
             teaserContainer.html(teaserHtml);
 
             // Add the appropriate listeners to the links
-            scrollToTab(teaserContainer, '#askQuestion', '.product.info.detailed','#tab-label-qa-title');
+            scrollToTab(teaserContainer, '#askQuestion', '#turnto_qa','#tab-label-turnto_qa-title');
 
-            scrollToTab(teaserContainer, '#readQuestions', '.product.info.detailed','#tab-label-qa-title');
+            scrollToTab(teaserContainer, '#readQuestions', '#turnto_qa','#tab-label-turnto_qa-title');
         }
     }
 
@@ -86,7 +87,7 @@ if ($reviewsEnabled || $qaEnabled):
 
             teaserContainer.html(teaserHtml);
 
-            scrollToTab(teaserContainer, '#readReviews', '.product.info.detailed', '#tab-label-reviews-title');
+            scrollToTab(teaserContainer, '#readReviews', '#turnto_reviews', '#tab-label-turnto_reviews-title');
 
             // Listener on 'write review' link
             teaserContainer.find('#writeReview').click(function(e) {
@@ -101,7 +102,9 @@ if ($reviewsEnabled || $qaEnabled):
     function scrollToTab(teaserContainer, clickElement, container, tab) {
         teaserContainer.find(clickElement).click(function(e) {
             e.preventDefault();
-            jQuery(tab).click();
+            if(!jQuery(tab).parent().hasClass('active')) {
+                jQuery(tab).click();
+            }
             jQuery("html, body").animate({ scrollTop: jQuery(container).offset().top - 20 }, 1000);
         });
     }
