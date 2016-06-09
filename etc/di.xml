@@ -8,9 +8,6 @@
             </argument>
         </arguments>
     </type>
-    <type name="Magento\Review\Block\Product\Review">
-        <plugin name="removeReviewsCount" type="TurnTo\SocialCommerce\Plugin\Review\Block\Product\Review" />
-    </type>
     <type name="Magento\Catalog\Block\Product\View\Description">
         <plugin name="removeQuestionsTab" type="TurnTo\SocialCommerce\Plugin\Catalog\Block\Product\View\Description" />
     </type>
