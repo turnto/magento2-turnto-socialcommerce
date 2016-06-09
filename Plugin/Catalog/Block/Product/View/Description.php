@@ -9,9 +9,12 @@ class Description
 {
     protected $config;
 
-    public function __construct(
-        Config $config
-    ) {
+    /**
+     * Description constructor.
+     * @param \TurnTo\SocialCommerce\Helper\Config $config
+     */
+    public function __construct(\TurnTo\SocialCommerce\Helper\Config $config)
+    {
         $this->config = $config;
     }
 
@@ -34,5 +37,3 @@ class Description
         return $result;
     }
 }
-?>
-
