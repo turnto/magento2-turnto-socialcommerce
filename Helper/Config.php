@@ -22,11 +22,15 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     
     const XML_PATH_SOCIALCOMMERCE_VERSION = 'turnto_socialcommerce_configuration/general/version';
 
-    const XML_PATH_SOCIALCOMMERCE_URL = 'turnto_socialcommerce_configuration/general/url';
-
     const XML_PATH_SOCIALCOMMERCE_STATIC_URL = 'turnto_socialcommerce_configuration/general/static_url';
 
-    const XML_PATH_SOCIALCOMMERCE_AUTHENTICATION_KEY = 'turnto_socialcommerce_configuration/general/authentication_key';
+    const XML_PATH_SOCIALCOMMERCE_URL = 'turnto_socialcommerce_configuration/general/url';
+
+    const XML_PATH_SOCIALCOMMERCE_IMAGE_STORE_BASE = 'turnto_socialcommerce_configuration/general/image_store_base';
+
+    const XML_PATH_SOCIALCOMMERCE_STATIC_CONTENT_CACHE_TIME = 'turnto_socialcommerce_configuration/general/static_content_cache_time';
+
+    const XML_PATH_SOCIALCOMMERCE_STATIC_TEASER_CACHE_TIME = 'turnto_socialcommerce_configuration/general/static_teaser_cache_time';
 
     /**
      * Product Groups
@@ -64,7 +68,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const XML_PATH_SOCIALCOMMERCE_ENABLE_QA_TEASER = 'turnto_socialcommerce_configuration/qa/enable_qa_teaser';
 
-    const XML_PATH_SOCIALCOMMERCE_SETUP_TYPE = 'turnto_socialcommerce_configuration/question_answer/setup_type';
+    const XML_PATH_SOCIALCOMMERCE_SETUP_TYPE = 'turnto_socialcommerce_configuration/qa/setup_type';
     
     /**
      * Reviews
@@ -82,6 +86,14 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     
     const XML_PATH_SOCIALCOMMERCE_FEED_SUBMISSION_URL = 'turnto_socialcommerce_configuration/product_feed/feed_submission_url';
 
+    /**
+     * Setup Types
+     */
+    const SETUP_TYPE_DYNAMIC_EMBED = 'dynamicEmbed';
+
+    const SETUP_TYPE_STATIC_EMBED = 'staticEmbed';
+
+    const SETUP_TYPE_OVERLAY = 'overlay';
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface|null
@@ -213,6 +225,24 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         return $url;
     }
 
+    public function getStaticContentCacheTime($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_STATIC_CONTENT_CACHE_TIME,
+            ScopeInterface::SCOPE_STORE,
+            isset($store) ? $store : $this->getCurrentStoreCode()
+        );
+    }
+
+    public function getStaticTeaserCacheTime($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_STATIC_TEASER_CACHE_TIME,
+            ScopeInterface::SCOPE_STORE,
+            isset($store) ? $store : $this->getCurrentStoreCode()
+        );
+    }
+
     /**
      * Gets the TurnTo API Authorization Key
      *
@@ -221,7 +251,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     public function getAuthorizationKey ($store = null)
     {
         return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_AUTHENTICATION_KEY,
+            self::XML_PATH_SOCIALCOMMERCE_AUTHORIZATION_KEY,
             ScopeInterface::SCOPE_STORE,
             isset($store) ? $store : $this->getCurrentStoreCode()
         );

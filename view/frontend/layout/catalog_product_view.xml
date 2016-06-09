@@ -16,15 +16,15 @@
                 <argument name="template" xsi:type="string">TurnTo_SocialCommerce::product/view/teaser.phtml</argument>
             </action>
         </referenceBlock>
-
-        <referenceBlock name="reviews.tab">
-            <action method="setTemplate" ifconfig="turnto_socialcommerce_configuration/general/enabled">
-                <argument name="template" xsi:type="string">TurnTo_SocialCommerce::product/view/reviews.phtml</argument>
-            </action>
-        </referenceBlock>
-
         <referenceBlock name="product.info.details">
-            <block class="Magento\Framework\View\Element\Template" name="qa" template="TurnTo_SocialCommerce::product/view/qa.phtml" group="detailed_info">
+            <block class="TurnTo\SocialCommerce\Block\ReviewsContent" name="turnto.reviews.tab" as="turnto_reviews" template="TurnTo_SocialCommerce::product/view/reviews.phtml" group="detailed_info">
+                <arguments>
+                    <argument name="title" translate="true" xsi:type="string">Reviews</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+        <referenceBlock name="product.info.details">
+            <block class="TurnTo\SocialCommerce\Block\QaContent" name="turnto.qa.tab" as="turnto_qa" template="TurnTo_SocialCommerce::product/view/qa.phtml" group="detailed_info">
                 <arguments>
                     <argument name="title" translate="true" xsi:type="string">Q&amp;A</argument>
                 </arguments>
