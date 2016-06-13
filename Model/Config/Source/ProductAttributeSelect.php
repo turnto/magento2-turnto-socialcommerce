@@ -17,26 +17,24 @@ class ProductAttributeSelect implements \Magento\Framework\Option\ArrayInterface
     /**
      * @var null|\TurnTo\SocialCommerce\Helper\Config
      */
-    public $config = null;
+    protected $config = null;
 
     /**
      * @var \Magento\Catalog\Model\Product|null
      */
-    public $productModel = null;
+    protected $productFactory = null;
 
     /**
      * ProductAttributeSelect constructor.
      * @param \Magento\Catalog\Model\Product $productModel
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      */
-    public function __construct
-    (
-        \Magento\Catalog\Model\Product $productModel,
+    public function __construct(
+        \Magento\Catalog\Model\ProductFactory $productFactory,
         \TurnTo\SocialCommerce\Helper\Config $config
-    )
-    {
+    ) {
         $this->config = $config;
-        $this->productModel = $productModel;
+        $this->productFactory = $productFactory;
     }
 
     /**
@@ -52,14 +50,15 @@ class ProductAttributeSelect implements \Magento\Framework\Option\ArrayInterface
             ]
         ];
 
-        foreach($this->productModel->getAttributes() as $attribute)
-        {
+        foreach ($this->productFactory->create()->getAttributes() as $attribute) {
             $attributeCode = $attribute->getAttributeCode();
-            if ($attributeCode != $attribute->getFrontend()->getLabel())
-            {
+
+            //Prevents exposing system only attributes to user like (created_at, entity_id, etc)
+            if ($attributeCode != $attribute->getFrontend()->getLabel()) {
                 $optionArray[] = [
                     'value' => $attributeCode,
                     'label' => $attribute->getFrontend()->getLocalizedLabel() . " ($attributeCode)"
+                    //not utilizing the translation function as this is already returning the Locale specific variant.
                 ];
             }
         }

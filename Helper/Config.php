@@ -56,70 +56,149 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         self::BRAND_ATTRIBUTE
     ];
 
+    /**#@+
+     * XPATH's for module config settings
+     */
+    const XML_PATH_ENABLED = 'turnto_socialcommerce_configuration/general/enabled';
+
+    const XML_PATH_SITE_KEY = 'turnto_socialcommerce_configuration/general/site_key';
+
+    const XML_PATH_VERSION = 'turnto_socialcommerce_configuration/general/version';
+
+    const XML_PATH_AUTHORIZATION_KEY = 'turnto_socialcommerce_configuration/general/authorization_key';
+
+    const XML_PATH_ENABLE_PRODUCT_FEED_SUBMISSION = 'turnto_socialcommerce_configuration/product_feed/enable_automatic_submission';
+
+    const XML_PATH_FEED_SUBMISSION_URL = 'turnto_socialcommerce_configuration/product_feed/feed_submission_url';
+
+    const XML_PATH_PRODUCT_GROUP = 'turnto_socialcommerce_configuration/product_attribute_mappings/';
+    /**#@-*/
+
     /**
-     * Gets the TurnTo Site Key
+     * Gets the value of the setting that determines if TurnTo's configuration is enabled
+     *
+     * @param $scopeType
+     * @param $scopeCode
      * @return mixed
      */
-    public function getSiteKey()
+    public function getIsEnabled($scopeCode)
     {
-        return $this->scopeConfig->getValue('turnto_socialcommerce_configuration/general/site_key');
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_ENABLED,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $scopeCode
+        );
+    }
+
+    /**
+     * Gets the value of the setting that determines if automated Product Feed Submission is enabled
+     *
+     * @param $scopeType
+     * @param $scopeCode
+     * @return mixed
+     */
+    public function getIsProductFeedSubmissionEnabled($scopeCode)
+    {
+        return $this->scopeConfig->getValue(self::XML_PATH_ENABLE_PRODUCT_FEED_SUBMISSION,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $scopeCode
+        );
+    }
+
+    /**
+     * Gets the TurnTo Site Key
+     *
+     * @param $scopeType
+     * @param $scopeCode
+     * @return mixed
+     */
+    public function getSiteKey($scopeCode)
+    {
+        return $this->scopeConfig->getValue(self::XML_PATH_SITE_KEY,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $scopeCode
+        );
     }
 
     /**
      * Gets the TurnTo API Version
+     *
+     * @param $scopeType
+     * @param $scopeCode
      * @return mixed
      */
-    public function getTurnToVersion()
+    public function getTurnToVersion($scopeCode)
     {
         return str_replace(
             '.',
             '_',
-            $this->scopeConfig->getValue('turnto_socialcommerce_configuration/general/version')
+            $this->scopeConfig->getValue(self::XML_PATH_VERSION,
+                \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+                $scopeCode
+            )
         );
     }
 
     /**
      * Gets the TurnTo API Authorization Key
+     *
+     * @param $scopeType
+     * @param $scopeCode
      * @return mixed
      */
-    public function getAuthorizationKey()
+    public function getAuthorizationKey($scopeCode)
     {
-        return $this->scopeConfig->getValue('turnto_socialcommerce_configuration/general/authentication_key');
+        return $this->scopeConfig->getValue(self::XML_PATH_AUTHORIZATION_KEY,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $scopeCode
+        );
     }
 
     /**
      * Gets the TurnTo URL to send a feed to
+     *
+     * @param $scopeType
+     * @param $scopeCode
      * @return mixed
      */
-    public function getFeedUploadAddress()
+    public function getFeedUploadAddress($scopeCode)
     {
-        //return 'https://www.turnto.com/feedUpload/postfile';
-        return $this->scopeConfig->getValue('turnto_socialcommerce_configuration/product_feed/feed_submission_url');
+        return $this->scopeConfig->getValue(self::XML_PATH_FEED_SUBMISSION_URL,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $scopeCode
+        );
     }
 
     /**
      * Gets the Product Attribute Code that corresponds to the mapping key (see constants on this class)
+     *
      * @param $mappingKey
+     * @param $scopeType
+     * @param $scopeCode
      * @return mixed
      */
-    public function getProductAttributeMapping($mappingKey)
+    public function getProductAttributeMapping($mappingKey, $scopeCode)
     {
-        return $this->scopeConfig->getValue("turnto_socialcommerce_configuration/general/$mappingKey");
+        return $this->scopeConfig->getValue(self::XML_PATH_PRODUCT_GROUP . $mappingKey,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $scopeCode
+        );
     }
 
     /**
      * Gets an associative array of any set product attributes related to GTIN, key => mappingKey, value => attr_code
+     *
+     * @param $scopeType
+     * @param $scopeCode
      * @return array
      */
-    public function getGtinAttributesMap()
+    public function getGtinAttributesMap($scopeCode)
     {
         $gtinMap = [];
-        foreach(self::PRODUCT_ATTRIBUTE_MAPPING_KEYS as $mappingKey)
-        {
+        foreach (self::PRODUCT_ATTRIBUTE_MAPPING_KEYS as $mappingKey) {
             $tempResult = null;
-            $tempResult = self::getProductAttributeMapping($mappingKey);
-            if (!empty($tempResult))
-            {
+            $tempResult = $this->getProductAttributeMapping($mappingKey, $scopeCode);
+            if (!empty($tempResult)) {
                 $gtinMap[$mappingKey] = $tempResult;
             }
         }

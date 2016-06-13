@@ -8,7 +8,6 @@
 
 namespace TurnTo\SocialCommerce\Model\Config\Source;
 
-
 /**
  * Class SetupTypeSelect
  * @package TurnTo\SocialCommerce\Model\Config\Source
