@@ -9,6 +9,7 @@
 namespace TurnTo\SocialCommerce\Setup;
 
 use \Magento\Catalog\Model\Product;
+use \Magento\Catalog\Api\Data\EavAttributeInterface;
 
 class InstallData implements \Magento\Framework\Setup\InstallDataInterface
 {
@@ -69,9 +70,11 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
                     'type' => 'int',
                     'label' => self::REVIEW_COUNT_ATTRIBUTE_LABEL,
                     'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_STORE,
-                    'visible' => false,
+                    'visible' => true,
                     'required' => false,
-                    'default' => 0
+                    'default' => 0,
+                    'used_in_product_listing' => true,
+                    'is_visible_on_front' => true
                 ]
             )
             ->addAttribute(
@@ -82,9 +85,11 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
                     'type' => 'decimal',
                     'label' => self::AVERAGE_RATING_ATTRIBUTE_LABEL,
                     'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_STORE,
-                    'visible' => false,
+                    'visible' => true,
                     'required' => false,
-                    'default' => 0.0
+                    'default' => 0.0,
+                    'used_in_product_listing' => true,
+                    'is_visible_on_front' => true
                 ]
             );
 

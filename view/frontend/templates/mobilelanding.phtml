@@ -11,10 +11,7 @@
                 siteKey:
                     "<?php
                         $helper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
-                        echo $helper->getSiteKey(
-                            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-                            $helper->getCurrentStoreCode()
-                        );
+                        echo $helper->getSiteKey($helper->getCurrentStoreCode());
                     ?>",
                 setupType:"mobileTT"
             };
