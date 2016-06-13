@@ -62,7 +62,7 @@ class AbstractExport
      * @param \Magento\Catalog\Helper\Product $productHelper
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      */
-    public function __construct (
+    public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
@@ -90,7 +90,7 @@ class AbstractExport
      * @param \Magento\Store\Api\Data\StoreInterface $store
      * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
      */
-    protected function getProducts (\Magento\Store\Api\Data\StoreInterface $store)
+    protected function getProducts(\Magento\Store\Api\Data\StoreInterface $store)
     {
         $collection = $this->productCollectionFactory->create()
             ->addAttributeToSelect('id')
@@ -103,7 +103,7 @@ class AbstractExport
             ->addAttributeToSelect('description');
 
         $gtinMap = $this->config
-            ->getGtinAttributesMap(\Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store->getCode());
+            ->getGtinAttributesMap($store->getCode());
         if (!empty($gtinMap)) {
             foreach ($gtinMap as $key => $attributeName) {
                 $collection->addAttributeToSelect($attributeName);
