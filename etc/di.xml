@@ -8,6 +8,9 @@
             </argument>
         </arguments>
     </type>
+    <type name="Magento\Catalog\Block\Product\View\Description">
+        <plugin name="removeQuestionsTab" type="TurnTo\SocialCommerce\Plugin\Catalog\Block\Product\View\Description" />
+    </type>
     <preference for="Magento\Catalog\Block\Product\ReviewRendererInterface" type="TurnTo\SocialCommerce\Block\Product\ReviewRenderer" />
     <type name="Magento\Catalog\Block\Product\ReviewRendererInterface">
         <plugin name="turnto_socialcommerce_model_reviewrendererinterface_plugin" type="TurnTo\SocialCommerce\Model\ReviewRendererInterface\Plugin" sortOrder="1" disabled="false" />
