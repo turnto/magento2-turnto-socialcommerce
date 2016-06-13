@@ -57,36 +57,35 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         self::BRAND_ATTRIBUTE
     ];
 
-    /**
-     * Questions and Answers
+    /**#@+
+     * XPATH's for module config settings
      */
+    const XML_PATH_ENABLED = 'turnto_socialcommerce_configuration/general/enabled';
+
+    const XML_PATH_SITE_KEY = 'turnto_socialcommerce_configuration/general/site_key';
+
+    const XML_PATH_VERSION = 'turnto_socialcommerce_configuration/general/version';
+
+    const XML_PATH_AUTHORIZATION_KEY = 'turnto_socialcommerce_configuration/general/authorization_key';
+
     const XML_PATH_SOCIALCOMMERCE_ENABLE_QA = 'turnto_socialcommerce_configuration/qa/enable_qa';
 
     const XML_PATH_SOCIALCOMMERCE_ENABLE_QA_TEASER = 'turnto_socialcommerce_configuration/qa/enable_qa_teaser';
 
     const XML_PATH_SOCIALCOMMERCE_SETUP_TYPE = 'turnto_socialcommerce_configuration/question_answer/setup_type';
-    
-    /**
-     * Reviews
-     */
+
     const XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS = 'turnto_socialcommerce_configuration/reviews/enable_reviews';
 
     const XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS_TEASER = 'turnto_socialcommerce_configuration/reviews/enable_reviews_teaser';
 
     const XML_PATH_SOCIALCOMMERCE_REVIEWS_SETUP_TYPE = 'turnto_socialcommerce_configuration/reviews/reviews_setup_type';
 
-    /**
-     * Product Feed
-     */
-    const XML_PATH_SOCIALCOMMERCE_ENABLE_PRODUCT_FEED_SUBMISSION = 'turnto_socialcommerce_configuration/product_feed/enable_automatic_submission';
-    
-    const XML_PATH_SOCIALCOMMERCE_FEED_SUBMISSION_URL = 'turnto_socialcommerce_configuration/product_feed/feed_submission_url';
+    const XML_PATH_ENABLE_PRODUCT_FEED_SUBMISSION = 'turnto_socialcommerce_configuration/product_feed/enable_automatic_submission';
 
+    const XML_PATH_FEED_SUBMISSION_URL = 'turnto_socialcommerce_configuration/product_feed/feed_submission_url';
 
-    /**
-     * @var \Magento\Store\Model\StoreManagerInterface|null
-     */
-    protected $storeManager = null;
+    const XML_PATH_PRODUCT_GROUP = 'turnto_socialcommerce_configuration/product_attribute_mappings/';
+    /**#@-*/
 
     /**
      * Config constructor.
@@ -117,12 +116,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * @param $scopeCode
      * @return mixed
      */
-    public function getIsEnabled ($store = null)
+    public function getIsEnabled($scopeCode)
     {
         return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_ENABLED,
-            ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            self::XML_PATH_ENABLED,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $scopeCode
         );
     }
 
@@ -132,12 +131,11 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * @param $store = null
      * @return mixed
      */
-    public function getIsProductFeedSubmissionEnabled ($store = null)
+    public function getIsProductFeedSubmissionEnabled($scopeCode)
     {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_ENABLE_PRODUCT_FEED_SUBMISSION,
-            ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+        return $this->scopeConfig->getValue(self::XML_PATH_ENABLE_PRODUCT_FEED_SUBMISSION,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $scopeCode
         );
     }
 
@@ -146,12 +144,11 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return mixed
      */
-    public function getSiteKey ($store = null)
+    public function getSiteKey($scopeCode)
     {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_SITE_KEY,
-            ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+        return $this->scopeConfig->getValue(self::XML_PATH_SITE_KEY,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $scopeCode
         );
     }
 
@@ -161,15 +158,14 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * @param $store = null
      * @return mixed
      */
-    public function getTurnToVersion ($store = null)
+    public function getTurnToVersion($scopeCode)
     {
         return str_replace(
             '.',
             '_',
-            $this->scopeConfig->getValue(
-                self::XML_PATH_SOCIALCOMMERCE_VERSION,
-                ScopeInterface::SCOPE_STORE,
-                isset($store) ? $store : $this->getCurrentStoreCode()
+            $this->scopeConfig->getValue(self::XML_PATH_VERSION,
+                \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+                $scopeCode
             )
         );
     }
@@ -218,12 +214,11 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return mixed
      */
-    public function getAuthorizationKey ($store = null)
+    public function getAuthorizationKey($scopeCode)
     {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_AUTHENTICATION_KEY,
-            ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+        return $this->scopeConfig->getValue(self::XML_PATH_AUTHORIZATION_KEY,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $scopeCode
         );
     }
 
@@ -232,13 +227,11 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return mixed
      */
-    public function getFeedUploadAddress ($store = null)
+    public function getFeedUploadAddress($scopeCode)
     {
-        //return 'https://www.turnto.com/feedUpload/postfile';
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_FEED_SUBMISSION_URL,
-            ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+        return $this->scopeConfig->getValue(self::XML_PATH_FEED_SUBMISSION_URL,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $scopeCode
         );
     }
 
@@ -250,12 +243,11 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * @param $scopeCode
      * @return mixed
      */
-    public function getProductAttributeMapping ($mappingKey, $store)
+    public function getProductAttributeMapping($mappingKey, $scopeCode)
     {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_PRODUCT_GROUP . $mappingKey,
-            ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+        return $this->scopeConfig->getValue(self::XML_PATH_PRODUCT_GROUP . $mappingKey,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $scopeCode
         );
     }
 
@@ -264,16 +256,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return array
      */
-    public function getGtinAttributesMap ($store = null)
+    public function getGtinAttributesMap($scopeCode)
     {
         $gtinMap = [];
         foreach (self::PRODUCT_ATTRIBUTE_MAPPING_KEYS as $mappingKey) {
             $tempResult = null;
-            $tempResult = $this->getProductAttributeMapping(
-                $mappingKey,
-                ScopeInterface::SCOPE_STORE,
-                isset($store) ? $store : $this->getCurrentStoreCode()
-            );
+            $tempResult = $this->getProductAttributeMapping($mappingKey, $scopeCode);
             if (!empty($tempResult)) {
                 $gtinMap[$mappingKey] = $tempResult;
             }
