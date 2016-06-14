@@ -86,9 +86,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const XML_PATH_SOCIALCOMMERCE_MOBILE_PAGE_TITLE = 'turnto_socialcommerce_configuration/mobile/mobile_page_title';
 
-    const XML_PATH_ENABLE_PRODUCT_FEED_SUBMISSION = 'turnto_socialcommerce_configuration/product_feed/enable_automatic_submission';
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_PRODUCT_FEED_SUBMISSION = 'turnto_socialcommerce_configuration/product_feed/enable_automatic_submission';
 
-    const XML_PATH_FEED_SUBMISSION_URL = 'turnto_socialcommerce_configuration/product_feed/feed_submission_url';
+    const XML_PATH_SOCIALCOMMERCE_FEED_SUBMISSION_URL = 'turnto_socialcommerce_configuration/product_feed/feed_submission_url';
 
     const XML_PATH_PRODUCT_GROUP = 'turnto_socialcommerce_configuration/product_attribute_mappings/';
     /**#@-*/
@@ -191,7 +191,13 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
             )
         );
     }
-    
+
+    /**
+     * Gets the Static URL configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
     public function getStaticUrl($store = null)
     {
         return $this->scopeConfig->getValue(
@@ -201,6 +207,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * Gets the URL configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
     public function getUrl($store = null)
     {
         return $this->scopeConfig->getValue(
@@ -210,16 +222,34 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * Gets the Static URL configuration value with the protocol removed
+     *
+     * @param null $store
+     * @return mixed
+     */
     public function getStaticUrlWithoutProtocol($store = null)
     {
         return $this->removeProtocol($this->getStaticUrl($store));
     }
 
+    /**
+     * Gets the URL configuration value with the protocol removed
+     *
+     * @param null $store
+     * @return mixed
+     */
     public function getUrlWithoutProtocol($store = null)
     {
         return $this->removeProtocol($this->getUrl($store));
     }
 
+    /**
+     * Helper method to remove the protocol from a url
+     *
+     * @param $url
+     * @return mixed
+     */
     function removeProtocol($url)
     {
         $disallowed = array('http://', 'https://');
@@ -231,6 +261,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         return $url;
     }
 
+    /**
+     * Gets the Static Content Cache Time configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
     public function getStaticContentCacheTime($store = null)
     {
         return $this->scopeConfig->getValue(
@@ -240,6 +276,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * Gets the Static Teaser Cache Time configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
     public function getStaticTeaserCacheTime($store = null)
     {
         return $this->scopeConfig->getValue(
@@ -318,6 +360,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * Gets the Question and Answer Teaser Enabled configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
     public function getQaTeaserEnabled($store = null)
     {
         return $this->scopeConfig->getValue(
@@ -341,6 +389,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * Gets the Reviews Enabled configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
     public function getReviewsEnabled($store = null)
     {
         return $this->scopeConfig->getValue(
@@ -350,6 +404,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * Gets the Reviews Teaser Enabled configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
     public function getReviewsTeaserEnabled($store = null)
     {
         return $this->scopeConfig->getValue(
@@ -362,6 +422,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Reviews Setup Type configuration value
      *
+     * @param null $store
      * @return mixed
      */
     public function getReviewsSetupType($store = null)

@@ -6,10 +6,19 @@ use TurnTo\SocialCommerce\Helper\Config;
 
 abstract class AbstractBlock extends \Magento\Catalog\Block\Product\View
 {
+    /**
+     * @var null
+     */
     protected static $staticCacheTag = null;
 
+    /**
+     * @var null
+     */
     protected static $staticCacheKey = null;
 
+    /**
+     * @var null
+     */
     protected static $contentType = null;
 
     /**
@@ -113,9 +122,16 @@ abstract class AbstractBlock extends \Magento\Catalog\Block\Product\View
 
         if ($setupType == Config::SETUP_TYPE_DYNAMIC_EMBED) {
             return '<div id="TurnTo' . ucfirst(static::$contentType) . 'Content"></div>';
-        } else if ($setupType == Config::SETUP_TYPE_STATIC_EMBED) {
+        } elseif ($setupType == Config::SETUP_TYPE_STATIC_EMBED) {
             $sku = $this->getProduct()->getSku();
-            $url = $staticUrl . '/sitedata/' . $siteKey . '/v' . $version . '/' . $sku . '/d/catitem' . static::$contentType . 'html';
+            $url = sprintf(
+                '%s/sitedata/%s/v%s/%s/d/catitem%shtml',
+                $staticUrl,
+                $siteKey,
+                $version,
+                $sku,
+                static::$contentType
+            );
             return $this->httpClient->getTurnToHtml($url);
         }
         return '';

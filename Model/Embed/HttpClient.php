@@ -35,7 +35,7 @@ class HttpClient
      */
     public function getTurnToHtml($url)
     {
-        try{
+        try {
             $response = null;
             $this->httpClient
                 ->setUri($url)
@@ -44,9 +44,9 @@ class HttpClient
             $response = $this->httpClient->send();
 
             if (!$response || !$response->isSuccess()) {
-                $errorMessage = "This content could not be retrieved at this time.";
-                $e = new \Exception('TurnTo request responded with an error.');
-                $this->logger->error('An error occurred while requesting content from TurnTo.',
+                $errorMessage = __('This content could not be retrieved at this time.');
+                $e = new \Exception(__('TurnTo request responded with an error.'));
+                $this->logger->error(__('An error occurred while requesting content from TurnTo.'),
                     [
                         'exception' => $e,
                         'response' => $response ? 'null' : $response->getBody()
@@ -59,13 +59,13 @@ class HttpClient
 
             return $body;
         } catch (\Exception $e) {
-            $this->logger->error('An error occurred while requesting content from TurnTo.',
+            $this->logger->error(__('An error occurred while requesting content from TurnTo.'),
                 [
                     'exception' => $e,
                     'response' => $response ? 'null' : $response->getBody()
                 ]
             );
-            throw $e;
+            return $errorMessage;
         }
     }
 }
