@@ -90,28 +90,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**#@-*/
 
     /**
-     * Config constructor.
-     * @param \Magento\Framework\App\Helper\Context $context
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     */
-    public function __construct(
-        \Magento\Framework\App\Helper\Context $context,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
-    ) {
-        $this->storeManager = $storeManager;
-        parent::__construct($context);
-    }
-
-    /**
-     * Gets the store code from the currently set/scoped store
-     * @return string
-     */
-    protected function getCurrentStoreCode()
-    {
-        return $this->storeManager->getStore()->getCode();
-    }
-
-    /**
      * @var \Magento\Store\Model\StoreManagerInterface|null
      */
     protected $storeManager = null;
