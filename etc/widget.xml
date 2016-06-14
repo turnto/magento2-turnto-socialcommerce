@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widgets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Widget:etc/widget.xsd">
+    <widget id="turnto_socialcommerce_pinboard" class="TurnTo\SocialCommerce\Block\Widget\Pinboard">
+        <label translate="true">Social Commerce Pinboard</label>
+        <description>A responsive pinboard showcasing customer-submitted Checkout Comments in a unique product-centered browsing experience.</description>
+        <parameters>
+            <parameter name="limit" xsi:type="text" required="true" visible="true" sort_order="0" >
+                <label translate="true">Product Box Limit</label>
+                <description>The maximum number of product boxes to be displayed on page load. The remaining product boxes will be loaded in batches equal to the limit</description>
+                <value>20</value>
+            </parameter>
+            <parameter name="max_days_old" xsi:type="text" required="true" visible="true" sort_order="10" >
+                <label translate="true">Max Comment Age</label>
+                <description>The maximum days old a comment can be and still appear in the product box. A value of -1 specifies means all comments should be included, regardless of age</description>
+                <value>30</value>
+            </parameter>
+            <parameter name="max_comments_per_box" xsi:type="text" required="true" visible="true" sort_order="20" >
+                <label translate="true">Max # of Comments Per Box</label>
+                <description>The maximum number of comments that should be displayed in each product box</description>
+                <value>5</value>
+            </parameter>
+            <parameter name="progressive_loading" xsi:type="select" visible="true" sort_order="30">
+                <label translate="true">Enable Progressive Loading</label>
+                <description>When set to 'Yes' any remaining available content beyond the set limit will load once the user gets to the bottom of the page. If set to ‘No’ a ‘load more’ button will display instead</description>
+                <options>
+                    <option name="yes" value="true" selected="true">
+                        <label translate="true">Yes</label>
+                    </option>
+                    <option name="no" value="false">
+                        <label translate="true">No</label>
+                    </option>
+                </options>
+            </parameter>
+            <parameter name="template" xsi:type="select" required="true" visible="false" sort_order="40">
+                <label translate="true">Template</label>
+                <options>
+                    <option name="default" value="TurnTo_SocialCommerce::widget/pinboard.phtml" selected="true">
+                        <label translate="true">Pinboard Template</label>
+                    </option>
+                </options>
+            </parameter>
+            <parameter name="cache_lifetime" xsi:type="text" visible="true" required="false" sort_order="50">
+                <label translate="true">Cache Lifetime (Seconds)</label>
+                <description translate="true">To refresh instantly, clear the Blocks HTML Output cache.</description>
+                <value>86400</value>
+            </parameter>
+            <parameter name="condition" xsi:type="conditions" visible="true" required="true" sort_order="60"
+                       class="Magento\CatalogWidget\Block\Product\Widget\Conditions">
+                <label translate="true">Conditions</label>
+                <description>Select the products to be displayed in the pinboard.</description>
+            </parameter>
+        </parameters>
+    </widget>
+</widgets>

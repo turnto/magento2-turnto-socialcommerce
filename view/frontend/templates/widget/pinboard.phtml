@@ -1,0 +1,25 @@
+<?php
+    $configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
+
+    $siteKey = $configHelper->getSiteKey();
+    $staticUrl = $configHelper->getStaticUrl();
+    $version = $configHelper->getTurnToVersion();
+
+?>
+
+<script type="text/javascript">
+    var turnToConfig = {
+        siteKey: "<?= $siteKey ?>",
+        pinboard: <?= $block->getPinboardConfig() ?>
+    };
+
+    (function() {
+        var tt = document.createElement('script');
+        tt.type = 'text/javascript';
+        tt.async = true;
+        tt.src = "<?= $staticUrl ?>/traServer<?= $version ?>/pinboardjs/<?= $siteKey ?>/turnto-pinboard.js";
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(tt, s);
+    })();
+</script>
+
+<div id="TurnToPinboardContent"></div>
