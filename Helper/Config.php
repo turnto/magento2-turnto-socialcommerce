@@ -127,16 +127,15 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the value of the setting that determines if TurnTo's configuration is enabled
      *
-     * @param $scopeType
-     * @param $scopeCode
+     * @param null $scopeCode
      * @return mixed
      */
-    public function getIsEnabled($scopeCode)
+    public function getIsEnabled($scopeCode = null)
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLED,
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $scopeCode
+            $scopeCode ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -157,30 +156,31 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the TurnTo Site Key
      *
+     * @param null $scopeCode
      * @return mixed
      */
-    public function getSiteKey($scopeCode)
+    public function getSiteKey($scopeCode = null)
     {
         return $this->scopeConfig->getValue(self::XML_PATH_SOCIALCOMMERCE_SITE_KEY,
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $scopeCode
+            $scopeCode ?: $this->getCurrentStoreCode()
         );
     }
 
     /**
      * Gets the TurnTo API Version
      *
-     * @param $store = null
+     * @param null $scopeCode
      * @return mixed
      */
-    public function getTurnToVersion($scopeCode)
+    public function getTurnToVersion($scopeCode = null)
     {
         return str_replace(
             '.',
             '_',
             $this->scopeConfig->getValue(self::XML_PATH_SOCIALCOMMERCE_VERSION,
                 \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-                $scopeCode
+                $scopeCode ?: $this->getCurrentStoreCode()
             )
         );
     }
