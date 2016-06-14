@@ -1,0 +1,37 @@
+<?php
+
+$configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
+
+$siteKey = $configHelper->getSiteKey();
+$url = $configHelper->getUrl();
+$staticUrl = $configHelper->getStaticUrl();
+$version = $configHelper->getTurnToVersion();
+
+?>
+<script type="text/javascript">
+    var turnToConfig = {
+        siteKey: "<?= $siteKey ?>",
+        orderConfFlowPauseSeconds:0,
+        commentCaptureShowUsername: true,
+        postPurchaseFlow:true,
+        embedCommentCapture: true
+    };
+</script>
+
+<script src='<?= $staticUrl ?>/tra<?= $version ?>/turntoFeed.js' type='text/javascript'></script>
+
+<script src='<?= $staticUrl ?>/traServer<?= $version ?>/trajs/<?= $siteKey ?>/tra.js' type='text/javascript'></script>
+
+<script type="text/javascript">
+    TurnToFeed.addFeedPurchaseOrder(<?= $block->getFeedPurchaseOrderData() ?>);
+
+    <?php
+        foreach($block->getOrderItemData() as $item){
+            echo "TurnToFeed.addFeedLineItem(" . $item . ");";
+        }
+    ?>
+
+    TurnToFeed.sendFeed();
+</script>
+
+<div id="TTcommentCapture"></div>
