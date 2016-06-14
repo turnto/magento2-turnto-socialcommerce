@@ -61,32 +61,40 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         self::BRAND_ATTRIBUTE
     ];
 
-    /**
-     * Questions and Answers
+    /**#@+
+     * XPATH's for module config settings
      */
+    const XML_PATH_ENABLED = 'turnto_socialcommerce_configuration/general/enabled';
+
+    const XML_PATH_SITE_KEY = 'turnto_socialcommerce_configuration/general/site_key';
+
+    const XML_PATH_VERSION = 'turnto_socialcommerce_configuration/general/version';
+
+    const XML_PATH_AUTHORIZATION_KEY = 'turnto_socialcommerce_configuration/general/authorization_key';
+
     const XML_PATH_SOCIALCOMMERCE_ENABLE_QA = 'turnto_socialcommerce_configuration/qa/enable_qa';
 
     const XML_PATH_SOCIALCOMMERCE_ENABLE_QA_TEASER = 'turnto_socialcommerce_configuration/qa/enable_qa_teaser';
 
     const XML_PATH_SOCIALCOMMERCE_SETUP_TYPE = 'turnto_socialcommerce_configuration/qa/setup_type';
-    
-    /**
-     * Reviews
-     */
+
     const XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS = 'turnto_socialcommerce_configuration/reviews/enable_reviews';
 
     const XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS_TEASER = 'turnto_socialcommerce_configuration/reviews/enable_reviews_teaser';
 
     const XML_PATH_SOCIALCOMMERCE_REVIEWS_SETUP_TYPE = 'turnto_socialcommerce_configuration/reviews/reviews_setup_type';
 
-    /**
-     * Product Feed
-     */
+    const XML_PATH_SOCIALCOMMERCE_MOBILE_PAGE_TITLE = 'turnto_socialcommerce_configuration/mobile/mobile_page_title';
+
     const XML_PATH_SOCIALCOMMERCE_ENABLE_PRODUCT_FEED_SUBMISSION = 'turnto_socialcommerce_configuration/product_feed/enable_automatic_submission';
-    
+
     const XML_PATH_SOCIALCOMMERCE_FEED_SUBMISSION_URL = 'turnto_socialcommerce_configuration/product_feed/feed_submission_url';
 
-    /**
+    const XML_PATH_PRODUCT_GROUP = 'turnto_socialcommerce_configuration/product_attribute_mappings/';
+    /**#@-*/
+
+
+    /**#@+
      * Setup Types
      */
     const SETUP_TYPE_DYNAMIC_EMBED = 'dynamicEmbed';
@@ -94,6 +102,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     const SETUP_TYPE_STATIC_EMBED = 'staticEmbed';
 
     const SETUP_TYPE_OVERLAY = 'overlay';
+    /**#@-*/
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface|null
@@ -117,7 +126,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the store code from the currently set/scoped store
      * @return string
      */
-    protected function getCurrentStoreCode()
+    public function getCurrentStoreCode()
     {
         return $this->storeManager->getStore()->getCode();
     }
@@ -125,16 +134,15 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the value of the setting that determines if TurnTo's configuration is enabled
      *
-     * @param $scopeType
-     * @param $scopeCode
+     * @param null $scopeCode
      * @return mixed
      */
-    public function getIsEnabled ($store = null)
+    public function getIsEnabled($scopeCode = null)
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLED,
-            ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $scopeCode ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -144,48 +152,52 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * @param $store = null
      * @return mixed
      */
-    public function getIsProductFeedSubmissionEnabled ($store = null)
+    public function getIsProductFeedSubmissionEnabled($scopeCode)
     {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_ENABLE_PRODUCT_FEED_SUBMISSION,
-            ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+        return $this->scopeConfig->getValue(self::XML_PATH_ENABLE_PRODUCT_FEED_SUBMISSION,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $scopeCode
         );
     }
 
     /**
      * Gets the TurnTo Site Key
      *
+     * @param null $scopeCode
      * @return mixed
      */
-    public function getSiteKey ($store = null)
+    public function getSiteKey($scopeCode = null)
     {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_SITE_KEY,
-            ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+        return $this->scopeConfig->getValue(self::XML_PATH_SOCIALCOMMERCE_SITE_KEY,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $scopeCode ?: $this->getCurrentStoreCode()
         );
     }
 
     /**
      * Gets the TurnTo API Version
      *
-     * @param $store = null
+     * @param null $scopeCode
      * @return mixed
      */
-    public function getTurnToVersion ($store = null)
+    public function getTurnToVersion($scopeCode = null)
     {
         return str_replace(
             '.',
             '_',
-            $this->scopeConfig->getValue(
-                self::XML_PATH_SOCIALCOMMERCE_VERSION,
-                ScopeInterface::SCOPE_STORE,
-                isset($store) ? $store : $this->getCurrentStoreCode()
+            $this->scopeConfig->getValue(self::XML_PATH_SOCIALCOMMERCE_VERSION,
+                \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+                $scopeCode ?: $this->getCurrentStoreCode()
             )
         );
     }
-    
+
+    /**
+     * Gets the Static URL configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
     public function getStaticUrl($store = null)
     {
         return $this->scopeConfig->getValue(
@@ -195,6 +207,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * Gets the URL configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
     public function getUrl($store = null)
     {
         return $this->scopeConfig->getValue(
@@ -204,16 +222,34 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * Gets the Static URL configuration value with the protocol removed
+     *
+     * @param null $store
+     * @return mixed
+     */
     public function getStaticUrlWithoutProtocol($store = null)
     {
         return $this->removeProtocol($this->getStaticUrl($store));
     }
 
+    /**
+     * Gets the URL configuration value with the protocol removed
+     *
+     * @param null $store
+     * @return mixed
+     */
     public function getUrlWithoutProtocol($store = null)
     {
         return $this->removeProtocol($this->getUrl($store));
     }
 
+    /**
+     * Helper method to remove the protocol from a url
+     *
+     * @param $url
+     * @return mixed
+     */
     function removeProtocol($url)
     {
         $disallowed = array('http://', 'https://');
@@ -225,6 +261,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         return $url;
     }
 
+    /**
+     * Gets the Static Content Cache Time configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
     public function getStaticContentCacheTime($store = null)
     {
         return $this->scopeConfig->getValue(
@@ -234,6 +276,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * Gets the Static Teaser Cache Time configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
     public function getStaticTeaserCacheTime($store = null)
     {
         return $this->scopeConfig->getValue(
@@ -248,12 +296,11 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return mixed
      */
-    public function getAuthorizationKey ($store = null)
+    public function getAuthorizationKey($scopeCode)
     {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_AUTHORIZATION_KEY,
-            ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+        return $this->scopeConfig->getValue(self::XML_PATH_SOCIALCOMMERCE_AUTHORIZATION_KEY,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $scopeCode
         );
     }
 
@@ -262,13 +309,11 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return mixed
      */
-    public function getFeedUploadAddress ($store = null)
+    public function getFeedUploadAddress($scopeCode)
     {
-        //return 'https://www.turnto.com/feedUpload/postfile';
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_FEED_SUBMISSION_URL,
+        return $this->scopeConfig->getValue(self::XML_PATH_FEED_SUBMISSION_URL,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $scopeCode
         );
     }
 
@@ -280,12 +325,11 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * @param $scopeCode
      * @return mixed
      */
-    public function getProductAttributeMapping ($mappingKey, $store)
+    public function getProductAttributeMapping($mappingKey, $scopeCode)
     {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_PRODUCT_GROUP . $mappingKey,
-            ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+        return $this->scopeConfig->getValue(self::XML_PATH_SOCIALCOMMERCE_PRODUCT_GROUP . $mappingKey,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $scopeCode
         );
     }
 
@@ -294,16 +338,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return array
      */
-    public function getGtinAttributesMap ($store = null)
+    public function getGtinAttributesMap($scopeCode)
     {
         $gtinMap = [];
         foreach (self::PRODUCT_ATTRIBUTE_MAPPING_KEYS as $mappingKey) {
             $tempResult = null;
-            $tempResult = $this->getProductAttributeMapping(
-                $mappingKey,
-                ScopeInterface::SCOPE_STORE,
-                isset($store) ? $store : $this->getCurrentStoreCode()
-            );
+            $tempResult = $this->getProductAttributeMapping($mappingKey, $scopeCode);
             if (!empty($tempResult)) {
                 $gtinMap[$mappingKey] = $tempResult;
             }
@@ -320,6 +360,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * Gets the Question and Answer Teaser Enabled configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
     public function getQaTeaserEnabled($store = null)
     {
         return $this->scopeConfig->getValue(
@@ -343,6 +389,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * Gets the Reviews Enabled configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
     public function getReviewsEnabled($store = null)
     {
         return $this->scopeConfig->getValue(
@@ -352,6 +404,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * Gets the Reviews Teaser Enabled configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
     public function getReviewsTeaserEnabled($store = null)
     {
         return $this->scopeConfig->getValue(
@@ -364,6 +422,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Reviews Setup Type configuration value
      *
+     * @param null $store
      * @return mixed
      */
     public function getReviewsSetupType($store = null)
@@ -375,5 +434,17 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
-
+    /**
+     * Gets the Reviews Setup Type configuration value
+     *
+     * @return mixed
+     */
+    public function getMobilePageTitle($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_MOBILE_PAGE_TITLE,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
 }
