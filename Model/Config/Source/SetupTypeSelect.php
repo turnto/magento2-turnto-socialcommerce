@@ -19,7 +19,7 @@ class SetupTypeSelect implements \Magento\Framework\Option\ArrayInterface
      *
      * @return array
      */
-    public function toOptionArray ()
+    public function toOptionArray()
     {
         return [
             ['value' => 'staticEmbed', 'label' => __('Static Embed')],
@@ -33,7 +33,7 @@ class SetupTypeSelect implements \Magento\Framework\Option\ArrayInterface
      *
      * @return array
      */
-    public function toArray ()
+    public function toArray()
     {
         return [
             'overlay' => __('Overlay'),

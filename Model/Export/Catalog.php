@@ -2,6 +2,8 @@
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
+use TurnTo\SocialCommerce\Helper\Config;
+
 /**
  * Class Catalog
  * @package TurnTo\SocialCommerce\Model\Export
@@ -19,16 +21,20 @@ class Catalog extends AbstractExport
     const FEED_MIME = 'application/atom+xml';
 
     /**
+     * Response body from TurnTo servers on successful operation
+     */
+    const TURNTO_SUCCESS_RESPONSE = 'SUCCESS';
+
+    /**
      * Creates the product feed and pushes it to TurnTo
      */
-    public function cronUploadFeed ()
+    public function cronUploadFeed()
     {
         $stores = $this->storeManager->getStores();
         foreach ($stores as $store) {
             if (
-                $this->config->getIsEnabled(\Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store->getCode())
-                && $this->config->getIsProductFeedSubmissionEnabled(\Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-                    $store->getCode())
+                $this->config->getIsEnabled($store->getCode())
+                && $this->config->getIsProductFeedSubmissionEnabled($store->getCode())
             ) {
                 $feed = $this->generateProductFeed($store);
                 $this->transmitFeed($feed, $store);
@@ -43,20 +49,20 @@ class Catalog extends AbstractExport
      * @param \Magento\Store\Api\Data\StoreInterface $store
      * @throws \Exception
      */
-    protected function transmitFeed (\SimpleXMLElement $feed, \Magento\Store\Api\Data\StoreInterface $store)
+    protected function transmitFeed(\SimpleXMLElement $feed, \Magento\Store\Api\Data\StoreInterface $store)
     {
         try {
             $response = null;
             $this->httpClient
                 ->setUri($this->config
-                    ->getFeedUploadAddress(\Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store->getCode()))
+                    ->getFeedUploadAddress($store->getCode()))
                 ->setMethod(\Zend_Http_Client::POST)
                 ->setParameterPost(
                     [
                         'siteKey' => $this->config
-                            ->getSiteKey(\Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store->getCode()),
+                            ->getSiteKey($store->getCode()),
                         'authKey' => $this->encryptor->decrypt($this->config
-                            ->getAuthorizationKey(\Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store->getCode())),
+                            ->getAuthorizationKey($store->getCode())),
                         'feedStyle' => self::FEED_STYLE
                     ]
                 )
@@ -72,7 +78,7 @@ class Catalog extends AbstractExport
             $body = $response->getBody();
 
             //It is possible to get a status 200 message who's body is an error message from TurnTo
-            if (empty($body) || $body != "SUCCESS") {
+            if (empty($body) || $body != self::TURNTO_SUCCESS_RESPONSE) {
                 throw new \Exception("TurnTo catalog feed submission failed with message: $body" );
             }
         } catch (\Exception $e) {
@@ -91,7 +97,7 @@ class Catalog extends AbstractExport
      * @param string $dirtyString
      * @return string
      */
-    protected function sanitizeData ($dirtyString)
+    protected function sanitizeData($dirtyString)
     {
         $replacementMap = [
             '&' => '&amp;',
@@ -111,7 +117,7 @@ class Catalog extends AbstractExport
      * @return null|\SimpleXMLElement
      * @throws \Exception If feed could not be generated
      */
-    protected function generateProductFeed (\Magento\Store\Api\Data\StoreInterface $store)
+    protected function generateProductFeed(\Magento\Store\Api\Data\StoreInterface $store)
     {
         $feed = null;
         $progressCounter = 0;
@@ -119,7 +125,7 @@ class Catalog extends AbstractExport
         try {
             $products = $this->getProducts($store);
 
-            $feed = new \SimpleXMLElement (
+            $feed = new \SimpleXMLElement(
                 '<?xml version="1.0" encoding="UTF-8"?>'
                     . '<feed xmlns="http://www.w3.org/2005/Atom"'
                     . ' xmlns:g="http://base.google.com/ns/1.0" xml:lang="en-US" />'
@@ -191,7 +197,7 @@ class Catalog extends AbstractExport
      * @param $store
      * @throws \Exception
      */
-    protected function addProductToAtomFeed ($entry, $product, $store)
+    protected function addProductToAtomFeed($entry, $product, $store)
     {
         if (empty($product)) {
             throw new \Exception('Product can not be null or empty');
@@ -219,38 +225,38 @@ class Catalog extends AbstractExport
         $brand = null;
         $identifierExists = 'FALSE';
         $gtinMap = $this->config
-            ->getGtinAttributesMap(\Magento\Store\Model\ScopeInterface::SCOPE_STORE, $store->getCode());
+            ->getGtinAttributesMap($store->getCode());
 
         if (!empty($gtinMap)) {
 
-            if (isset($gtinMap[\TurnTo\SocialCommerce\Helper\Config::MPN_ATTRIBUTE])) {
+            if (isset($gtinMap[Config::MPN_ATTRIBUTE])) {
                 $mpn = $product->getResource()
-                    ->getAttribute($gtinMap[\TurnTo\SocialCommerce\Helper\Config::MPN_ATTRIBUTE])
+                    ->getAttribute($gtinMap[Config::MPN_ATTRIBUTE])
                     ->getFrontend()->getValue($product);
             }
-            if (isset($gtinMap[\TurnTo\SocialCommerce\Helper\Config::BRAND_ATTRIBUTE])) {
+            if (isset($gtinMap[Config::BRAND_ATTRIBUTE])) {
                 $brand = $product->getResource()
                     ->getAttribute($gtinMap[\TurnTo\SocialCommerce\Helper\Config::BRAND_ATTRIBUTE])
                     ->getFrontend()->getValue($product);
             }
-            if (empty($gtin) && isset($gtinMap[\TurnTo\SocialCommerce\Helper\Config::UPC_ATTRIBUTE])) {
+            if (empty($gtin) && isset($gtinMap[Config::UPC_ATTRIBUTE])) {
                 $gtin = $product->getResource()
-                    ->getAttribute($gtinMap[\TurnTo\SocialCommerce\Helper\Config::UPC_ATTRIBUTE])
+                    ->getAttribute($gtinMap[Config::UPC_ATTRIBUTE])
                     ->getFrontend()->getValue($product);
             }
-            if (empty($gtin) && isset($gtinMap[\TurnTo\SocialCommerce\Helper\Config::EAN_ATTRIBUTE])) {
+            if (empty($gtin) && isset($gtinMap[Config::EAN_ATTRIBUTE])) {
                 $gtin = $product->getResource()
-                    ->getAttribute($gtinMap[\TurnTo\SocialCommerce\Helper\Config::EAN_ATTRIBUTE])
+                    ->getAttribute($gtinMap[Config::EAN_ATTRIBUTE])
                     ->getFrontend()->getValue($product);
             }
-            if (empty($gtin) && isset($gtinMap[\TurnTo\SocialCommerce\Helper\Config::JAN_ATTRIBUTE])) {
+            if (empty($gtin) && isset($gtinMap[Config::JAN_ATTRIBUTE])) {
                 $gtin = $product->getResource()
-                    ->getAttribute($gtinMap[\TurnTo\SocialCommerce\Helper\Config::JAN_ATTRIBUTE])
+                    ->getAttribute($gtinMap[Config::JAN_ATTRIBUTE])
                     ->getFrontend()->getValue($product);
             }
-            if (empty($gtin) && isset($gtinMap[\TurnTo\SocialCommerce\Helper\Config::ISBN_ATTRIBUTE])) {
+            if (empty($gtin) && isset($gtinMap[Config::ISBN_ATTRIBUTE])) {
                 $gtin = $product->getResource()
-                    ->getAttribute($gtinMap[\TurnTo\SocialCommerce\Helper\Config::ISBN_ATTRIBUTE])
+                    ->getAttribute($gtinMap[Config::ISBN_ATTRIBUTE])
                     ->getFrontend()->getValue($product);
             }
             if (!empty($gtin)) {
@@ -291,7 +297,7 @@ class Catalog extends AbstractExport
      * @param \Magento\Catalog\Model\Product $product
      * @return string
      */
-    protected function getCategoryTreeString (\Magento\Catalog\Model\Product $product)
+    protected function getCategoryTreeString(\Magento\Catalog\Model\Product $product)
     {
         $categoryName = '';
         $categories = $product->getCategoryCollection();
