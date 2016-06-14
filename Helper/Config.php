@@ -154,7 +154,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getIsProductFeedSubmissionEnabled($scopeCode)
     {
-        return $this->scopeConfig->getValue(self::XML_PATH_SOCIALCOMMERCE_ENABLE_PRODUCT_FEED_SUBMISSION,
+        return $this->scopeConfig->getValue(self::XML_PATH_ENABLE_PRODUCT_FEED_SUBMISSION,
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
             $scopeCode
         );
@@ -269,7 +269,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getFeedUploadAddress($scopeCode)
     {
-        return $this->scopeConfig->getValue(self::XML_PATH_SOCIALCOMMERCE_FEED_SUBMISSION_URL,
+        return $this->scopeConfig->getValue(self::XML_PATH_FEED_SUBMISSION_URL,
             ScopeInterface::SCOPE_STORE,
             $scopeCode
         );
