@@ -1,9 +1,4 @@
 <?php
-/**
- * @category    ClassyLlama
- * @author      Nathan Toombs <nathan.toombs@classyllama.com>
- * @copyright   Copyright (c) 2016 Classy Llama
- */
 
 namespace TurnTo\SocialCommerce\Block;
 
@@ -19,6 +14,9 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
      */
     protected $checkoutSession;
 
+    /**
+     * @var \Magento\Catalog\Helper\Image
+     */
     protected $imageHelper;
 
     /**

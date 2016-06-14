@@ -2,7 +2,7 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="order.success.additional.info">
-            <block class="TurnTo\SocialCommerce\Block\CheckoutComments" name="checkout.comments" template="TurnTo_SocialCommerce::onepage/comments.phtml" cacheable="false"/>
+            <block class="TurnTo\SocialCommerce\Block\CheckoutComments" name="checkout.comments" template="TurnTo_SocialCommerce::onepage/comments.phtml" cacheable="false" ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_checkout_comments"/>
         </referenceContainer>
     </body>
 </page>

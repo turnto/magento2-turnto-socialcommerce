@@ -3,22 +3,18 @@
 $configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
 
 $siteKey = $configHelper->getSiteKey();
-$url = $configHelper->getUrl();
 $staticUrl = $configHelper->getStaticUrl();
-$urlWithoutProtocol = $configHelper->getUrlWithoutProtocol();
-$staticUrlWithoutProtocol = $configHelper->getStaticUrlWithoutProtocol();
-$setupType = $configHelper->getSetupType();
-$reviewSetupType = $configHelper->getReviewsSetupType();
 $version = $configHelper->getTurnToVersion();
 
 $reviewsEnabled = $configHelper->getReviewsEnabled();
 $qaEnabled = $configHelper->getQaEnabled();
+$commentsEnabled = $configHelper->getCheckoutCommentsEnabled();
 $reviewsTeaserEnabled = $configHelper->getReviewsTeaserEnabled();
 $qaTeaserEnabled = $configHelper->getQaTeaserEnabled();
 
 $productSku = $this->getProduct()->getSku();
 
-if ($reviewsEnabled || $qaEnabled):
+if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
 ?>
 
 <script type="text/javascript">
@@ -109,27 +105,7 @@ if ($reviewsEnabled || $qaEnabled):
         });
     }
 
-    var turnToConfig = {
-        siteKey: "<?= $siteKey ?>",
-        host: "<?= $urlWithoutProtocol ?>",
-        staticHost: "<?= $staticUrlWithoutProtocol ?>",
-        skipCssLoad: false,
-        <?php
-            if ($qaEnabled) {
-                echo "setupType: \"" . $setupType . "\",";
-
-                if ($qaTeaserEnabled) {
-                    echo "iTeaserFunc: qaTeaser,";
-                }
-            }
-            if ($reviewsEnabled) {
-                echo "reviewsSetupType: \"" . $reviewSetupType . "\",";
-                if ($reviewsTeaserEnabled) {
-                    echo "reviewsTeaserFunc: reviewsTeaser,";
-                }
-            }
-        ?>
-    };
+    var turnToConfig = <?= $block->getConfigJson() ?>;
 
     (function() {
         var tt = document.createElement('script');
@@ -141,10 +117,23 @@ if ($reviewsEnabled || $qaEnabled):
     })();
 
     var TurnToItemSku = "<?= $productSku ?>";
+    <?php
+    if($commentsEnabled):
+    ?>
+    var TurnToChatterSku = TurnToItemSku;
+    (function() {
+        var tt = document.createElement('script'); tt.type = 'text/javascript'; tt.async = true;
+        tt.src = "<?= $staticUrl ?>/traServer<?= $version ?>/chatterjs/<?= $siteKey ?>/turnto-chatter.js";
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(tt, s);
+    })();
+    <?php
+    endif;
+    ?>
 </script>
 
-<script type="text/javascript" src="<?= $staticUrl ?>/sitedata/<?= $siteKey ?>/v<?= $version ?>/<?= $productSku ?>/d/itemjs"></script>
+<script src="<?= $staticUrl ?>/sitedata/<?= $siteKey ?>/v<?= $version ?>/<?= $productSku ?>/d/itemjs" type="text/javascript"></script>
 
 <?php
     endif;
 ?>
+
