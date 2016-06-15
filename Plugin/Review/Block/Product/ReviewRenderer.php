@@ -2,14 +2,26 @@
 /**
  * Created by PhpStorm.
  * User: kevincarroll
- * Date: 6/13/16
- * Time: 10:00 AM
+ * Date: 6/15/16
+ * Time: 10:09 AM
  */
 
-namespace TurnTo\SocialCommerce\Model\ReviewRendererInterface;
+namespace TurnTo\SocialCommerce\Plugin\Review\Block\Product;
 
-class Plugin
+use Magento\Catalog\Block\Product\ReviewRendererInterface;
+
+class ReviewRenderer
 {
+    /**
+     * Array of available template name
+     *
+     * @var array
+     */
+    protected $_availableTemplates = [
+        ReviewRendererInterface::FULL_VIEW => 'helper/summary.phtml',
+        ReviewRendererInterface::SHORT_VIEW => 'helper/summary_short.phtml',
+    ];
+
     /**
      * @var null|\TurnTo\SocialCommerce\Helper\Config
      */
@@ -31,11 +43,13 @@ class Plugin
     public function aroundGetRatingSummary($subject, $proceed)
     {
         $result = '';
-        if ($this->turnToConfigHelper->getIsEnabled($this->turnToConfigHelper->getCurrentStoreCode())) {
+
+        if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
             $result = (string)round($subject->getProduct()->getTurntoAverageRating() * 20);
         } else {
             $result = $proceed();
         }
+
         return $result;
     }
 
@@ -47,11 +61,13 @@ class Plugin
     public function aroundGetReviewSummary($subject, $proceed)
     {
         $result = '';
-        if ($this->turnToConfigHelper->getIsEnabled($this->turnToConfigHelper->getCurrentStoreCode())) {
+
+        if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
             $result = (string)round($subject->getProduct()->getTurntoAverageRating() * 20);
         } else {
             $result = $proceed();
         }
+
         return $result;
     }
 
@@ -63,11 +79,13 @@ class Plugin
     public function aroundGetReviewsCount($subject, $proceed)
     {
         $result = 0;
-        if ($this->turnToConfigHelper->getIsEnabled($this->turnToConfigHelper->getCurrentStoreCode())) {
+
+        if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
             $result = $subject->getProduct()->getTurntoReviewCount();
         } else {
             $result = $proceed();
         }
+
         return $result;
     }
 
@@ -88,8 +106,11 @@ class Plugin
     ) {
         $result = '';
 
-        if ($this->turnToConfigHelper->getIsEnabled($this->turnToConfigHelper->getCurrentStoreCode())) {
-            $result = $proceed($product, $templateType, $displayIfNoReviews, true);
+        if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
+            $subject->setTemplate($this->_availableTemplates[$templateType]);
+            $subject->setDisplayIfEmpty($displayIfNoReviews);
+            $subject->setProduct($product);
+            $result = $subject->toHtml();
         } else {
             $result = $proceed($product, $templateType, $displayIfNoReviews, false);
         }

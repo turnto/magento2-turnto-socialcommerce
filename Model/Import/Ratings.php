@@ -16,8 +16,11 @@ class Ratings extends AbstractImport
      *  TurnTo Aggregate Rating Feed constants
      */
     const TURNTO_EXPORT_BASE_URI = 'http://www.turnto.com/static/export/';
+
     const TURNTO_AVERAGE_RATING_BY_SKU_NAME = 'turnto-skuaveragerating.xml';
+
     const TURNTO_FEED_KEY_SKU = 'sku';
+    
     const TURNTO_FEED_KEY_REVIEW_COUNT = 'review_count';
     /**#@-*/
     
@@ -51,7 +54,9 @@ class Ratings extends AbstractImport
     ) {
         $product = $this->productFactory->create()
             ->setStoreId($store->getId())
-            ->loadByAttribute(\Magento\Catalog\Model\Product::SKU, $sku,
+            ->loadByAttribute(
+                \Magento\Catalog\Model\Product::SKU, 
+                $sku,
                 [
                     InstallData::REVIEW_COUNT_ATTRIBUTE_CODE,
                     InstallData::AVERAGE_RATING_ATTRIBUTE_CODE
@@ -60,8 +65,9 @@ class Ratings extends AbstractImport
 
         if ($product) {
             $product->setData(InstallData::REVIEW_COUNT_ATTRIBUTE_CODE, $reviewCount);
+            $product->getResource()->saveAttribute($product, InstallData::REVIEW_COUNT_ATTRIBUTE_CODE);
             $product->setData(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE, $averageRating);
-            $product->save();
+            $product->getResource()->saveAttribute($product, InstallData::AVERAGE_RATING_ATTRIBUTE_CODE);
         }
     }
 
@@ -70,40 +76,57 @@ class Ratings extends AbstractImport
      */
     public function cronDownloadFeed()
     {
-        foreach($this->storeManager->getStores() as $store) {
-            if ($this->config->getIsEnabled($store->getCode())
-                && $this->config->getIsProductFeedSubmissionEnabled($store->getCode())
-            ) {
-                $feedAddress = $this->getAggregateRatingsFeedAddress($store);
-                $xmlFeed = simplexml_load_file($feedAddress);
-                foreach ($xmlFeed->products->product as $turnToProduct) {
-                    try {
-                        $sku = null;
-                        $averageRating = null;
-                        $reviewCount = null;
+        foreach ($this->config->getStores() as $store) {
+            if ($this->config->getIsEnabled($store->getCode()) && $this->config->getReviewsEnabled($store->getCode())) {
+                try {
+                    $feedAddress = $this->getAggregateRatingsFeedAddress($store);
+                    $xmlFeed = simplexml_load_file($feedAddress);
+                    foreach ($xmlFeed->products->product as $turnToProduct) {
+                        try {
+                            if (!isset($turnToProduct[self::TURNTO_FEED_KEY_SKU])
+                                || !isset($turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT])
+                            ) {
+                                continue;
+                            }
+                            $sku = null;
+                            $averageRating = null;
+                            $reviewCount = null;
 
-                        $sku = (string)$turnToProduct[self::TURNTO_FEED_KEY_SKU];
-                        if (!empty($sku)) {
+                            $sku = (string)$turnToProduct[self::TURNTO_FEED_KEY_SKU];
+                            if (empty($sku)) {
+                                continue;
+                            }
+
                             $reviewCount = (int)$turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT];
                             if ($reviewCount > 0) {
                                 $averageRating = (float)$turnToProduct;
                                 if ($averageRating > 0.0) {
                                     $this->updateProduct($store, $sku, $reviewCount, $averageRating);
                                 } else {
-                                    throw new \Zend\Stdlib\InvalidArgumentException('Average rating is a non-positive '
+                                    throw new \UnexpectedValueException('Average rating is a non-positive '
                                         . 'number despite product having reviews');
                                 }
                             }
+                        } catch (\Exception $e) {
+                            $this->logger->error(
+                                'Failed to read TurnTo aggregate rating data for product',
+                                [
+                                    'exception' => $e,
+                                    'storeCode' => $store->getCode(),
+                                    'sku' => empty($sku) ? 'UNKNOWN' : $sku
+                                ]
+                            );
                         }
-                    } catch (\Exception $e) {
-                        $this->logger->error('Failed to read TurnTo aggregate rating data for product',
-                            [
-                                'exception' => $e,
-                                'storeCode' => $store->getCode(),
-                                'sku' => empty($sku) ? 'UNKNOWN' : $sku
-                            ]
-                        );
                     }
+                } catch (\Exception $feedRetrievalException) {
+                    $this->logger->error(
+                        'Failed to retrieve TurnTo aggregate rating feed for store',
+                        [
+                            'exception' => $feedRetrievalException,
+                            'storeCode' => $store->getCode(),
+                            'feedAddress' => $feedAddress
+                        ]
+                    );
                 }
             }
         }

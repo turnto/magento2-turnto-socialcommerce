@@ -26,11 +26,46 @@ class Catalog extends AbstractExport
     const TURNTO_SUCCESS_RESPONSE = 'SUCCESS';
 
     /**
+     * @var \Magento\Catalog\Helper\Product|null
+     */
+    protected $productHelper = null;
+
+    /**
+     * @var \Magento\Framework\Stdlib\DateTime\DateTimeFactory|null
+     */
+    protected $dateTimeFactory = null;
+
+    /**
+     * Catalog constructor.
+     * @param Config $config
+     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
+     * @param \Zend\Http\Client $httpClient
+     * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
+     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
+     * @param \Magento\Catalog\Helper\Product $productHelper
+     * @param \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory
+     */
+    public function __construct(
+        \TurnTo\SocialCommerce\Helper\Config $config,
+        \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
+        \Zend\Http\Client $httpClient,
+        \TurnTo\SocialCommerce\Logger\Monolog $logger,
+        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
+        \Magento\Catalog\Helper\Product $productHelper,
+        \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory
+    ) {
+        $this->productHelper = $productHelper;
+        $this->dateTimeFactory = $dateTimeFactory;
+
+        parent::__construct($config, $productCollectionFactory, $httpClient, $logger, $encryptor);
+    }
+
+    /**
      * Creates the product feed and pushes it to TurnTo
      */
     public function cronUploadFeed()
     {
-        $stores = $this->storeManager->getStores();
+        $stores = $this->config->getStores();
         foreach ($stores as $store) {
             if (
                 $this->config->getIsEnabled($store->getCode())

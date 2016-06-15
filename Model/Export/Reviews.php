@@ -11,6 +11,57 @@ namespace TurnTo\SocialCommerce\Model\Export;
 class Reviews extends AbstractExport
 {
     /**
+     * @var \Magento\Review\Model\ReviewFactory|null
+     */
+    protected $reviewFactory = null;
+
+    /**
+     * @var \Magento\Review\Model\ResourceModel\Review\CollectionFactory|null
+     */
+    protected $reviewCollectionFactory = null;
+
+    /**
+     * @var \Magento\Review\Model\Rating\Option\VoteFactory|null
+     */
+    protected $voteFactory = null;
+
+    /**
+     * @var \Magento\Catalog\Model\ProductFactory|null
+     */
+    protected $productFactory = null;
+
+    /**
+     * Reviews constructor.
+     * @param \TurnTo\SocialCommerce\Helper\Config $config
+     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
+     * @param \Zend\Http\Client $httpClient
+     * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
+     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
+     * @param \Magento\Review\Model\ReviewFactory $reviewFactory
+     * @param \Magento\Review\Model\ResourceModel\Review\CollectionFactory $reviewCollectionFactory
+     * @param \Magento\Review\Model\Rating\Option\VoteFactory $voteFactory
+     * @param \Magento\Catalog\Model\ProductFactory $productFactory
+     */
+    public function __construct(
+        \TurnTo\SocialCommerce\Helper\Config $config,
+        \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
+        \Zend\Http\Client $httpClient,
+        \TurnTo\SocialCommerce\Logger\Monolog $logger,
+        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
+        \Magento\Review\Model\ReviewFactory $reviewFactory,
+        \Magento\Review\Model\ResourceModel\Review\CollectionFactory $reviewCollectionFactory,
+        \Magento\Review\Model\Rating\Option\VoteFactory $voteFactory,
+        \Magento\Catalog\Model\ProductFactory $productFactory
+    ) {
+        $this->reviewFactory = $reviewFactory;
+        $this->reviewCollectionFactory = $reviewCollectionFactory;
+        $this->voteFactory = $voteFactory;
+        $this->productFactory = $productFactory;
+
+        parent::__construct($config, $productCollectionFactory, $httpClient, $logger, $encryptor);
+    }
+
+    /**
      * Gets the collection of all reviews with an approved status
      *
      * @return \Magento\Review\Model\ResourceModel\Review\Collection
@@ -19,15 +70,17 @@ class Reviews extends AbstractExport
     {
         $collection = $this->reviewCollectionFactory->create()
             ->addFieldToSelect('*')
-            ->addFieldToFilter('entity_id',
-                $this->reviewFactory->create()->getEntityIdByCode(\Magento\Review\Model\Review::ENTITY_PRODUCT_CODE))
+            ->addFieldToFilter(
+                'entity_id',
+                $this->reviewFactory->create()->getEntityIdByCode(\Magento\Review\Model\Review::ENTITY_PRODUCT_CODE)
+            )
             ->addFieldToFilter('status_id', \Magento\Review\Model\Review::STATUS_APPROVED);
 
         return $collection;
     }
 
     /**
-     * Writes a TSV summary of all approved reviews formatted according to TurnTo historical reviews feed documentation
+     * Writes a TSV summary of all approved reviews formatted according to TurnTo historical reviews feed API
      *
      * @param $filePath
      */
@@ -49,46 +102,76 @@ class Reviews extends AbstractExport
                 $detail = null;
                 $createdAt = null;
                 $userEmail = null;
-                $avgRating = null;
                 $userName = null;
 
                 $reviewId = $review->getReviewId();
-                $votes = $this->voteFactory->create()->getResourceCollection()->setReviewFilter($reviewId)->load();
-                $rating = 0;
-                $ratingCount = 0;
-
-                foreach ($votes as $vote) {
-                    $rating += (int)$vote->getValue();
-                    $ratingCount++;
+                $ratingInformation = $this->getRatingInformation($reviewId);
+                if ($ratingInformation['count'] === 0) {
+                    continue;
                 }
-                $avgRating = (int)round($rating / $ratingCount);
+                $averageRating = (int)round($ratingInformation['rating'] / $ratingInformation['count']);
 
                 $productEntityId = $review->getEntityPkValue();
                 $sku = $this->productFactory->create()->load($productEntityId)->getSku();
-
-                $customerId = $review->getCustomerId();
-                if ($customerId) {
-                    $customer = $this->customerFactory->create()->load($customerId);
-                    $userEmail = $customer->getEmail();
-                    $userName = $customer->getName();
+                if (empty($sku)) {
+                    continue;
                 }
+
+                $user = $this->getCustomerInformationFromReview($review);
 
                 $title = $review->getTitle();
                 $detail = $review->getDetail();
                 $createdAt = $review->getCreatedAt();
 
-                if (!empty($sku) && $rating > 0 && $rating < 6) {
-                    fputcsv(
-                        $handle,
-                        [$sku, $reviewId, $title, $detail, $createdAt, $userEmail, $avgRating, $userName],
-                        "\t"
-                    );
-                }
+                fputcsv(
+                    $handle,
+                    [$sku, $reviewId, $title, $detail, $createdAt, $user['email'], $averageRating, $user['name']],
+                    "\t"
+                );
             }
         } catch (\Exception $e) {
             $this->logger->error('An error occurred while generating the review export for TurnTo', [ 'error' => $e]);
         } finally {
             fclose($handle);
         }
+    }
+
+    /**
+     * @param $reviewId
+     * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    protected function getRatingInformation($reviewId) {
+        $rating = 0;
+        $ratingCount = 0;
+
+        $votes = $this->voteFactory->create()->getResourceCollection()->setReviewFilter($reviewId)->load();
+
+        foreach ($votes as $vote) {
+            $rating += (int)$vote->getValue();
+            $ratingCount++;
+        }
+
+        return ['rating' => $rating, 'count' => $ratingCount];
+    }
+
+    /**
+     * @param $review
+     * @return array
+     */
+    protected function getCustomerInformationFromReview($review)
+    {
+        $customerId = null;
+        $userEmail = '';
+        $userName = '';
+
+        $customerId = $review->getCustomerId();
+        if (!empty($customerId)) {
+            $customer = $this->customerFactory->create()->load($customerId);
+            $userEmail = $customer->getEmail();
+            $userName = $customer->getName();
+        }
+
+        return ['id' => $customerId, 'email' => $userEmail, 'name' => $userName];
     }
 }

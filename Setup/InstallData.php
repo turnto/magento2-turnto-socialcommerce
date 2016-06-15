@@ -60,8 +60,6 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
         $setup->startSetup();
 
         $this->eavSetupFactory->create(['setup' => $setup])
-            ->addAttributeSet(Product::ENTITY, self::ATTRIBUTE_SET_ID)
-            ->addAttributeGroup(Product::ENTITY, self::ATTRIBUTE_SET_ID, self::ATTRIBUTE_GROUP_NAME)
             ->addAttribute(
                 Product::ENTITY,
                 self::REVIEW_COUNT_ATTRIBUTE_CODE,
@@ -70,7 +68,7 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
                     'type' => 'int',
                     'label' => self::REVIEW_COUNT_ATTRIBUTE_LABEL,
                     'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_STORE,
-                    'visible' => true,
+                    'visible' => false,
                     'required' => false,
                     'default' => 0,
                     'used_in_product_listing' => true,
@@ -85,7 +83,7 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
                     'type' => 'decimal',
                     'label' => self::AVERAGE_RATING_ATTRIBUTE_LABEL,
                     'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_STORE,
-                    'visible' => true,
+                    'visible' => false,
                     'required' => false,
                     'default' => 0.0,
                     'used_in_product_listing' => true,

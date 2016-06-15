@@ -2,11 +2,11 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
     <group id="turnto_socialcommerce">
         <job name="socialcommerce_exportcatalog" instance="TurnTo\SocialCommerce\Model\Export\Catalog" method="cronUploadFeed">
-             <schedule>0 0 */1 * *</schedule>
+             <schedule>0 0 * * *</schedule>
         </job>
-        <!-- Aggregate Rating by SKU feed is generated once per day at 0300 EST -->
+        <!-- TurnTo generates the SKU feed at 3AM EST every day, so this import will run at 4AM in the store's configured timezone to attempt to download the latest feed -->
         <job name="socialcommerce_importratings" instance="TurnTo\SocialCommerce\Model\Import\Ratings" method="cronDownloadFeed">
-            <schedule>15 5 */1 * *</schedule>
+            <schedule>0 4 * * *</schedule>
         </job>
     </group>
 </config>

@@ -108,6 +108,14 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * @return \Magento\Store\Api\Data\StoreInterface[]
+     */
+    public function getStores()
+    {
+        return $this->storeManager->getStores();
+    }
+
+    /**
      * Gets the store code from the currently set/scoped store
      * @return string
      */
@@ -119,16 +127,15 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the value of the setting that determines if TurnTo's configuration is enabled
      *
-     * @param $scopeType
-     * @param $scopeCode
+     * @param null $store
      * @return mixed
      */
-    public function getIsEnabled($scopeCode)
+    public function getIsEnabled($store = null)
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_ENABLED,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $scopeCode
+            ScopeInterface::SCOPE_STORE,
+            isset($store) ? $store : $this->getCurrentStoreCode()
         );
     }
 
@@ -138,24 +145,25 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * @param $store = null
      * @return mixed
      */
-    public function getIsProductFeedSubmissionEnabled($scopeCode)
+    public function getIsProductFeedSubmissionEnabled($store = null)
     {
         return $this->scopeConfig->getValue(self::XML_PATH_ENABLE_PRODUCT_FEED_SUBMISSION,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $scopeCode
+            ScopeInterface::SCOPE_STORE,
+            isset($store) ? $store : $this->getCurrentStoreCode()
         );
     }
 
     /**
      * Gets the TurnTo Site Key
      *
+     * @param $store = null
      * @return mixed
      */
-    public function getSiteKey($scopeCode)
+    public function getSiteKey($store = null)
     {
         return $this->scopeConfig->getValue(self::XML_PATH_SITE_KEY,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $scopeCode
+            ScopeInterface::SCOPE_STORE,
+            isset($store) ? $store : $this->getCurrentStoreCode()
         );
     }
 
@@ -165,14 +173,14 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * @param $store = null
      * @return mixed
      */
-    public function getTurnToVersion($scopeCode)
+    public function getTurnToVersion($store = null)
     {
         return str_replace(
             '.',
             '_',
             $this->scopeConfig->getValue(self::XML_PATH_VERSION,
-                \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-                $scopeCode
+                ScopeInterface::SCOPE_STORE,
+                isset($store) ? $store : $this->getCurrentStoreCode()
             )
         );
     }
@@ -219,61 +227,74 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the TurnTo API Authorization Key
      *
+     * @param $store = null
      * @return mixed
      */
-    public function getAuthorizationKey($scopeCode)
+    public function getAuthorizationKey($store = null)
     {
         return $this->scopeConfig->getValue(self::XML_PATH_AUTHORIZATION_KEY,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $scopeCode
+            ScopeInterface::SCOPE_STORE,
+            isset($store) ? $store : $this->getCurrentStoreCode()
         );
     }
 
     /**
      * Gets the TurnTo URL to send a feed to
      *
+     * @param $store = null
      * @return mixed
      */
-    public function getFeedUploadAddress($scopeCode)
+    public function getFeedUploadAddress($store = null)
     {
         return $this->scopeConfig->getValue(self::XML_PATH_FEED_SUBMISSION_URL,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $scopeCode
+            ScopeInterface::SCOPE_STORE,
+            isset($store) ? $store : $this->getCurrentStoreCode()
         );
     }
 
-    public function getExportFeedAddress ($scopeType, $scopeCode)
+    /**
+     * @param null $store
+     * @return mixed
+     */
+    public function getExportFeedAddress($store = null)
     {
-        return $this->scopeConfig->getValue(self::XML_PATH_EXPORT_FEED_URL, $scopeType, $scopeCode);
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_EXPORT_FEED_URL,
+            ScopeInterface::SCOPE_STORE,
+            isset($store) ? $store : $this->getCurrentStoreCode()
+        );
     }
 
     /**
      * Gets the Product Attribute Code that corresponds to the mapping key (see constants on this class)
      *
      * @param $mappingKey
-     * @param $scopeType
-     * @param $scopeCode
+     * @param null $store
      * @return mixed
      */
-    public function getProductAttributeMapping($mappingKey, $scopeCode)
+    public function getProductAttributeMapping($mappingKey, $store = null)
     {
         return $this->scopeConfig->getValue(self::XML_PATH_PRODUCT_GROUP . $mappingKey,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $scopeCode
+            ScopeInterface::SCOPE_STORE,
+            isset($store) ? $store : $this->getCurrentStoreCode()
         );
     }
 
     /**
      * Gets an associative array of any set product attributes related to GTIN, key => mappingKey, value => attr_code
      *
+     * @param $store = null
      * @return array
      */
-    public function getGtinAttributesMap($scopeCode)
+    public function getGtinAttributesMap($store = null)
     {
         $gtinMap = [];
         foreach (self::PRODUCT_ATTRIBUTE_MAPPING_KEYS as $mappingKey) {
             $tempResult = null;
-            $tempResult = $this->getProductAttributeMapping($mappingKey, $scopeCode);
+            $tempResult = $this->getProductAttributeMapping(
+                $mappingKey,
+                isset($store) ? $store : $this->getCurrentStoreCode()
+            );
             if (!empty($tempResult)) {
                 $gtinMap[$mappingKey] = $tempResult;
             }

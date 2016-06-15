@@ -16,21 +16,6 @@ class AbstractImport
     protected $config = null;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface|null
-     */
-    protected $storeManager = null;
-
-    /**
-     * @var null
-     */
-    protected $productCollectionFactory = null;
-
-    /**
-     * @var null
-     */
-    protected $httpClient = null;
-
-    /**
      * @var null|\TurnTo\SocialCommerce\Logger\Monolog
      */
     protected $logger = null;
@@ -46,27 +31,20 @@ class AbstractImport
     protected $encryptor = null;
 
     /**
-     * @var null
-     */
-    protected $productRepository = null;
-
-    /**
      * AbstractImport constructor.
+     * 
      * @param \TurnTo\SocialCommerce\Helper\Config $config
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
      * @param \Magento\Catalog\Model\ProductFactory $productFactory
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      */
     public function __construct (
         \TurnTo\SocialCommerce\Helper\Config $config,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
         \Magento\Catalog\Model\ProductFactory $productFactory,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor
     ) {
         $this->config = $config;
-        $this->storeManager = $storeManager;
         $this->logger = $logger;
         $this->productFactory = $productFactory;
         $this->encryptor = $encryptor;
