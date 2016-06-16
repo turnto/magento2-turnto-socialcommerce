@@ -37,7 +37,7 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
             'siteKey' => $this->config->getSiteKey(),
             'host' => $this->config->getUrlWithoutProtocol(),
             'staticHost' => $this->config->getStaticUrlWithoutProtocol(),
-            'skipCssLoad' => false,
+            'skipCssLoad' => true,
         ];
 
         if ($this->config->getQaEnabled()) {
