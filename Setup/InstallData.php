@@ -9,17 +9,12 @@
 namespace TurnTo\SocialCommerce\Setup;
 
 use \Magento\Catalog\Model\Product;
-use \Magento\Catalog\Api\Data\EavAttributeInterface;
 
 class InstallData implements \Magento\Framework\Setup\InstallDataInterface
 {
     /**#@+
      * TurnTo related Magento Product attribute keys
      */
-    const ATTRIBUTE_SET_ID = 'turnto_socialcommerce';
-
-    const ATTRIBUTE_GROUP_NAME = 'TurnTo Social Commerce';
-
     const REVIEW_COUNT_ATTRIBUTE_CODE = 'turnto_review_count';
 
     const REVIEW_COUNT_ATTRIBUTE_LABEL = 'Review Count';
@@ -27,6 +22,28 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
     const AVERAGE_RATING_ATTRIBUTE_CODE = 'turnto_average_rating';
 
     const AVERAGE_RATING_ATTRIBUTE_LABEL = 'Average Rating';
+
+    const RATING_FILTER_ATTRIBUTE_CODE = 'turnto_rating_filter';
+
+    const RATING_FILTER_ATTRIBUTE_LABEL = 'Average Star Rating';
+
+    const ONE_STAR_LABEL = '1 Star and Above';
+
+    const TWO_STAR_LABEL = '2 Star and Above';
+
+    const THREE_STAR_LABEL = '3 Star and Above';
+
+    const FOUR_STAR_LABEL = '4 Star and Above';
+
+    const FIVE_STAR_LABEL = '5 Star and Above';
+
+    const RATING_FILTER_VALUES = [
+        self::ONE_STAR_LABEL,
+        self::TWO_STAR_LABEL,
+        self::THREE_STAR_LABEL,
+        self::FOUR_STAR_LABEL,
+        self::FIVE_STAR_LABEL
+    ];
     /**#@-*/
 
     protected $eavSetupFactory = null;
@@ -64,12 +81,12 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
                 Product::ENTITY,
                 self::REVIEW_COUNT_ATTRIBUTE_CODE,
                 [
-                    'group' => self::ATTRIBUTE_GROUP_NAME,
                     'type' => 'int',
                     'label' => self::REVIEW_COUNT_ATTRIBUTE_LABEL,
                     'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_STORE,
-                    'visible' => false,
+                    'visible' => true,
                     'required' => false,
+                    'user_defined' => false,
                     'default' => 0,
                     'used_in_product_listing' => true,
                     'is_visible_on_front' => true
@@ -77,17 +94,36 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
             )
             ->addAttribute(
                 Product::ENTITY,
+                self::RATING_FILTER_ATTRIBUTE_CODE,
+                [
+                    'type' => 'varchar',
+                    'input' => 'multiselect',
+                    'backend' => '\Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend',
+                    'label' => self::RATING_FILTER_ATTRIBUTE_LABEL,
+                    'used_in_product_listing' => true,
+                    'is_visible_on_front' => true,
+                    'user_defined' => false,
+                    'filterable' => true,
+                    'filterable_in_search' => true,
+                    'default' => 0,
+                    'option' => [
+                        'values' => self::RATING_FILTER_VALUES
+                    ]
+                ]
+            )
+            ->addAttribute(
+                Product::ENTITY,
                 self::AVERAGE_RATING_ATTRIBUTE_CODE,
                 [
-                    'group' => self::ATTRIBUTE_GROUP_NAME,
                     'type' => 'decimal',
                     'label' => self::AVERAGE_RATING_ATTRIBUTE_LABEL,
                     'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_STORE,
-                    'visible' => false,
+                    'visible' => true,
                     'required' => false,
                     'default' => 0.0,
                     'used_in_product_listing' => true,
-                    'is_visible_on_front' => true
+                    'is_visible_on_front' => true,
+                    'user_defined' => false
                 ]
             );
 
