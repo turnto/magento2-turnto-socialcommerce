@@ -110,14 +110,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @return \Magento\Store\Api\Data\StoreInterface[]
-     */
-    public function getStores()
-    {
-        return $this->storeManager->getStores();
-    }
-
-    /**
      * Gets the store code from the currently set/scoped store
      * @return string
      */
