@@ -29,7 +29,7 @@ class AbstractImport
      * @var \Magento\Framework\Encryption\EncryptorInterface|null
      */
     protected $encryptor = null;
-
+    
     /**
      * AbstractImport constructor.
      * 
@@ -37,16 +37,19 @@ class AbstractImport
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
      * @param \Magento\Catalog\Model\ProductFactory $productFactory
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      */
     public function __construct (
         \TurnTo\SocialCommerce\Helper\Config $config,
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
         \Magento\Catalog\Model\ProductFactory $productFactory,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor
+        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->config = $config;
         $this->logger = $logger;
         $this->productFactory = $productFactory;
         $this->encryptor = $encryptor;
+        $this->storeManager = $storeManager;
     }
 }

@@ -93,7 +93,7 @@ class Ratings extends AbstractImport
      */
     public function cronDownloadFeed()
     {
-        foreach ($this->config->getStores() as $store) {
+        foreach ($this->storeManager->getStores() as $store) {
             $feedAddress = 'UNK';
             if (!$this->config->getIsEnabled($store->getCode()) || !$this->config->getReviewsEnabled($store->getCode())) {
                 continue;

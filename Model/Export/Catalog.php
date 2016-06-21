@@ -36,7 +36,13 @@ class Catalog extends AbstractExport
     protected $dateTimeFactory = null;
 
     /**
+     * @var \Magento\Store\Model\StoreManagerInterface|null
+     */
+    protected $storeManager = null;
+
+    /**
      * Catalog constructor.
+     * 
      * @param Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \Zend\Http\Client $httpClient
@@ -44,6 +50,7 @@ class Catalog extends AbstractExport
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Magento\Catalog\Helper\Product $productHelper
      * @param \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      */
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
@@ -52,10 +59,12 @@ class Catalog extends AbstractExport
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Magento\Catalog\Helper\Product $productHelper,
-        \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory
+        \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->productHelper = $productHelper;
         $this->dateTimeFactory = $dateTimeFactory;
+        $this->storeManager = $storeManager;
 
         parent::__construct($config, $productCollectionFactory, $httpClient, $logger, $encryptor);
     }
@@ -65,8 +74,7 @@ class Catalog extends AbstractExport
      */
     public function cronUploadFeed()
     {
-        $stores = $this->config->getStores();
-        foreach ($stores as $store) {
+        foreach ($this->storeManager->getStores() as $store) {
             if (
                 $this->config->getIsEnabled($store->getCode())
                 && $this->config->getIsProductFeedSubmissionEnabled($store->getCode())
