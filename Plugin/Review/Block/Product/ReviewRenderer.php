@@ -48,7 +48,7 @@ class ReviewRenderer
     {
         if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
             $result = (string)round(
-                $subject->getProduct()->getTurntoAverageRating() * self::RATING_TO_PERCENTILE_MULTIPLIER
+                $subject->getProduct()->getTurntoRating() * self::RATING_TO_PERCENTILE_MULTIPLIER
             );
         } else {
             $result = $proceed();
@@ -66,7 +66,7 @@ class ReviewRenderer
     {
         if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
             $result = (string)round(
-                $subject->getProduct()->getTurntoAverageRating() * self::RATING_TO_PERCENTILE_MULTIPLIER
+                $subject->getProduct()->getTurntoRating() * self::RATING_TO_PERCENTILE_MULTIPLIER
             );
         } else {
             $result = $proceed();

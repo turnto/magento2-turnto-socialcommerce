@@ -58,7 +58,7 @@ class Ratings extends AbstractImport
                 \Magento\Catalog\Model\Product::SKU, 
                 $sku,
                 [
-                    InstallData::RATING_FILTER_ATTRIBUTE_CODE,
+                    InstallData::RATING_ATTRIBUTE_CODE,
                     InstallData::REVIEW_COUNT_ATTRIBUTE_CODE,
                     InstallData::AVERAGE_RATING_ATTRIBUTE_CODE
                 ]
@@ -67,14 +67,14 @@ class Ratings extends AbstractImport
         if ($product) {
             $product->setData(InstallData::REVIEW_COUNT_ATTRIBUTE_CODE, $reviewCount);
             $product->getResource()->saveAttribute($product, InstallData::REVIEW_COUNT_ATTRIBUTE_CODE);
-            $product->setData(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE, $averageRating);
-            $product->getResource()->saveAttribute($product, InstallData::AVERAGE_RATING_ATTRIBUTE_CODE);
+            $product->setData(InstallData::RATING_ATTRIBUTE_CODE, $averageRating);
+            $product->getResource()->saveAttribute($product, InstallData::RATING_ATTRIBUTE_CODE);
             $filterValues = [];
             foreach($this->getRatingFilterAttributeValuesFromAverage($averageRating) as $optionText) {
-                $filterValues[] = $product->getResource()->getAttribute(InstallData::RATING_FILTER_ATTRIBUTE_CODE)->getSource()->getOptionId($optionText);
+                $filterValues[] = $product->getResource()->getAttribute(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE)->getSource()->getOptionId($optionText);
             }
-            $product->setData(InstallData::RATING_FILTER_ATTRIBUTE_CODE, implode(',', $filterValues));
-            $product->getResource()->saveAttribute($product, InstallData::RATING_FILTER_ATTRIBUTE_CODE);
+            $product->setData(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE, implode(',', $filterValues));
+            $product->getResource()->saveAttribute($product, InstallData::AVERAGE_RATING_ATTRIBUTE_CODE);
         }
     }
 

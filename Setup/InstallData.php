@@ -15,6 +15,8 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
     /**#@+
      * TurnTo related Magento Product attribute keys
      */
+    const ATTRIBUTE_GROUP_NAME = 'TurnTo Social Commerce';
+    
     const REVIEW_COUNT_ATTRIBUTE_CODE = 'turnto_review_count';
 
     const REVIEW_COUNT_ATTRIBUTE_LABEL = 'Review Count';
@@ -23,9 +25,9 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
 
     const AVERAGE_RATING_ATTRIBUTE_LABEL = 'Average Rating';
 
-    const RATING_FILTER_ATTRIBUTE_CODE = 'turnto_rating_filter';
+    const RATING_ATTRIBUTE_CODE = 'turnto_rating';
 
-    const RATING_FILTER_ATTRIBUTE_LABEL = 'Average Star Rating';
+    const RATING_ATTRIBUTE_LABEL = 'Rating';
 
     const ONE_STAR_LABEL = '1 Star and Above';
 
@@ -76,30 +78,47 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
     ) {
         $setup->startSetup();
 
-        $this->eavSetupFactory->create(['setup' => $setup])
-            ->addAttribute(
+        $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+
+        foreach ($eavSetup->getAllAttributeSetIds(Product::ENTITY) as $setId) {
+            $groupCollection = $eavSetup->getAttributeGroupCollectionFactory();
+            $sortOrder = 0;
+            foreach($groupCollection->setAttributeSetFilter($setId) as $group) {
+                if ($group->getAttributeGroupCode() === 'image-management') {
+                    $sortOrder = (int)$group->getSortOrder();
+                    break;
+                }
+            }
+            $eavSetup->addAttributeGroup(Product::ENTITY, $setId, self::ATTRIBUTE_GROUP_NAME, $sortOrder + 1);
+        }
+        
+        $eavSetup->addAttribute(
                 Product::ENTITY,
                 self::REVIEW_COUNT_ATTRIBUTE_CODE,
                 [
+                    'visible' => true,
+                    'group' => self::ATTRIBUTE_GROUP_NAME,
                     'type' => 'int',
                     'label' => self::REVIEW_COUNT_ATTRIBUTE_LABEL,
                     'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_STORE,
-                    'visible' => true,
                     'required' => false,
                     'user_defined' => false,
                     'default' => 0,
                     'used_in_product_listing' => true,
-                    'is_visible_on_front' => true
+                    'is_visible_on_front' => true,
+                    'note' => 'Do not edit, this value is replaced nightly.'
                 ]
             )
             ->addAttribute(
                 Product::ENTITY,
-                self::RATING_FILTER_ATTRIBUTE_CODE,
+                self::AVERAGE_RATING_ATTRIBUTE_CODE,
                 [
+                    'visible' => true,
+                    'group' => self::ATTRIBUTE_GROUP_NAME,
                     'type' => 'varchar',
                     'input' => 'multiselect',
                     'backend' => '\Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend',
-                    'label' => self::RATING_FILTER_ATTRIBUTE_LABEL,
+                    'label' => self::AVERAGE_RATING_ATTRIBUTE_LABEL,
                     'used_in_product_listing' => true,
                     'is_visible_on_front' => true,
                     'user_defined' => false,
@@ -108,22 +127,25 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
                     'default' => 0,
                     'option' => [
                         'values' => self::RATING_FILTER_VALUES
-                    ]
+                    ],
+                    'note' => 'Do not edit, this value is replaced nightly.'
                 ]
             )
             ->addAttribute(
                 Product::ENTITY,
-                self::AVERAGE_RATING_ATTRIBUTE_CODE,
+                self::RATING_ATTRIBUTE_CODE,
                 [
-                    'type' => 'decimal',
-                    'label' => self::AVERAGE_RATING_ATTRIBUTE_LABEL,
-                    'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_STORE,
                     'visible' => true,
+                    'group' => self::ATTRIBUTE_GROUP_NAME,
+                    'type' => 'decimal',
+                    'label' => self::RATING_ATTRIBUTE_LABEL,
+                    'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_STORE,
                     'required' => false,
                     'default' => 0.0,
                     'used_in_product_listing' => true,
                     'is_visible_on_front' => true,
-                    'user_defined' => false
+                    'user_defined' => false,
+                    'note' => 'Do not edit, this value is replaced nightly.'
                 ]
             );
 
