@@ -78,13 +78,20 @@ class Ratings extends AbstractImport
         }
     }
 
+    /**
+     * Gets an array of values equal to or less than the floor rounded average rating value.
+     *
+     * @param $averageRating
+     * @return array
+     */
     public function getRatingFilterAttributeValuesFromAverage($averageRating)
     {
         $floorValue = floor($averageRating);
         $filterValues = [];
-        for ($i = $floorValue - 1; $i < count(InstallData::RATING_FILTER_VALUES); $i++) {
+        for ($i = 0; $i < $floorValue; $i++) {
             $filterValues[] = InstallData::RATING_FILTER_VALUES[$i];
         }
+
         return $filterValues;
     }
 
