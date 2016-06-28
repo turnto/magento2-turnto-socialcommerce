@@ -125,7 +125,7 @@ class Catalog extends AbstractExport
                 throw new \Exception("TurnTo catalog feed submission failed with message: $body" );
             }
         } catch (\Exception $e) {
-            $this->logger->error('An error occured while transmitting the catalog feed to TurnTo',
+            $this->logger->error('An error occurred while transmitting the catalog feed to TurnTo',
                 [
                     'exception' => $e,
                     'response' => $response ? 'null' : $response->getBody()
