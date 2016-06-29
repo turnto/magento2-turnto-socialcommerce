@@ -18,9 +18,7 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
 ?>
 
 <script type="text/javascript">
-    <?php
-        if($qaTeaserEnabled && $qaEnabled):
-    ?>
+    <?php if($qaTeaserEnabled && $qaEnabled): ?>
     function qaTeaser (){
         if(typeof(TurnToItemData) == 'undefined' || typeof(TurnToItemData.counts) == 'undefined') {
             return '';
@@ -55,11 +53,8 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
         }
     }
 
-    <?php
-        endif;
-
-        if($reviewsTeaserEnabled && $reviewsEnabled):
-    ?>
+    <?php endif; ?>
+    <?php if($reviewsTeaserEnabled && $reviewsEnabled): ?>
 
     function reviewsTeaser() {
         if(typeof(TurnToItemData) == 'undefined' || typeof(TurnToItemData.counts) == 'undefined') {
@@ -91,9 +86,7 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
             });
         }
     }
-    <?php
-        endif;
-    ?>
+    <?php endif; ?>
 
     function scrollToTab(teaserContainer, clickElement, container, tab) {
         teaserContainer.find(clickElement).click(function(e) {
@@ -117,23 +110,16 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
     })();
 
     var TurnToItemSku = "<?= $productSku ?>";
-    <?php
-    if($commentsEnabled):
-    ?>
+    <?php if($commentsEnabled): ?>
     var TurnToChatterSku = TurnToItemSku;
     (function() {
         var tt = document.createElement('script'); tt.type = 'text/javascript'; tt.async = true;
         tt.src = "<?= $staticUrl ?>/traServer<?= $version ?>/chatterjs/<?= $siteKey ?>/turnto-chatter.js";
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(tt, s);
     })();
-    <?php
-    endif;
-    ?>
+    <?php endif; ?>
 </script>
 
 <script src="<?= $staticUrl ?>/sitedata/<?= $siteKey ?>/v<?= $version ?>/<?= $productSku ?>/d/itemjs" type="text/javascript"></script>
 
-<?php
-    endif;
-?>
-
+<?php endif; ?>
