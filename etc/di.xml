@@ -11,4 +11,11 @@
     <type name="Magento\Catalog\Block\Product\View\Description">
         <plugin name="removeQuestionsTab" type="TurnTo\SocialCommerce\Plugin\Catalog\Block\Product\View\Description" />
     </type>
+    <type name="Magento\Catalog\Block\Product\ReviewRendererInterface">
+        <plugin name="turnto_socialcommerce_model_reviewrendererinterface_plugin" type="TurnTo\SocialCommerce\Plugin\Review\Block\Product\ReviewRenderer" sortOrder="1" disabled="false" />
+    </type>
+    <type name="Magento\Catalog\Model\Layer\Filter\Item\DataBuilder">
+        <plugin name="turnto_socialcommerce_plugin_catalog_model_layer_filter_item_databuilder" type="TurnTo\SocialCommerce\Plugin\Catalog\Model\Layer\Filter\Item\DataBuilder" sortOrder="1" disabled="false" />
+    </type>
 </config>
+

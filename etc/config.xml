@@ -43,7 +43,7 @@
                 <enable_automatic_submission>1</enable_automatic_submission>
             </product_feed>
             <historical_orders_feed>
-                <enable_historical_feed>0</enable_historical_feed>
+                <enable_historical_feed>1</enable_historical_feed>
                 <website_id>1</website_id>
                 <store_id>1</store_id>
             </historical_orders_feed>
