@@ -1,0 +1,19 @@
+<?php
+    $configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
+
+    $siteKey = $configHelper->getSiteKey();
+    $staticUrl = $configHelper->getStaticUrl();
+    $version = $configHelper->getTurnToVersion();
+
+?>
+
+<script type="text/javascript">
+    var turnToConfig = {
+        siteKey: "<?= $siteKey ?>",
+        pinboard: <?= $block->getPinboardConfig() ?>
+    };
+
+    require(['<?= $staticUrl ?>/traServer<?= $version ?>/pinboardjs/<?= $siteKey ?>/turnto-pinboard.js']);
+</script>
+
+<div id="TurnToPinboardContent"></div>

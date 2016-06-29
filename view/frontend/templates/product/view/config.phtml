@@ -17,6 +17,8 @@ $productSku = $this->getProduct()->getSku();
 if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
 ?>
 
+<link rel="stylesheet" href="<?= $staticUrl ?>/tra<?= $version ?>/tra.css" />
+
 <script type="text/javascript">
     <?php if($qaTeaserEnabled && $qaEnabled): ?>
     function qaTeaser (){
@@ -28,9 +30,9 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
             var teaserContainer = TurnTojQuery(".TurnToItemTeaser");
             var teaserHtml = '';
             <?php
-                if ($qaEnabled && $qaTeaserEnabled && $reviewsEnabled && $reviewsTeaserEnabled):
+                if ($reviewsEnabled && $reviewsTeaserEnabled):
             ?>
-            var teaserHtml = ' | ';
+            var teaserHtml = '&nbsp;|&nbsp;';
             <?php
                 endif;
             ?>
@@ -67,8 +69,8 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
             // round the average rating to the nearest tenth
             var rating = Math.round((TurnToItemData.counts.ar + 0.25) * 100.0) / 100.0;
             rating = rating.toString();
-            var decimal = parseInt(rating.substring(2, 3))
-            rating = rating.substring(0, 1) + "-" + (decimal >= 5 ? '5' : '0')
+            var decimal = parseInt(rating.substring(2, 3));
+            rating = rating.substring(0, 1) + "-" + (decimal >= 5 ? '5' : '0');
 
             if(reviewCount == 0) {
                 teaserHtml = '<div class="TT2left TTratingBox TTrating-0-0"></div> <a id="writeReview" href="javascript:void(0)"><?= __('Write a Review') ?></a>';
@@ -98,28 +100,18 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
         });
     }
 
-    var turnToConfig = <?= $block->getConfigJson() ?>;
 
-    (function() {
-        var tt = document.createElement('script');
-        tt.type = 'text/javascript';
-        tt.async = true;
-        tt.src = "<?= $staticUrl ?>/traServer<?= $version ?>/trajs/" + turnToConfig.siteKey + "/tra.js";
-        var s = document.getElementsByTagName('script')[0];
-        s.parentNode.insertBefore(tt, s);
-    })();
+    var turnToConfig = <?= $block->getConfigJson() ?>;
 
     var TurnToItemSku = "<?= $productSku ?>";
     <?php if($commentsEnabled): ?>
     var TurnToChatterSku = TurnToItemSku;
-    (function() {
-        var tt = document.createElement('script'); tt.type = 'text/javascript'; tt.async = true;
-        tt.src = "<?= $staticUrl ?>/traServer<?= $version ?>/chatterjs/<?= $siteKey ?>/turnto-chatter.js";
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(tt, s);
-    })();
-    <?php endif; ?>
+
+    <?php
+    endif;
+    ?>
 </script>
+<?php
+    endif;
+?>
 
-<script src="<?= $staticUrl ?>/sitedata/<?= $siteKey ?>/v<?= $version ?>/<?= $productSku ?>/d/itemjs" type="text/javascript"></script>
-
-<?php endif; ?>
