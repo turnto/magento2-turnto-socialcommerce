@@ -64,7 +64,6 @@ class Orders extends AbstractExport
 
     /**
      * Orders constructor.
-     *
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
@@ -115,7 +114,7 @@ class Orders extends AbstractExport
             $sortOrderBuilder
         );
     }
-    
+
     public function cronUploadFeed()
     {
         $varDirectory = $this->directoryList->getPath(DirectoryList::VAR_DIR) . '/';

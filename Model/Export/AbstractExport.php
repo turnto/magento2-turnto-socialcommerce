@@ -2,6 +2,7 @@
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
+use \Magento\Framework\HTTP\ZendClientFactory;
 /**
  * Class AbstractExport
  * @package TurnTo\SocialCommerce\Model\Export
@@ -49,9 +50,15 @@ class AbstractExport
      * @var \Magento\Framework\Api\SortOrderBuilder|null
      */
     protected $sortOrderBuilder = null;
-    
+
+    /**
+     * @var \Magento\Framework\HTTP\ZendClientFactory|null
+     */
+    protected $zendClientFactory = null;
+
     /**
      * AbstractExport constructor.
+     *
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger

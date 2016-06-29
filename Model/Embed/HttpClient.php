@@ -5,11 +5,6 @@ namespace TurnTo\SocialCommerce\Model\Embed;
 class HttpClient
 {
     /**
-     * @var \Zend\Http\Client
-     */
-    protected $httpClient;
-
-    /**
      * @var \TurnTo\SocialCommerce\Logger\Monolog
      */
     protected $logger;
@@ -17,14 +12,11 @@ class HttpClient
     /**
      * HttpClient constructor.
      *
-     * @param \Zend\Http\Client $httpClient
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
      */
     public function __construct(
-        \Zend\Http\Client $httpClient,
         \TurnTo\SocialCommerce\Logger\Monolog $logger
     ) {
-        $this->httpClient = $httpClient;
         $this->logger = $logger;
     }
 
@@ -37,11 +29,11 @@ class HttpClient
     {
         try {
             $response = null;
-            $this->httpClient
-                ->setUri($url)
+            $httpClient = new \Magento\Framework\HTTP\ZendClient;
+            $httpClient->setUri($url)
                 ->setMethod(\Zend_Http_Client::GET);
 
-            $response = $this->httpClient->send();
+            $response = $httpClient->send();
 
             if (!$response || !$response->isSuccess()) {
                 $errorMessage = __('This content could not be retrieved at this time.');
