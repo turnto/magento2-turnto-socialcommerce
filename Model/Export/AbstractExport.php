@@ -8,6 +8,8 @@ namespace TurnTo\SocialCommerce\Model\Export;
  */
 class AbstractExport
 {
+    const DEFAULT_PAGE_SIZE = 25;
+
     /**
      * @var null|\TurnTo\SocialCommerce\Helper\Config
      */
@@ -17,11 +19,6 @@ class AbstractExport
      * @var \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory|null
      */
     protected $productCollectionFactory = null;
-
-    /**
-     * @var null|\Zend\Http\Client
-     */
-    protected $httpClient = null;
 
     /**
      * @var null|\TurnTo\SocialCommerce\Logger\Monolog
@@ -34,26 +31,80 @@ class AbstractExport
     protected $encryptor = null;
 
     /**
+     * @var \Magento\Framework\Stdlib\DateTime\DateTimeFactory|null
+     */
+    protected $dateTimeFactory = null;
+    
+    /**
+     * @var \Magento\Framework\Api\SearchCriteriaBuilder|null
+     */
+    protected $searchCriteriaBuilder = null;
+
+    /**
+     * @var \Magento\Framework\Api\FilterBuilder|null
+     */
+    protected $filterBuilder = null;
+
+    protected $sortOrderBuilder = null;
+
+    /**
      * AbstractExport constructor.
-     * 
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \Zend\Http\Client $httpClient
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
+     * @param \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory
+     * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
+     * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
      */
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
         \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
-        \Zend\Http\Client $httpClient,
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor
+        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
+        \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory,
+        \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
+        \Magento\Framework\Api\FilterBuilder $filterBuilder,
+        \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
     ) {
         $this->config = $config;
         $this->productCollectionFactory = $productCollectionFactory;
-        $this->httpClient = $httpClient;
         $this->logger = $logger;
         $this->encryptor = $encryptor;
+        $this->dateTimeFactory = $dateTimeFactory;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->filterBuilder = $filterBuilder;
+        $this->sortOrderBuilder = $sortOrderBuilder;
+    }
+
+    /**
+     * @param $fieldId
+     * @param string $direction
+     * @return \Magento\Framework\Api\AbstractSimpleObject
+     */
+    public function getSortOrder($fieldId, $direction = \Magento\Framework\Api\SortOrder::SORT_ASC)
+    {
+        return $this->sortOrderBuilder->setField($fieldId)->setDirection($direction)->create();
+    }
+
+    public function getFilter($fieldId, $value, $conditionType)
+    {
+        return $this->filterBuilder
+            ->setField($fieldId)
+            ->setValue($value)
+            ->setConditionType($conditionType)
+            ->create();
+    }
+
+    public function getSearchCriteria($sortOrder, $filters = [], $pageSize = self::DEFAULT_PAGE_SIZE)
+    {
+        return $this->searchCriteriaBuilder
+            ->addFilters($filters)
+            ->setPageSize($pageSize)
+            ->addSortOrder($sortOrder)
+            ->create();
     }
 
     /**

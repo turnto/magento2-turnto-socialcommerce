@@ -4,6 +4,9 @@
         <job name="socialcommerce_exportcatalog" instance="TurnTo\SocialCommerce\Model\Export\Catalog" method="cronUploadFeed">
              <schedule>0 0 * * *</schedule>
         </job>
+        <job name="socialcommerce_exportorders" instance="TurnTo\SocialCommerce\Model\Export\Orders" method="cronUploadFeed">
+            <schedule>0 1 * * *</schedule>
+        </job>
         <!-- TurnTo generates the SKU feed at 3AM EST every day, so this import will run at 4AM in the store's configured timezone to attempt to download the latest feed -->
         <job name="socialcommerce_importratings" instance="TurnTo\SocialCommerce\Model\Import\Ratings" method="cronDownloadFeed">
             <schedule>0 4 * * *</schedule>

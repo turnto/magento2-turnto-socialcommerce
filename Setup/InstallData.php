@@ -16,7 +16,7 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
      * TurnTo related Magento Product attribute keys
      */
     const ATTRIBUTE_GROUP_NAME = 'TurnTo Social Commerce';
-    
+
     const REVIEW_COUNT_ATTRIBUTE_CODE = 'turnto_review_count';
 
     const REVIEW_COUNT_ATTRIBUTE_LABEL = 'Review Count';
@@ -29,15 +29,15 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
 
     const RATING_ATTRIBUTE_LABEL = 'Rating';
 
-    const ONE_STAR_LABEL = '1 Star and Above';
+    const ONE_STAR_LABEL = '1 Star & Up';
 
-    const TWO_STAR_LABEL = '2 Star and Above';
+    const TWO_STAR_LABEL = '2 Stars & Up';
 
-    const THREE_STAR_LABEL = '3 Star and Above';
+    const THREE_STAR_LABEL = '3 Stars & Up';
 
-    const FOUR_STAR_LABEL = '4 Star and Above';
+    const FOUR_STAR_LABEL = '4 Stars & Up';
 
-    const FIVE_STAR_LABEL = '5 Star and Above';
+    const FIVE_STAR_LABEL = '5 Stars & Up';
 
     const RATING_FILTER_VALUES = [
         self::ONE_STAR_LABEL,
@@ -83,8 +83,11 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
         foreach ($eavSetup->getAllAttributeSetIds(Product::ENTITY) as $setId) {
             $groupCollection = $eavSetup->getAttributeGroupCollectionFactory();
             $sortOrder = 0;
-            foreach($groupCollection->setAttributeSetFilter($setId) as $group) {
-                if ($group->getAttributeGroupCode() === 'image-management') {
+            foreach ($groupCollection->setAttributeSetFilter($setId) as $group) {
+                if (
+                    $group->getAttributeGroupCode()
+                    === \Magento\Catalog\Ui\DataProvider\Product\Form\Modifier\Images::CODE_IMAGE_MANAGEMENT_GROUP
+                ) {
                     $sortOrder = (int)$group->getSortOrder();
                     break;
                 }

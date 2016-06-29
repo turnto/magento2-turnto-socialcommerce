@@ -34,7 +34,6 @@ class Reviews extends AbstractExport
      * Reviews constructor.
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
-     * @param \Zend\Http\Client $httpClient
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Magento\Review\Model\ReviewFactory $reviewFactory
@@ -45,9 +44,12 @@ class Reviews extends AbstractExport
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
         \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
-        \Zend\Http\Client $httpClient,
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
+        \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory,
+        \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
+        \Magento\Framework\Api\FilterBuilder $filterBuilder,
+        \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
         \Magento\Review\Model\ReviewFactory $reviewFactory,
         \Magento\Review\Model\ResourceModel\Review\CollectionFactory $reviewCollectionFactory,
         \Magento\Review\Model\Rating\Option\VoteFactory $voteFactory,
@@ -58,7 +60,16 @@ class Reviews extends AbstractExport
         $this->voteFactory = $voteFactory;
         $this->productFactory = $productFactory;
 
-        parent::__construct($config, $productCollectionFactory, $httpClient, $logger, $encryptor);
+        parent::__construct(
+            $config,
+            $productCollectionFactory,
+            $logger,
+            $encryptor,
+            $dateTimeFactory,
+            $searchCriteriaBuilder,
+            $filterBuilder,
+            $sortOrderBuilder
+        );
     }
 
     /**

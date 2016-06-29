@@ -13,7 +13,21 @@ use TurnTo\SocialCommerce\Plugin\Review\Block\Product\ReviewRenderer;
 
 class DataBuilder
 {
-    const RATING_APPEND_AND_UP = 'and Up';
+    const RATING_APPEND_AND_UP = '& Up';
+
+    /**
+     * @var null|\TurnTo\SocialCommerce\Helper\Config
+     */
+    protected $turnToConfigHelper = null;
+
+    /**
+     * DataBuilder constructor.
+     * @param \TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper
+     */
+    public function __construct(\TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper)
+    {
+        $this->turnToConfigHelper = $turnToConfigHelper;
+    }
 
     /**
      * Converts the label to a rating summary label if it corresponds to a TurnTo Rating Filter Value
@@ -28,15 +42,14 @@ class DataBuilder
         }
         $rating = ($idx + 1) * ReviewRenderer::RATING_TO_PERCENTILE_MULTIPLIER;
         $andUp = __(self::RATING_APPEND_AND_UP);
-        $label = <<<EOD
-<span class="rating-summary">
-    <span class="rating-result" title="$rating%">
-        <span style="width:$rating%;">
-            <span>$rating%</span>
-        </span>
-    </span>&nbsp;$andUp&nbsp;
-</span>
-EOD;
+        $label = "
+            <span class='rating-summary'>
+                <span class='rating-result' title='$rating%'>
+                    <span style='width:$rating%;'>
+                        <span>$rating%</span>
+                    </span>
+                </span>&nbsp;$andUp&nbsp;
+            </span>";
 
         return $label;
     }
@@ -55,7 +68,9 @@ EOD;
         $value,
         $count
     ) {
-        $label = $this->getRatingLabel($label);
+        if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
+            $label = $this->getRatingLabel($label);
+        }
         $proceed($label, $value, $count);
     }
 }

@@ -41,15 +41,24 @@ class Catalog extends AbstractExport
     protected $storeManager = null;
 
     /**
+     * @var null|\Zend\Http\Client
+     */
+    protected $httpClient = null;
+
+
+    /**
      * Catalog constructor.
-     * 
+     *
      * @param Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \Zend\Http\Client $httpClient
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
-     * @param \Magento\Catalog\Helper\Product $productHelper
      * @param \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory
+     * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
+     * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
+     * @param \Magento\Catalog\Helper\Product $productHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      */
     public function __construct(
@@ -58,15 +67,29 @@ class Catalog extends AbstractExport
         \Zend\Http\Client $httpClient,
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
-        \Magento\Catalog\Helper\Product $productHelper,
         \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
+        \Magento\Framework\Api\FilterBuilder $filterBuilder,
+        \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
+        \Magento\Catalog\Helper\Product $productHelper,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Zend\Http\Client $httpClient
     ) {
         $this->productHelper = $productHelper;
         $this->dateTimeFactory = $dateTimeFactory;
         $this->storeManager = $storeManager;
-
-        parent::__construct($config, $productCollectionFactory, $httpClient, $logger, $encryptor);
+        $this->httpClient = $httpClient;
+        
+        parent::__construct(
+            $config,
+            $productCollectionFactory,
+            $logger,
+            $encryptor,
+            $dateTimeFactory,
+            $searchCriteriaBuilder,
+            $filterBuilder,
+            $sortOrderBuilder
+        );
     }
 
     /**
@@ -80,7 +103,7 @@ class Catalog extends AbstractExport
                 && $this->config->getIsProductFeedSubmissionEnabled($store->getCode())
             ) {
                 $feed = $this->generateProductFeed($store);
-                $this->transmitFeed($feed, $store);
+               // $this->transmitFeed($feed, $store);
             }
         }
     }

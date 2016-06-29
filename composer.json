@@ -3,7 +3,7 @@
     "type": "magento2-module",
     "version": "0.1.0",
     "require": {
-        "magento/framework": "100.0.*"
+        "magento/framework": "100.*"
     },
     "autoload": {
         "files": [ "registration.php" ],

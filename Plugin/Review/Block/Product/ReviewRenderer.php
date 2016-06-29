@@ -15,16 +15,6 @@ class ReviewRenderer
 {
     //TurntoAverageRating is from 0.0 to 5.0, some uses need a number between 0 and 100 so multiply by 20
     const RATING_TO_PERCENTILE_MULTIPLIER = 20;
-    
-    /**
-     * Array of available template name
-     * @see \Magento\Review\Block\Product\ReviewRenderer::$_availableTemplates copied here since property is protected
-     * @var array
-     */
-    protected $_availableTemplates = [
-        ReviewRendererInterface::FULL_VIEW => 'helper/summary.phtml',
-        ReviewRendererInterface::SHORT_VIEW => 'helper/summary_short.phtml',
-    ];
 
     /**
      * @var null|\TurnTo\SocialCommerce\Helper\Config
@@ -110,11 +100,16 @@ class ReviewRenderer
          * if turnto module and reviews are enabled trigger generation of the block contents but avoid using the
          * standard checks for magento based product reviews otherwise resolve as usual
          */
+
         if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
-            $subject->setTemplate($this->_availableTemplates[$templateType]);
-            $subject->setDisplayIfEmpty($displayIfNoReviews);
-            $subject->setProduct($product);
-            $result = $subject->toHtml();
+            try {
+                $subject->setTemplate($this->_availableTemplates[$templateType]);
+                $subject->setDisplayIfEmpty($displayIfNoReviews);
+                $subject->setProduct($product);
+                $result = $subject->toHtml();
+            } catch (\Exception $e) {
+                $result = $proceed($product, $templateType, $displayIfNoReviews, false);
+            }
         } else {
             $result = $proceed($product, $templateType, $displayIfNoReviews, false);
         }
