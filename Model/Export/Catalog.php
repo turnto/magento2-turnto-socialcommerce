@@ -26,18 +26,84 @@ class Catalog extends AbstractExport
     const TURNTO_SUCCESS_RESPONSE = 'SUCCESS';
 
     /**
+     * @var \Magento\Catalog\Helper\Product|null
+     */
+    protected $productHelper = null;
+
+    /**
+     * @var \Magento\Framework\Stdlib\DateTime\DateTimeFactory|null
+     */
+    protected $dateTimeFactory = null;
+
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface|null
+     */
+    protected $storeManager = null;
+
+    /**
+     * @var null|\Zend\Http\Client
+     */
+    protected $httpClient = null;
+
+
+    /**
+     * Catalog constructor.
+     * @param Config $config
+     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
+     * @param \Zend\Http\Client $httpClient
+     * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
+     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
+     * @param \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory
+     * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
+     * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
+     * @param \Magento\Catalog\Helper\Product $productHelper
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Zend\Http\Client $httpClient
+     */
+    public function __construct(
+        \TurnTo\SocialCommerce\Helper\Config $config,
+        \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
+        \Zend\Http\Client $httpClient,
+        \TurnTo\SocialCommerce\Logger\Monolog $logger,
+        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
+        \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory,
+        \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
+        \Magento\Framework\Api\FilterBuilder $filterBuilder,
+        \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
+        \Magento\Catalog\Helper\Product $productHelper,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Zend\Http\Client $httpClient
+    ) {
+        $this->productHelper = $productHelper;
+        $this->dateTimeFactory = $dateTimeFactory;
+        $this->storeManager = $storeManager;
+        $this->httpClient = $httpClient;
+        
+        parent::__construct(
+            $config,
+            $productCollectionFactory,
+            $logger,
+            $encryptor,
+            $dateTimeFactory,
+            $searchCriteriaBuilder,
+            $filterBuilder,
+            $sortOrderBuilder
+        );
+    }
+
+    /**
      * Creates the product feed and pushes it to TurnTo
      */
     public function cronUploadFeed()
     {
-        $stores = $this->storeManager->getStores();
-        foreach ($stores as $store) {
+        foreach ($this->storeManager->getStores() as $store) {
             if (
                 $this->config->getIsEnabled($store->getCode())
                 && $this->config->getIsProductFeedSubmissionEnabled($store->getCode())
             ) {
                 $feed = $this->generateProductFeed($store);
-                $this->transmitFeed($feed, $store);
+               // $this->transmitFeed($feed, $store);
             }
         }
     }

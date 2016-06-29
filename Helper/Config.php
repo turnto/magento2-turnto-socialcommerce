@@ -98,6 +98,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const XML_PATH_SOCIALCOMMERCE_FEED_SUBMISSION_URL = 'turnto_socialcommerce_configuration/product_feed/feed_submission_url';
 
+    const XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_ENABLED = 'turnto_socialcommerce_configuration/historical_orders_feed/enable_historical_feed';
+
+    const XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_MOST_RECENT_TIMESTAMP = 'turnto_socialcommerce_configuration/historical_orders_feed/most_recent_export_timestamp';
+
+    const XML_PATH_EXPORT_FEED_URL = 'turnto_socialcommerce_configuration/product_feed/product_feed_url';
+
     const XML_PATH_PRODUCT_GROUP = 'turnto_socialcommerce_configuration/product_attribute_mappings/';
     /**#@-*/
 
@@ -117,15 +123,25 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     protected $storeManager = null;
 
     /**
+     * @var \Magento\Config\Model\ResourceModel\Config|null
+     */
+    protected $resourceModel = null;
+
+    /**
      * Config constructor.
+     *
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Config\Model\ResourceModel\Config $resourceModel
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Config\Model\ResourceModel\Config $resourceModel
     ) {
         $this->storeManager = $storeManager;
+        $this->resourceModel = $resourceModel;
+
         parent::__construct($context);
     }
 
@@ -144,12 +160,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * @param null $scopeCode
      * @return mixed
      */
-    public function getIsEnabled ($store = null)
+    public function getIsEnabled($scopeCode = null)
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLED,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $scopeCode ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -159,36 +175,36 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * @param $store = null
      * @return mixed
      */
-    public function getIsProductFeedSubmissionEnabled ($store = null)
+    public function getIsProductFeedSubmissionEnabled($store = null)
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_PRODUCT_FEED_SUBMISSION,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $store ? $store : $this->getCurrentStoreCode()
         );
     }
 
     /**
      * Gets the TurnTo Site Key
      *
+     * @param $scopeCode = null
      * @return mixed
      */
-    public function getSiteKey ($store = null)
+    public function getSiteKey($scopeCode = null)
     {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_SITE_KEY,
+        return $this->scopeConfig->getValue(self::XML_PATH_SOCIALCOMMERCE_SITE_KEY,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $scopeCode ?: $this->getCurrentStoreCode()
         );
     }
 
     /**
      * Gets the TurnTo API Version
      *
-     * @param $store = null
+     * @param null $scopeCode
      * @return mixed
      */
-    public function getTurnToVersion ($store = null)
+    public function getTurnToVersion($scopeCode = null)
     {
         return str_replace(
             '.',
@@ -196,7 +212,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
             $this->scopeConfig->getValue(
                 self::XML_PATH_SOCIALCOMMERCE_VERSION,
                 ScopeInterface::SCOPE_STORE,
-                isset($store) ? $store : $this->getCurrentStoreCode()
+                $scopeCode ?: $this->getCurrentStoreCode()
             )
         );
     }
@@ -303,27 +319,41 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the TurnTo API Authorization Key
      *
+     * @param $store = null
      * @return mixed
      */
-    public function getAuthorizationKey ($store = null)
+    public function getAuthorizationKey($store = null)
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_AUTHORIZATION_KEY,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $store ? $store : $this->getCurrentStoreCode()
         );
     }
 
     /**
      * Gets the TurnTo URL to send a feed to
      *
+     * @param $store = null
      * @return mixed
      */
-    public function getFeedUploadAddress ($store = null)
+    public function getFeedUploadAddress($store = null)
     {
-        //return 'https://www.turnto.com/feedUpload/postfile';
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_FEED_SUBMISSION_URL,
+            ScopeInterface::SCOPE_STORE,
+            $store ? $store : $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return mixed
+     */
+    public function getExportFeedAddress($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_EXPORT_FEED_URL,
             ScopeInterface::SCOPE_STORE,
             isset($store) ? $store : $this->getCurrentStoreCode()
         );
@@ -337,26 +367,30 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * @param $scopeCode
      * @return mixed
      */
-    public function getProductAttributeMapping ($mappingKey, $store)
+    public function getProductAttributeMapping ($mappingKey, $scopeCode = null)
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_PRODUCT_GROUP . $mappingKey,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $scopeCode
         );
     }
 
     /**
      * Gets an associative array of any set product attributes related to GTIN, key => mappingKey, value => attr_code
      *
+     * @param $store = null
      * @return array
      */
-    public function getGtinAttributesMap($scopeCode)
+    public function getGtinAttributesMap($store = null)
     {
         $gtinMap = [];
         foreach (self::PRODUCT_ATTRIBUTE_MAPPING_KEYS as $mappingKey) {
             $tempResult = null;
-            $tempResult = $this->getProductAttributeMapping($mappingKey, $scopeCode);
+            $tempResult = $this->getProductAttributeMapping(
+                $mappingKey,
+                isset($store) ? $store : $this->getCurrentStoreCode()
+            );
             if (!empty($tempResult)) {
                 $gtinMap[$mappingKey] = $tempResult;
             }
@@ -480,6 +514,46 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
             self::XML_PATH_SOCIALCOMMERCE_MOBILE_PAGE_TITLE,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return mixed
+     */
+    public function getIsHistoricalOrdersFeedEnabled($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_ENABLED,
+            ScopeInterface::SCOPE_STORE,
+            $store ? $store : $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return mixed
+     */
+    public function getHistoricalOrdersFeedMostRecentExportTimestamp($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_MOST_RECENT_TIMESTAMP,
+            ScopeInterface::SCOPE_STORE,
+            $store ? $store : $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @param $timeStamp
+     */
+    public function setHistoricalOrdersFeedMostRecentExportTimestamp($store = null, $timeStamp)
+    {
+        $this->resourceModel->saveConfig(
+            self::XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_MOST_RECENT_TIMESTAMP,
+            $timeStamp,
+            ScopeInterface::SCOPE_STORE,
+            $store ? $store : $this->getCurrentStoreCode()
         );
     }
 }

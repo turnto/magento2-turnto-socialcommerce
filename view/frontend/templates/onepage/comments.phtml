@@ -25,11 +25,9 @@ $version = $configHelper->getTurnToVersion();
 <script type="text/javascript">
     TurnToFeed.addFeedPurchaseOrder(<?= $block->getFeedPurchaseOrderData() ?>);
 
-    <?php
-        foreach($block->getOrderItemData() as $item){
-            echo "TurnToFeed.addFeedLineItem(" . $item . ");";
-        }
-    ?>
+    <?php foreach($block->getOrderItemData() as $item): ?>
+            TurnToFeed.addFeedLineItem(<?= $item ?>);
+    <?php endforeach; ?>
 
     TurnToFeed.sendFeed();
 </script>

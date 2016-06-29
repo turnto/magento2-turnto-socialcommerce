@@ -20,16 +20,7 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
 <link rel="stylesheet" href="<?= $staticUrl ?>/tra<?= $version ?>/tra.css" />
 
 <script type="text/javascript">
-
-    require([
-        '<?= sprintf('%s/sitedata/%s/v%s/%s/d/itemjs', $staticUrl, $siteKey, $version, $productSku) ?>',
-        '<?= sprintf('%s/traServer%s/trajs/%s/tra.js', $staticUrl, $version, $siteKey) ?>',
-        '<?= $commentsEnabled ? sprintf('%s/traServer%s/chatterjs/%s/turnto-chatter.js', $staticUrl, $version, $siteKey) : '' ?>'
-    ]);
-
-    <?php
-        if($qaTeaserEnabled && $qaEnabled):
-    ?>
+    <?php if($qaTeaserEnabled && $qaEnabled): ?>
     function qaTeaser (){
         if(typeof(TurnToItemData) == 'undefined' || typeof(TurnToItemData.counts) == 'undefined') {
             return '';
@@ -64,11 +55,8 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
         }
     }
 
-    <?php
-        endif;
-
-        if($reviewsTeaserEnabled && $reviewsEnabled):
-    ?>
+    <?php endif; ?>
+    <?php if($reviewsTeaserEnabled && $reviewsEnabled): ?>
 
     function reviewsTeaser() {
         if(typeof(TurnToItemData) == 'undefined' || typeof(TurnToItemData.counts) == 'undefined') {
@@ -100,9 +88,7 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
             });
         }
     }
-    <?php
-        endif;
-    ?>
+    <?php endif; ?>
 
     function scrollToTab(teaserContainer, clickElement, container, tab) {
         teaserContainer.find(clickElement).click(function(e) {
@@ -118,9 +104,7 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
     var turnToConfig = <?= $block->getConfigJson() ?>;
 
     var TurnToItemSku = "<?= $productSku ?>";
-    <?php
-    if($commentsEnabled):
-    ?>
+    <?php if($commentsEnabled): ?>
     var TurnToChatterSku = TurnToItemSku;
 
     <?php
