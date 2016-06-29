@@ -32,10 +32,15 @@ class Reviews extends AbstractExport
 
     /**
      * Reviews constructor.
+     * 
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
+     * @param \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory
+     * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
+     * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
      * @param \Magento\Review\Model\ReviewFactory $reviewFactory
      * @param \Magento\Review\Model\ResourceModel\Review\CollectionFactory $reviewCollectionFactory
      * @param \Magento\Review\Model\Rating\Option\VoteFactory $voteFactory

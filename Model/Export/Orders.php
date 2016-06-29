@@ -8,13 +8,15 @@
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
-
 use Magento\Catalog\Model\ProductRepository;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Magento\Framework\App\Filesystem\DirectoryList;
 
 class Orders extends AbstractExport
 {
+    /**#@+
+     * Field Id keys
+     */
     const UPDATED_AT_FIELD_ID = 'updated_at';
 
     const ITEM_ID_FIELD_ID = 'item_id';
@@ -23,12 +25,12 @@ class Orders extends AbstractExport
     
     const ORDER_ID_FIELD_ID = 'order_id';
 
-
     const PRODUCT_FIELD_ID = 'product';
 
     const SHIP_DATE_FIELD_ID = 'shipDate';
 
     const LINE_ITEM_FIELD_ID = 'lineItem';
+    /**#@-*/
 
     /**
      * @var \Magento\Sales\Api\OrderRepositoryInterface|null
@@ -40,15 +42,25 @@ class Orders extends AbstractExport
      */
     protected $shipmentsService = null;
 
-    protected $currentPage = 1;
-
+    /**
+     * @var ProductRepository|null
+     */
     protected $productRepository = null;
 
+    /**
+     * @var \Magento\Catalog\Helper\Product|null
+     */
     protected $productHelper = null;
 
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface|null
+     */
     protected $storeManager = null;
 
-    protected $storageConfig = null;
+    /**
+     * @var \Magento\Framework\Filesystem\DirectoryList|null
+     */
+    protected $directoryList = null;
 
     /**
      * Orders constructor.
@@ -66,6 +78,7 @@ class Orders extends AbstractExport
      * @param ProductRepository $productRepository
      * @param \Magento\Catalog\Helper\Product $productHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Framework\Filesystem\DirectoryList $directoryList
      */
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,

@@ -45,13 +45,15 @@ class AbstractExport
      */
     protected $filterBuilder = null;
 
+    /**
+     * @var \Magento\Framework\Api\SortOrderBuilder|null
+     */
     protected $sortOrderBuilder = null;
-
+    
     /**
      * AbstractExport constructor.
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
-     * @param \Zend\Http\Client $httpClient
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory

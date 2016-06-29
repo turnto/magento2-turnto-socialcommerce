@@ -48,7 +48,6 @@ class Catalog extends AbstractExport
 
     /**
      * Catalog constructor.
-     *
      * @param Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \Zend\Http\Client $httpClient
@@ -60,6 +59,7 @@ class Catalog extends AbstractExport
      * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
      * @param \Magento\Catalog\Helper\Product $productHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Zend\Http\Client $httpClient
      */
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
