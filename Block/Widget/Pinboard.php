@@ -12,7 +12,7 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
         $productSkus = [];
         
         foreach ($this->getProductCollection()->getItems() as $product) {
-            array_push($productSkus, (string)$product->getSku());
+            $productSkus[] = (string)$product->getSku();
         }
 
         return $productSkus;
@@ -35,5 +35,4 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
 
         return json_encode($config, JSON_PRETTY_PRINT);
     }
-
 }
