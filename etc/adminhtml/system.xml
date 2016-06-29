@@ -270,7 +270,8 @@
                     <label>Most Recent Export Timestamp</label>
                     <comment>Timestamp of the Most Recent Automated Export</comment>
                     <depends>
-                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <!-- this field should be hidden to the user, as it is only useful on the backend, so the condition below is never true -->
+                        <field id="turnto_socialcommerce_configuration/general/enabled">3</field>
                     </depends>
                 </field>
             </group>
