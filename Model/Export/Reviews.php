@@ -32,7 +32,6 @@ class Reviews extends AbstractExport
 
     /**
      * Reviews constructor.
-     * 
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
@@ -64,7 +63,7 @@ class Reviews extends AbstractExport
         $this->reviewCollectionFactory = $reviewCollectionFactory;
         $this->voteFactory = $voteFactory;
         $this->productFactory = $productFactory;
-
+        
         parent::__construct(
             $config,
             $productCollectionFactory,

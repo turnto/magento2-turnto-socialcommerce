@@ -31,26 +31,14 @@ class Catalog extends AbstractExport
     protected $productHelper = null;
 
     /**
-     * @var \Magento\Framework\Stdlib\DateTime\DateTimeFactory|null
-     */
-    protected $dateTimeFactory = null;
-
-    /**
      * @var \Magento\Store\Model\StoreManagerInterface|null
      */
     protected $storeManager = null;
 
     /**
-     * @var null|\Zend\Http\Client
-     */
-    protected $httpClient = null;
-
-
-    /**
      * Catalog constructor.
      * @param Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
-     * @param \Zend\Http\Client $httpClient
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory
@@ -59,12 +47,10 @@ class Catalog extends AbstractExport
      * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
      * @param \Magento\Catalog\Helper\Product $productHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Zend\Http\Client $httpClient
      */
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
         \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
-        \Zend\Http\Client $httpClient,
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory,
@@ -72,16 +58,13 @@ class Catalog extends AbstractExport
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
         \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
         \Magento\Catalog\Helper\Product $productHelper,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Zend\Http\Client $httpClient
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->productHelper = $productHelper;
-        $this->dateTimeFactory = $dateTimeFactory;
         $this->storeManager = $storeManager;
-        $this->httpClient = $httpClient;
-        
+
         parent::__construct(
-            $config,
+            $config, 
             $productCollectionFactory,
             $logger,
             $encryptor,
@@ -103,7 +86,7 @@ class Catalog extends AbstractExport
                 && $this->config->getIsProductFeedSubmissionEnabled($store->getCode())
             ) {
                 $feed = $this->generateProductFeed($store);
-               // $this->transmitFeed($feed, $store);
+                $this->transmitFeed($feed, $store);
             }
         }
     }
@@ -117,9 +100,11 @@ class Catalog extends AbstractExport
      */
     protected function transmitFeed(\SimpleXMLElement $feed, \Magento\Store\Api\Data\StoreInterface $store)
     {
+        $response = null;
+
         try {
-            $response = null;
-            $this->httpClient
+            $zendClient = new \Magento\Framework\HTTP\ZendClient;
+            $zendClient
                 ->setUri($this->config
                     ->getFeedUploadAddress($store->getCode()))
                 ->setMethod(\Zend_Http_Client::POST)
@@ -134,10 +119,9 @@ class Catalog extends AbstractExport
                 )
                 ->setFileUpload(self::FEED_STYLE, 'file', $feed->asXML(), self::FEED_MIME);
 
+            $response = $zendClient->request();
 
-            $response = $this->httpClient->send();
-
-            if (!$response || !$response->isSuccess()) {
+            if (!$response || !$response->isSuccessful()) {
                 throw new \Exception('TurnTo catalog feed submission failed silently');
             }
 
@@ -415,3 +399,4 @@ class Catalog extends AbstractExport
         }
     }
 }
+
