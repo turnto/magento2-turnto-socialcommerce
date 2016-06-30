@@ -99,9 +99,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_PATH_SOCIALCOMMERCE_FEED_SUBMISSION_URL = 'turnto_socialcommerce_configuration/product_feed/feed_submission_url';
 
     const XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_ENABLED = 'turnto_socialcommerce_configuration/historical_orders_feed/enable_historical_feed';
-
-    const XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_MOST_RECENT_TIMESTAMP = 'turnto_socialcommerce_configuration/historical_orders_feed/most_recent_export_timestamp';
-
+    
     const XML_PATH_EXPORT_FEED_URL = 'turnto_socialcommerce_configuration/product_feed/product_feed_url';
 
     const XML_PATH_PRODUCT_GROUP = 'turnto_socialcommerce_configuration/product_attribute_mappings/';
@@ -525,33 +523,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_ENABLED,
-            ScopeInterface::SCOPE_STORE,
-            $store ? $store : $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * @param null $store
-     * @return mixed
-     */
-    public function getHistoricalOrdersFeedMostRecentExportTimestamp($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_MOST_RECENT_TIMESTAMP,
-            ScopeInterface::SCOPE_STORE,
-            $store ? $store : $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * @param null $store
-     * @param $timeStamp
-     */
-    public function setHistoricalOrdersFeedMostRecentExportTimestamp($store = null, $timeStamp)
-    {
-        $this->resourceModel->saveConfig(
-            self::XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_MOST_RECENT_TIMESTAMP,
-            $timeStamp,
             ScopeInterface::SCOPE_STORE,
             $store ? $store : $this->getCurrentStoreCode()
         );

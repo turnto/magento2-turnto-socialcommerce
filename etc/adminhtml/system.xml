@@ -266,14 +266,6 @@
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
-                <field id="most_recent_export_timestamp" translate="label comment" type="hidden" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Most Recent Export Timestamp</label>
-                    <comment>Timestamp of the Most Recent Automated Export</comment>
-                    <depends>
-                        <!-- this field should be hidden to the user, as it is only useful on the backend, so the condition below is never true -->
-                        <field id="turnto_socialcommerce_configuration/general/enabled">3</field>
-                    </depends>
-                </field>
             </group>
         </section>
     </system>

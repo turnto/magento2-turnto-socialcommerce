@@ -32,6 +32,14 @@ class Orders extends AbstractExport
     const LINE_ITEM_FIELD_ID = 'lineItem';
     /**#@-*/
 
+    /**#@+
+     * TurnTo Transmission Constants
+     */
+    const FEED_STYLE = 'tab-style.1';
+
+    const FEED_MIME = 'text/tab-separated-values';
+    /**#@-*/
+
     /**
      * @var \Magento\Sales\Api\OrderRepositoryInterface|null
      */
@@ -68,7 +76,7 @@ class Orders extends AbstractExport
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
-     * @param \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory
+     * @param \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
      * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
@@ -84,7 +92,7 @@ class Orders extends AbstractExport
         \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
-        \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory,
+        \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
         \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
@@ -117,17 +125,31 @@ class Orders extends AbstractExport
 
     public function cronUploadFeed()
     {
-        $varDirectory = $this->directoryList->getPath(DirectoryList::VAR_DIR) . '/';
+        
+        $feedBasePath = $this->directoryList->getPath(DirectoryList::VAR_DIR) . '/historical_orders_store_id_';
 
         foreach ($this->storeManager->getStores() as $store) {
             if (
                 $this->config->getIsEnabled($store->getCode())
                 && $this->config->getIsHistoricalOrdersFeedEnabled($store->getCode())
             ) {
-                $startedAtDateTime = $this->dateTimeFactory->create()->date(DATE_RFC3339, 0);
-                $startDate = $this->config->getHistoricalOrdersFeedMostRecentExportTimestamp($store->getCode());
-                $this->createOrdersFeed($store->getId(), $varDirectory . $store->getId() . '.csv' , $startDate);
-                $this->config->setHistoricalOrdersFeedMostRecentExportTimestamp($store->getCode(), $startedAtDateTime);
+                try {
+                    $feedPath = $feedBasePath . $store->getId() . '.csv';
+                    $this->createOrdersFeed(
+                        $store->getId(),
+                        $feedPath,
+                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P2D'))
+                    );
+                    $this->transmitFeed($feedPath, $store);
+                } catch (\Exception $e) {
+                    $this->logger->error(
+                        'An error occurred while processing Historical Orders Feed Cron',
+                        [
+                            'storeId' => $store->getId(),
+                            'exception' => $e
+                        ]
+                    );
+                }
             }
         }
     }
@@ -160,7 +182,7 @@ class Orders extends AbstractExport
                 ],
                 "\t"
             );
-            $this->writeOrdersFeed($searchCriteria, $outputHandle, $storeId);
+            $this->writeOrdersFeed($searchCriteria, $outputHandle);
         } catch (\Exception $e) {
             $this->logger->error($e); //TODO make this better
         } finally {
@@ -178,16 +200,65 @@ class Orders extends AbstractExport
     public function getOrdersSearchCriteria($storeId, $startDateTime)
     {
         if (!isset($startDateTime)) {
-            $startDateTime = $this->dateTimeFactory->create()->date(DATE_RFC3339, '1900-01-01');
+            $startDateTime = $this->dateTimeFactory->create('1900-1-1T00:00:00', new \DateTimeZone('UTC'));
         }
 
         return $this->getSearchCriteria(
             $this->getSortOrder(self::UPDATED_AT_FIELD_ID),
             [
                 $this->getFilter(self::STORE_ID_FIELD_ID, $storeId, 'eq'),
-                $this->getFilter(self::UPDATED_AT_FIELD_ID, $startDateTime, 'gteq')
+                $this->getFilter(self::UPDATED_AT_FIELD_ID, $startDateTime->format(DATE_ISO8601), 'gteq')
             ]
         );
+    }
+
+    /**
+     * @param $feedFilePath
+     * @param \Magento\Store\Api\Data\StoreInterface $store
+     * @throws \Exception
+     */
+    protected function transmitFeed($feedFilePath, \Magento\Store\Api\Data\StoreInterface $store)
+    {
+        $response = null;
+
+        try {
+            $zendClient = new \Magento\Framework\HTTP\ZendClient;
+            $zendClient
+                ->setUri($this->config
+                    ->getFeedUploadAddress($store->getCode()))
+                ->setMethod(\Zend_Http_Client::POST)
+                ->setParameterPost(
+                    [
+                        'siteKey' => $this->config
+                            ->getSiteKey($store->getCode()),
+                        'authKey' => $this->encryptor->decrypt($this->config
+                            ->getAuthorizationKey($store->getCode())),
+                        'feedStyle' => self::FEED_STYLE
+                    ]
+                )
+                ->setFileUpload($feedFilePath, 'file', null, self::FEED_MIME);
+
+            $response = $zendClient->request();
+
+            if (!$response || !$response->isSuccessful()) {
+                throw new \Exception('TurnTo catalog feed submission failed silently');
+            }
+
+            $body = $response->getBody();
+
+            //It is possible to get a status 200 message who's body is an error message from TurnTo
+            if (empty($body) || $body != Catalog::TURNTO_SUCCESS_RESPONSE) {
+                throw new \Exception("TurnTo catalog feed submission failed with message: $body" );
+            }
+        } catch (\Exception $e) {
+            $this->logger->error('An error occurred while transmitting the catalog feed to TurnTo',
+                [
+                    'exception' => $e,
+                    'response' => $response ? 'null' : $response->getBody()
+                ]
+            );
+            throw $e;
+        }
     }
 
     /**
