@@ -33,7 +33,7 @@ class HttpClient
             $httpClient->setUri($url)
                 ->setMethod(\Zend_Http_Client::GET);
 
-            $response = $httpClient->send();
+            $response = $httpClient->request();
 
             if (!$response || !$response->isSuccess()) {
                 $errorMessage = __('This content could not be retrieved at this time.');
