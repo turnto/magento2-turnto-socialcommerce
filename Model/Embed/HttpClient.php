@@ -35,7 +35,7 @@ class HttpClient
 
             $response = $httpClient->request();
 
-            if (!$response || !$response->isSuccess()) {
+            if (!$response || !$response->isSuccessful()) {
                 $errorMessage = __('This content could not be retrieved at this time.');
                 $e = new \Exception(__('TurnTo request responded with an error.'));
                 $this->logger->error(__('An error occurred while requesting content from TurnTo.'),
