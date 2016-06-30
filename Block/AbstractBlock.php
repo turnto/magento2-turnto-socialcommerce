@@ -2,8 +2,6 @@
 
 namespace TurnTo\SocialCommerce\Block;
 
-use TurnTo\SocialCommerce\Helper\Config;
-
 abstract class AbstractBlock extends \Magento\Catalog\Block\Product\View
 {
     /**
@@ -59,7 +57,7 @@ abstract class AbstractBlock extends \Magento\Catalog\Block\Product\View
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
         \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency,
-        Config $config,
+        \TurnTo\SocialCommerce\Helper\Config $config,
         \TurnTo\SocialCommerce\Model\Embed\HttpClient $httpClient,
         array $data = []
     ) {
@@ -120,9 +118,9 @@ abstract class AbstractBlock extends \Magento\Catalog\Block\Product\View
         $siteKey = $this->config->getSiteKey();
         $version = $this->config->getTurnToVersion();
 
-        if ($setupType == Config::SETUP_TYPE_DYNAMIC_EMBED) {
+        if ($setupType == \TurnTo\SocialCommerce\Helper\Config::SETUP_TYPE_DYNAMIC_EMBED) {
             return '<div id="TurnTo' . ucfirst(static::$contentType) . 'Content"></div>';
-        } elseif ($setupType == Config::SETUP_TYPE_STATIC_EMBED) {
+        } elseif ($setupType == \TurnTo\SocialCommerce\Helper\Config::SETUP_TYPE_STATIC_EMBED) {
             $sku = $this->getProduct()->getSku();
             $url = sprintf(
                 '%s/sitedata/%s/v%s/%s/d/catitem%shtml',
