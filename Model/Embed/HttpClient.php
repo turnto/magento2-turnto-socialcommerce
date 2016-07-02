@@ -27,6 +27,7 @@ class HttpClient
      */
     public function getTurnToHtml($url)
     {
+        $errorMessage = __('This content could not be retrieved at this time.');
         try {
             $response = null;
             $httpClient = new \Magento\Framework\HTTP\ZendClient;
@@ -36,7 +37,6 @@ class HttpClient
             $response = $httpClient->request();
 
             if (!$response || !$response->isSuccessful()) {
-                $errorMessage = __('This content could not be retrieved at this time.');
                 $e = new \Exception(__('TurnTo request responded with an error.'));
                 $this->logger->error(__('An error occurred while requesting content from TurnTo.'),
                     [
@@ -54,7 +54,7 @@ class HttpClient
             $this->logger->error(__('An error occurred while requesting content from TurnTo.'),
                 [
                     'exception' => $e,
-                    'response' => $response ? 'null' : $response->getBody()
+                    'response' => isset($response) ? $response->getBody() : 'null'
                 ]
             );
             return $errorMessage;

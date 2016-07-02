@@ -135,7 +135,7 @@ class Catalog extends AbstractExport
             $this->logger->error('An error occurred while transmitting the catalog feed to TurnTo',
                 [
                     'exception' => $e,
-                    'response' => $response ? 'null' : $response->getBody()
+                    'response' => $response ? $response->getBody() : 'null'
                 ]
             );
             throw $e;
