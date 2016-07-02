@@ -12,6 +12,6 @@ namespace TurnTo\SocialCommerce\Logger;
  * Class Monolog
  * @package TurnTo\SocialCommerce\Logger
  */
-class Monolog extends \Magento\Framework\Logger\Monolog
+class Monolog extends \Monolog\Logger
 {
 }

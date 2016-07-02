@@ -8,8 +8,6 @@
 
 namespace TurnTo\SocialCommerce\Logger\Handler;
 
-use \Magento\Framework\Logger\Handler;
-
 /**
  * Class FileHandler
  * @package TurnTo\SocialCommerce\Logger\Handler

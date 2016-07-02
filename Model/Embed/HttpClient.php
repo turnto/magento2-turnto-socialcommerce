@@ -27,7 +27,7 @@ class HttpClient
      */
     public function getTurnToHtml($url)
     {
-        $errorMessage = __('This content could not be retrieved at this time.');
+        $errorMessage = __('Unable to load content.');
         try {
             $response = null;
             $httpClient = new \Magento\Framework\HTTP\ZendClient;
