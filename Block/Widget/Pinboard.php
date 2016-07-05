@@ -26,12 +26,15 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
         $config = [
             'contentType' => $this->getContentType(),
             'title' => $this->getTitle(),
-            'skus' => $this->getProductSkus(),
             'limit' => (int)$this->getLimit(),
             'maxDaysOld' => (int)$this->getMaxDaysOld(),
             'maxCommentsPerBox' => (int)$this->getMaxCommentsPerBox(),
             'progressiveLoading' => (bool)$this->getProgressiveLoading()
         ];
+        $skus = $this->getProductSkus();
+        if (isset($skus)) {
+            $config['skus'] = $skus;
+        }
 
         return json_encode($config, JSON_PRETTY_PRINT);
     }

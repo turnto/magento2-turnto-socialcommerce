@@ -3,7 +3,7 @@
 $configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
 
 $siteKey = $configHelper->getSiteKey();
-$staticUrl = $configHelper->getStaticUrl();
+$staticUrl = preg_replace("(^https?://)", "//", $configHelper->getStaticUrl());
 $version = $configHelper->getTurnToVersion();
 
 $reviewsEnabled = $configHelper->getReviewsEnabled();
@@ -20,8 +20,14 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
 <link rel="stylesheet" href="<?= $staticUrl ?>/tra<?= $version ?>/tra.css" />
 
 <script type="text/javascript">
+    require([
+        '<?= sprintf('%s/sitedata/%s/v%s/%s/d/itemjs', $staticUrl, $siteKey, $version, $productSku) ?>',
+        '<?= sprintf('%s/traServer%s/trajs/%s/tra.js', $staticUrl, $version, $siteKey) ?>',
+        '<?= $commentsEnabled ? sprintf('%s/traServer%s/chatterjs/%s/turnto-chatter.js', $staticUrl, $version, $siteKey) : '' ?>'
+    ]);
+
     <?php if($qaTeaserEnabled && $qaEnabled): ?>
-    function qaTeaser (){
+    function qaTeaser () {
         if(typeof(TurnToItemData) == 'undefined' || typeof(TurnToItemData.counts) == 'undefined') {
             return '';
         } else {

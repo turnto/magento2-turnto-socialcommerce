@@ -61,9 +61,9 @@
                 <description translate="true">To refresh instantly, clear the Blocks HTML Output cache.</description>
                 <value>86400</value>
             </parameter>
-            <parameter name="condition" xsi:type="conditions" visible="true" required="true" sort_order="90"
+            <parameter name="condition" xsi:type="conditions" visible="true" required="false" sort_order="90"
                        class="Magento\CatalogWidget\Block\Product\Widget\Conditions">
-                <label translate="true">Conditions</label>
+                <label translate="true">Filter Products to Display</label>
                 <description>Select the products to be displayed in the pinboard.</description>
             </parameter>
         </parameters>

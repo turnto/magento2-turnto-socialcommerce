@@ -255,7 +255,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getStaticUrlWithoutProtocol($store = null)
     {
-        return $this->removeProtocol($this->getStaticUrl($store));
+        return preg_replace("(^https?://)", "", $this->getStaticUrl($store));
     }
 
     /**
@@ -266,24 +266,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getUrlWithoutProtocol($store = null)
     {
-        return $this->removeProtocol($this->getUrl($store));
-    }
-
-    /**
-     * Helper method to remove the protocol from a url
-     *
-     * @param $url
-     * @return mixed
-     */
-    function removeProtocol($url)
-    {
-        $disallowed = array('http://', 'https://');
-        foreach($disallowed as $d) {
-            if(strpos($url, $d) === 0) {
-                return str_replace($d, '', $url);
-            }
-        }
-        return $url;
+        return preg_replace("(^https?://)", "", $this->getUrl($store));
     }
 
     /**

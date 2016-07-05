@@ -23,8 +23,7 @@ class SetupTypeSelect implements \Magento\Framework\Option\ArrayInterface
     {
         return [
             ['value' => 'staticEmbed', 'label' => __('Static Embed')],
-            ['value' => 'dynamicEmbed', 'label' => __('Dynamic Embed')],
-            ['value' => 'overlay', 'label' => __('Overlay')]
+            ['value' => 'dynamicEmbed', 'label' => __('Dynamic Embed')]
         ];
     }
 
@@ -36,7 +35,6 @@ class SetupTypeSelect implements \Magento\Framework\Option\ArrayInterface
     public function toArray()
     {
         return [
-            'overlay' => __('Overlay'),
             'dynamicEmbed' => __('Dynamic Embed'),
             'staticEmbed' => __('Static Embed')
         ];

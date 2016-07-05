@@ -2,7 +2,7 @@
     $configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
 
     $siteKey = $configHelper->getSiteKey();
-    $staticUrl = $configHelper->getStaticUrl();
+    $staticUrl = preg_replace("(^https?://)", "//", $configHelper->getStaticUrl());
     $version = $configHelper->getTurnToVersion();
 
 ?>
