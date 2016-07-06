@@ -184,7 +184,14 @@ class Orders extends AbstractExport
             );
             $this->writeOrdersFeed($searchCriteria, $outputHandle);
         } catch (\Exception $e) {
-            $this->logger->error($e); //TODO make this better
+            $this->logger->error(
+                'An error occurred while processing Historical Orders Feed Cron',
+                [
+                    'storeId' => $storeId,
+                    'writeToPath' => $writeToPath,
+                    'exception' => $e
+                ]
+            );
         } finally {
             if (isset($outputHandle)) {
                 fclose($outputHandle);
@@ -201,6 +208,8 @@ class Orders extends AbstractExport
     {
         if (!isset($startDateTime)) {
             $startDateTime = $this->dateTimeFactory->create('1900-1-1T00:00:00', new \DateTimeZone('UTC'));
+        } else if (is_string($startDateTime)) {
+            $startDateTime = $this->dateTimeFactory->create($startDateTime, new \DateTimeZone('UTC'));
         }
 
         return $this->getSearchCriteria(

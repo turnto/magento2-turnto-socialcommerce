@@ -108,11 +108,12 @@ class AbstractExport
 
     public function getSearchCriteria($sortOrder, $filters = [], $pageSize = self::DEFAULT_PAGE_SIZE)
     {
-        return $this->searchCriteriaBuilder
-            ->addFilters($filters)
-            ->setPageSize($pageSize)
-            ->addSortOrder($sortOrder)
-            ->create();
+        $searchCriteriaBuilder = $this->searchCriteriaBuilder->setPageSize($pageSize)->addSortOrder($sortOrder);
+        foreach ($filters as $filter) {
+            //add as separate groups to get AND join instead of OR
+            $searchCriteriaBuilder = $searchCriteriaBuilder->addFilters([$filter]);
+        }
+        return $searchCriteriaBuilder->create();
     }
 
     /**

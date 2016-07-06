@@ -40,16 +40,22 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
     const FIVE_STAR_LABEL = '5 Stars & Up';
 
     const RATING_FILTER_VALUES = [
-        self::ONE_STAR_LABEL,
-        self::TWO_STAR_LABEL,
-        self::THREE_STAR_LABEL,
+        self::FIVE_STAR_LABEL,
         self::FOUR_STAR_LABEL,
-        self::FIVE_STAR_LABEL
+        self::THREE_STAR_LABEL,
+        self::TWO_STAR_LABEL,
+        self::ONE_STAR_LABEL
     ];
     /**#@-*/
 
+    /**
+     * @var \Magento\Eav\Setup\EavSetupFactory|null
+     */
     protected $eavSetupFactory = null;
 
+    /**
+     * @var null|\Psr\Log\LoggerInterface
+     */
     protected $logger = null;
 
     /**
@@ -103,7 +109,7 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
                     'group' => self::ATTRIBUTE_GROUP_NAME,
                     'type' => 'int',
                     'label' => self::REVIEW_COUNT_ATTRIBUTE_LABEL,
-                    'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_STORE,
+                    'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_GLOBAL,
                     'required' => false,
                     'user_defined' => false,
                     'default' => 0,
@@ -122,6 +128,7 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
                     'input' => 'multiselect',
                     'backend' => '\Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend',
                     'label' => self::AVERAGE_RATING_ATTRIBUTE_LABEL,
+                    'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_GLOBAL,
                     'used_in_product_listing' => true,
                     'is_visible_on_front' => true,
                     'user_defined' => false,
@@ -142,7 +149,7 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
                     'group' => self::ATTRIBUTE_GROUP_NAME,
                     'type' => 'decimal',
                     'label' => self::RATING_ATTRIBUTE_LABEL,
-                    'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_STORE,
+                    'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_GLOBAL,
                     'required' => false,
                     'default' => 0.0,
                     'used_in_product_listing' => true,
