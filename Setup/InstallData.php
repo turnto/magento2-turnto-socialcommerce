@@ -37,14 +37,14 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
 
     const FOUR_STAR_LABEL = '4 Stars & Up';
 
-    const FIVE_STAR_LABEL = '5 Stars & Up';
+    const FIVE_STAR_LABEL = '5 Stars';
 
     const RATING_FILTER_VALUES = [
-        self::FIVE_STAR_LABEL,
-        self::FOUR_STAR_LABEL,
-        self::THREE_STAR_LABEL,
+        self::ONE_STAR_LABEL,
         self::TWO_STAR_LABEL,
-        self::ONE_STAR_LABEL
+        self::THREE_STAR_LABEL,
+        self::FOUR_STAR_LABEL,
+        self::FIVE_STAR_LABEL
     ];
     /**#@-*/
 

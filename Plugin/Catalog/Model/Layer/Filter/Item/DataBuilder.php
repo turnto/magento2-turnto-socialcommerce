@@ -41,7 +41,7 @@ class DataBuilder
             return $label;
         }
         $rating = ($idx + 1) * ReviewRenderer::RATING_TO_PERCENTILE_MULTIPLIER;
-        $andUp = __(self::RATING_APPEND_AND_UP);
+        $andUp = $rating < 100 ? __(self::RATING_APPEND_AND_UP) : '';
         $label = "
             <span class='rating-summary'>
                 <span class='rating-result' title='$rating%'>
