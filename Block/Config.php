@@ -78,6 +78,9 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
         return \Zend_Json::encode($config, false, array('enableJsonExprFinder' => true));
     }
 
+    /**
+     * @return null|string
+     */
     public function getLocale() {
         return $this->localeResolver->getLocale();
     }

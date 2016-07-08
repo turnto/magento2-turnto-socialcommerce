@@ -206,7 +206,7 @@
                     </depends>
                 </field>
             </group>
-            <group id="gallery" translate="lable" sortOrder="60" showInStore="1" showInWebsite="1" showInDefault="1">
+            <group id="gallery" translate="label" sortOrder="60" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Gallery</label>
                 <field id="enable_gallery" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable Gallery</label>
