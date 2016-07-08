@@ -10,19 +10,27 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
     protected $config;
 
     /**
+     * @var \Magento\Framework\Locale\Resolver
+     */
+    protected $localeResolver;
+
+    /**
      * Config constructor.
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \TurnTo\SocialCommerce\Helper\Config $config
+     * @param \Magento\Framework\Locale\Resolver $localeResolver
      * @param array $data
      */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Framework\Registry $registry,
         \TurnTo\SocialCommerce\Helper\Config $config,
+        \Magento\Framework\Locale\Resolver $localeResolver,
         array $data
     ) {
         $this->config = $config;
+        $this->localeResolver = $localeResolver;
         parent::__construct($context, $registry, $data);
     }
 
@@ -68,5 +76,12 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
          * for more context http://stackoverflow.com/questions/6169640/php-json-encode-encode-a-function
          */
         return \Zend_Json::encode($config, false, array('enableJsonExprFinder' => true));
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getLocale() {
+        return $this->localeResolver->getLocale();
     }
 }

@@ -190,7 +190,6 @@
                 <field id="enable_reviews_teaser" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInStore="1" showInWebsite="1">
                     <label>Enable Reviews Teaser</label>
                     <comment>Enable the reviews teaser below the product name on the product details page.</comment>
-                    <comment>Enable the TurnTo SocialCommerce reviews feature and disable the native reviews functionality.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
@@ -207,7 +206,15 @@
                     </depends>
                 </field>
             </group>
-            <group id="mobile" translate="label" sortOrder="60" showInStore="1" showInWebsite="1" showInDefault="1">
+            <group id="gallery" translate="label" sortOrder="60" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>Gallery</label>
+                <field id="enable_gallery" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Gallery</label>
+                    <comment>Enable the gallery row on the product detail page.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+            <group id="mobile" translate="label" sortOrder="70" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Mobile</label>
                 <comment>The TurnTo Mobile Landing Page URL is [baseUrl]/turnto/frontend/mobilelanding which will need to be set on the TurnTo.com configuration </comment>
                 <field id="mobile_page_title" translate="label comment" type="text" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
@@ -218,7 +225,7 @@
                     </depends>
                 </field>
             </group>
-            <group id="product_feed" translate="label" sortOrder="70" showInStore="1" showInWebsite="1" showInDefault="1">
+            <group id="product_feed" translate="label" sortOrder="80" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Product Feed</label>
                 <field id="enable_automatic_submission" type="select" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Enable Automated Feed Submission</label>
@@ -243,7 +250,7 @@
                     </depends>
                 </field>
             </group>
-            <group id="historical_orders_feed" translate="label" sortOrder="80" showInStore="1" showInWebsite="1" showInDefault="1">
+            <group id="historical_orders_feed" translate="label" sortOrder="90" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Historical Orders Feed</label>
                 <field id="enable_historical_feed" type="select" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Enable Automated Feed Submission</label>

@@ -10,9 +10,10 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
     public function getProductSkus()
     {
         $productSkus = [];
-        
-        foreach ($this->getProductCollection()->getItems() as $product) {
-            $productSkus[] = (string)$product->getSku();
+        if (!empty($this->getConditions()->getConditions())) {
+            foreach ($this->getProductCollection()->getItems() as $product) {
+                $productSkus[] = (string)$product->getSku();
+            }
         }
 
         return $productSkus;
@@ -32,7 +33,7 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
             'progressiveLoading' => (bool)$this->getProgressiveLoading()
         ];
         $skus = $this->getProductSkus();
-        if (isset($skus)) {
+        if (!empty($skus)) {
             $config['skus'] = $skus;
         }
 

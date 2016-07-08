@@ -9,7 +9,6 @@
     <body>
         <referenceContainer name="content">
             <block class="TurnTo\SocialCommerce\Block\Config" name="turnto.config.js" template="TurnTo_SocialCommerce::product/view/config.phtml" after="-" ifconfig="turnto_socialcommerce_configuration/general/enabled"/>
-            <block class="Magento\Framework\View\Element\Template" name="turnto_checkout_comments" template="TurnTo_SocialCommerce::product/view/comments.phtml" after="product.info.details" ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_checkout_comments" />
         </referenceContainer>
 
         <referenceBlock name="product.info.review">
@@ -31,5 +30,9 @@
                 </arguments>
             </block>
         </referenceBlock>
+        <referenceContainer name="product.info.main">
+            <block class="Magento\Framework\View\Element\Template" name="turnto.gallery" template="TurnTo_SocialCommerce::product/view/gallery.phtml" />
+            <block class="Magento\Framework\View\Element\Template" name="turnto_checkout_comments" template="TurnTo_SocialCommerce::product/view/comments.phtml" after="product.info.details" ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_checkout_comments" />
+        </referenceContainer>
     </body>
 </page>
