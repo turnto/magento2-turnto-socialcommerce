@@ -23,6 +23,7 @@
             </product_attribute_mappings>
             <checkout_comments>
                 <enable_checkout_comments>0</enable_checkout_comments>
+                <columns>1</columns>
             </checkout_comments>
             <qa>
                 <enable_qa>1</enable_qa>

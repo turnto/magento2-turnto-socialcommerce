@@ -147,6 +147,14 @@
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
+                <field id="columns" type="text" translate="label comment" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Number of columns</label>
+                    <comment>Can be 1, 2, 3, 4, or 'auto'. 'auto' detects the available width and chooses the best number of columns for you.</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/checkout_comments/enable_checkout_comments">1</field>
+                    </depends>
+                </field>
             </group>
             <group id="qa" translate="label" sortOrder="40" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Questions and Answers</label>
@@ -212,6 +220,9 @@
                     <label>Enable Gallery</label>
                     <comment>Enable the gallery row on the product detail page.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
             </group>
             <group id="mobile" translate="label" sortOrder="70" showInStore="1" showInWebsite="1" showInDefault="1">

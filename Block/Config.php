@@ -66,7 +66,8 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
             $config['chatter'] = [
                 'minimumCommentCount' => 1,
                 'minimumCommentCharacterCount' => 1,
-                'minimumCommentWordCount' => 1
+                'minimumCommentWordCount' => 1,
+                'columns' => $this->config->getColumns()
             ];
         }
 

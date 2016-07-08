@@ -65,6 +65,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Checkout Comments
      */
     const XML_PATH_ENABLE_CHECKOUT_COMMENTS = 'turnto_socialcommerce_configuration/checkout_comments/enable_checkout_comments';
+    
+    const XML_PATH_COLUMNS = 'turnto_socialcommerce_configuration/checkout_comments/columns';
 
     /**
      * Questions and Answers
@@ -394,6 +396,21 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_ENABLE_CHECKOUT_COMMENTS,
+            ScopeInterface::SCOPE_STORE,
+            isset($store) ? $store : $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * Gets the Checkout Comments Columns configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
+    public function getColumns($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_COLUMNS,
             ScopeInterface::SCOPE_STORE,
             isset($store) ? $store : $this->getCurrentStoreCode()
         );
