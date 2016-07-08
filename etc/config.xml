@@ -34,6 +34,9 @@
                 <enable_reviews_teaser>1</enable_reviews_teaser>
                 <reviews_setup_type>dynamicEmbed</reviews_setup_type>
             </reviews>
+            <gallery>
+                <enable_gallery>1</enable_gallery>
+            </gallery>
             <mobile>
                 <mobile_page_title>TurnTo - Social Commerce</mobile_page_title>
             </mobile>

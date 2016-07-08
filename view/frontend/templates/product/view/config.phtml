@@ -5,25 +5,32 @@ $configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
 $siteKey = $configHelper->getSiteKey();
 $staticUrl = preg_replace("(^https?://)", "//", $configHelper->getStaticUrl());
 $version = $configHelper->getTurnToVersion();
+$locale = $this->getLocale();
 
 $reviewsEnabled = $configHelper->getReviewsEnabled();
 $qaEnabled = $configHelper->getQaEnabled();
 $commentsEnabled = $configHelper->getCheckoutCommentsEnabled();
 $reviewsTeaserEnabled = $configHelper->getReviewsTeaserEnabled();
 $qaTeaserEnabled = $configHelper->getQaTeaserEnabled();
+$galleryEnabled = $configHelper->getGalleryEnabled();
 
 $productSku = $this->getProduct()->getSku();
 
 if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
 ?>
 
-<link rel="stylesheet" href="<?= $staticUrl ?>/tra<?= $version ?>/tra.css" />
+<link rel="stylesheet" href="<?= sprintf('%s/tra%s/tra.css', $staticUrl, $version) ?>" />
+
+<?php if($galleryEnabled): ?>
+<link rel="stylesheet" href="<?= sprintf('%s/tra%s/turnto-gallery-%s.css', $staticUrl, $version, $locale ) ?>" />
+<?php endif; ?>
 
 <script type="text/javascript">
     require([
         '<?= sprintf('%s/sitedata/%s/v%s/%s/d/itemjs', $staticUrl, $siteKey, $version, $productSku) ?>',
         '<?= sprintf('%s/traServer%s/trajs/%s/tra.js', $staticUrl, $version, $siteKey) ?>',
-        '<?= $commentsEnabled ? sprintf('%s/traServer%s/chatterjs/%s/turnto-chatter.js', $staticUrl, $version, $siteKey) : '' ?>'
+        '<?= $commentsEnabled ? sprintf('%s/traServer%s/chatterjs/%s/turnto-chatter.js', $staticUrl, $version, $siteKey) : '' ?>',
+        '<?= $galleryEnabled ? sprintf('%s/traServer%s/galleryjs/%s/turnto-gallery.js/%s', $staticUrl, $version, $siteKey, $locale) : '' ?>'
     ]);
 
     <?php if($qaTeaserEnabled && $qaEnabled): ?>
@@ -60,10 +67,9 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
             scrollToTab(teaserContainer, '#readQuestions', '#turnto_qa','#tab-label-turnto_qa-title');
         }
     }
-
     <?php endif; ?>
-    <?php if($reviewsTeaserEnabled && $reviewsEnabled): ?>
 
+    <?php if($reviewsTeaserEnabled && $reviewsEnabled): ?>
     function reviewsTeaser() {
         if(typeof(TurnToItemData) == 'undefined' || typeof(TurnToItemData.counts) == 'undefined') {
             return '';
@@ -110,14 +116,15 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
     var turnToConfig = <?= $block->getConfigJson() ?>;
 
     var TurnToItemSku = "<?= $productSku ?>";
+
     <?php if($commentsEnabled): ?>
     var TurnToChatterSku = TurnToItemSku;
+    <?php endif; ?>
 
-    <?php
-    endif;
-    ?>
+    <?php if($galleryEnabled): ?>
+    var TurnToGallerySkus = TurnToItemSku;
+    <?php endif; ?>
+
 </script>
-<?php
-    endif;
-?>
+<?php endif; ?>
 

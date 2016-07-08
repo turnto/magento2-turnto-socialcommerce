@@ -105,10 +105,13 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_PATH_EXPORT_FEED_URL = 'turnto_socialcommerce_configuration/product_feed/product_feed_url';
 
     const XML_PATH_PRODUCT_GROUP = 'turnto_socialcommerce_configuration/product_attribute_mappings/';
-    /**#@-*/
 
+    /**
+     * Gallery
+     */
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_GALLERY = 'turnto_socialcommerce_configuration/gallery/enable_gallery';
 
-    /**#@+
+    /**
      * Setup Types
      */
     const SETUP_TYPE_DYNAMIC_EMBED = 'dynamicEmbed';
@@ -406,6 +409,21 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_QA,
+            ScopeInterface::SCOPE_STORE,
+            isset($store) ? $store : $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * Gets the Gallery Enabled configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
+    public function getGalleryEnabled($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_ENABLE_GALLERY,
             ScopeInterface::SCOPE_STORE,
             isset($store) ? $store : $this->getCurrentStoreCode()
         );
