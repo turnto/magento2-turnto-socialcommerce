@@ -35,10 +35,17 @@ class Orders extends AbstractExport
     /**#@+
      * TurnTo Transmission Constants
      */
+    const FEED_NAME = 'historical-orders-feed';
+
     const FEED_STYLE = 'tab-style.1';
 
     const FEED_MIME = 'text/tab-separated-values';
     /**#@-*/
+
+    /**
+     * Path to temp file used for writing, maximum of 16MB is used as in memory buffer
+     */
+    const TEMP_FILE_PATH = 'php://temp/maxmemory:16384';
 
     /**
      * @var \Magento\Sales\Api\OrderRepositoryInterface|null
@@ -123,24 +130,22 @@ class Orders extends AbstractExport
         );
     }
 
+    /**
+     * CRON handler that sends the last 2 days of orders to TurnTo
+     */
     public function cronUploadFeed()
     {
-        
-        $feedBasePath = $this->directoryList->getPath(DirectoryList::VAR_DIR) . '/historical_orders_store_id_';
-
         foreach ($this->storeManager->getStores() as $store) {
             if (
                 $this->config->getIsEnabled($store->getCode())
                 && $this->config->getIsHistoricalOrdersFeedEnabled($store->getCode())
             ) {
                 try {
-                    $feedPath = $feedBasePath . $store->getId() . '.csv';
-                    $this->createOrdersFeed(
+                    $feedData = $this->createOrdersFeed(
                         $store->getId(),
-                        $feedPath,
                         $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P2D'))
                     );
-                    $this->transmitFeed($feedPath, $store);
+                    $this->transmitFeed($feedData, $store);
                 } catch (\Exception $e) {
                     $this->logger->error(
                         'An error occurred while processing Historical Orders Feed Cron',
@@ -156,13 +161,15 @@ class Orders extends AbstractExport
 
     /**
      * @param $storeId
-     * @param $writeToPath
      * @param $startDateTime
+     * @return null|string
      */
-    public function createOrdersFeed($storeId, $writeToPath, $startDateTime) {
+    public function createOrdersFeed($storeId, $startDateTime) {
+        $csvData = null;
         $searchCriteria = $this->getOrdersSearchCriteria($storeId, $startDateTime);
+
         try {
-            $outputHandle = fopen($writeToPath, 'w');
+            $outputHandle = fopen(self::TEMP_FILE_PATH, 'w');
             fputcsv(
                 $outputHandle,
                 [
@@ -183,12 +190,13 @@ class Orders extends AbstractExport
                 "\t"
             );
             $this->writeOrdersFeed($searchCriteria, $outputHandle);
+            rewind($outputHandle);
+            $csvData = stream_get_contents($outputHandle);
         } catch (\Exception $e) {
             $this->logger->error(
                 'An error occurred while processing Historical Orders Feed Cron',
                 [
                     'storeId' => $storeId,
-                    'writeToPath' => $writeToPath,
                     'exception' => $e
                 ]
             );
@@ -197,6 +205,8 @@ class Orders extends AbstractExport
                 fclose($outputHandle);
             }
         }
+
+        return $csvData;
     }
 
     /**
@@ -208,7 +218,7 @@ class Orders extends AbstractExport
     {
         if (!isset($startDateTime)) {
             $startDateTime = $this->dateTimeFactory->create('1900-1-1T00:00:00', new \DateTimeZone('UTC'));
-        } else if (is_string($startDateTime)) {
+        } elseif (is_string($startDateTime)) {
             $startDateTime = $this->dateTimeFactory->create($startDateTime, new \DateTimeZone('UTC'));
         }
 
@@ -222,11 +232,11 @@ class Orders extends AbstractExport
     }
 
     /**
-     * @param $feedFilePath
+     * @param $feedData
      * @param \Magento\Store\Api\Data\StoreInterface $store
      * @throws \Exception
      */
-    protected function transmitFeed($feedFilePath, \Magento\Store\Api\Data\StoreInterface $store)
+    protected function transmitFeed($feedData, \Magento\Store\Api\Data\StoreInterface $store)
     {
         $response = null;
 
@@ -245,7 +255,7 @@ class Orders extends AbstractExport
                         'feedStyle' => self::FEED_STYLE
                     ]
                 )
-                ->setFileUpload($feedFilePath, 'file', null, self::FEED_MIME);
+                ->setFileUpload(self::FEED_NAME, 'file', $feedData, self::FEED_MIME);
 
             $response = $zendClient->request();
 

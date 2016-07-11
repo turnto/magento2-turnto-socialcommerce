@@ -14,6 +14,11 @@ use TurnTo\SocialCommerce\Model\Export\Orders;
 class Download extends \Magento\Backend\App\Action
 {
     /**
+     * Filename used for the client side download file name
+     */
+    const DOWNLOAD_FILE_NAME = 'historical_orders.csv';
+    
+    /**
      * @var \Magento\Framework\Controller\Result\RawFactory|null
      */
     protected $resultRawFactory = null;
@@ -72,21 +77,12 @@ class Download extends \Magento\Backend\App\Action
     {
         $date = $this->getRequest()->getParam('from_date');
         $storeId = $this->getRequest()->getParam('store_ids');
+        $feedData = $this->ordersModel->createOrdersFeed($storeId, $date);
 
-        $fileName = 'historical_orders.csv';
-        $dir = DirectoryList::MEDIA;
-
-        $path = $this->directoryList->getPath($dir) . "/$fileName";
-        $this->ordersModel->createOrdersFeed($storeId, $path, $date);
-        $content = [
-            'type' => 'filename',
-            'value' => $fileName
-        ];
-        
         return $this->fileFactory->create(
-            $fileName,
-            $content,
-            $dir,
+            self::DOWNLOAD_FILE_NAME,
+            $feedData,
+            DirectoryList::TMP,
             Orders::FEED_MIME
         );
     }

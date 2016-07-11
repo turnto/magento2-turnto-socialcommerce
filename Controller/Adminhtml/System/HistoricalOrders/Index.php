@@ -8,17 +8,31 @@
 
 namespace TurnTo\SocialCommerce\Controller\Adminhtml\System\HistoricalOrders;
 
-
 class Index extends \Magento\Backend\App\Action
 {
+    /**
+     * The reference name for the menu which links to this controller
+     */
     const INITIATING_MENU = 'TurnTo_SocialCommerce::historical_orders_feed';
 
+    /**
+     * The title of the page served by this controller
+     */
     const TITLE = 'Historical Orders Feed';
 
+    /**
+     * @var \Magento\Framework\Registry|null
+     */
     protected $coreRegistry = null;
 
+    /**
+     * @var \Magento\Framework\Stdlib\DateTime\Filter\Date|null
+     */
     protected $dateFilter = null;
 
+    /**
+     * @var \Magento\Framework\Phrase|null
+     */
     protected $title = null;
 
     /**
@@ -50,7 +64,10 @@ class Index extends \Magento\Backend\App\Action
         $this->_view->getPage()->getConfig()->getTitle()->prepend($this->title);
         return $this;
     }
-    
+
+    /**
+     * Controller execute action
+     */
     public function execute()
     {
         $this->_initAction();

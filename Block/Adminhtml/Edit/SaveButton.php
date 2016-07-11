@@ -9,7 +9,7 @@
 namespace TurnTo\SocialCommerce\Block\Adminhtml\Edit;
 
 
-class SaveButton extends GenericButton implements \Magento\Framework\View\Element\UiComponent\Control\ButtonProviderInterface
+class SaveButton implements \Magento\Framework\View\Element\UiComponent\Control\ButtonProviderInterface
 {
     /**
      * @return array
@@ -17,14 +17,12 @@ class SaveButton extends GenericButton implements \Magento\Framework\View\Elemen
      */
     public function getButtonData()
     {
-        $data = [];
-        if ($this->canRender('save')) {
-            $data = [
-                'label' => __('Download'),
-                'class' => 'save primary',
-                'on_click' => '',
-            ];
-        }
+        $data = [
+            'label' => __('Download'),
+            'class' => 'save primary',
+            'on_click' => '',
+        ];
+        
         return $data;
     }
 }

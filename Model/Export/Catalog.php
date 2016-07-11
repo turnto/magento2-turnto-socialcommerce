@@ -188,11 +188,7 @@ class Catalog extends AbstractExport
             );
             $feed->addChild(
                 'updated',
-                $this->dateTimeFactory
-                    ->create(
-                        'now',
-                        new \DateTimeZone('UTC')
-                    )->format(DATE_ATOM)
+                $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->format(DATE_ATOM)
             );
             $feed->addChild('author')->addChild('name', 'TurnTo');
             $feed->addChild(

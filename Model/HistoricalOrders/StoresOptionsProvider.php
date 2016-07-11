@@ -8,17 +8,26 @@
 
 namespace TurnTo\SocialCommerce\Model\HistoricalOrders;
 
-
 class StoresOptionsProvider implements \Magento\Framework\Data\OptionSourceInterface
 {
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface|null
+     */
     protected $storeManager = null;
 
+    /**
+     * StoresOptionsProvider constructor.
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     */
     public function __construct(
         \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->storeManager = $storeManager;
     }
 
+    /**
+     * @return array
+     */
     public function toOptionArray()
     {
         $options = [];

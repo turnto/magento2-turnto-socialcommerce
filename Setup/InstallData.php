@@ -46,6 +46,7 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
         self::FOUR_STAR_LABEL,
         self::FIVE_STAR_LABEL
     ];
+
     /**#@-*/
 
     /**
@@ -59,17 +60,25 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
     protected $logger = null;
 
     /**
+     * @var \Magento\Store\Model\StoreManagerInterface|null
+     */
+    protected $storeManager = null;
+
+    /**
      * InstallData constructor.
      *
      * @param \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory
      * @param \Psr\Log\LoggerInterface $logger
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      */
     public function __construct(
         \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory,
-        \Psr\Log\LoggerInterface $logger
+        \Psr\Log\LoggerInterface $logger,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->eavSetupFactory = $eavSetupFactory;
         $this->logger = $logger;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -100,6 +109,24 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
             }
             $eavSetup->addAttributeGroup(Product::ENTITY, $setId, self::ATTRIBUTE_GROUP_NAME, $sortOrder + 1);
         }
+
+        $averageRatingOption = [
+            'attribute_id' => null,
+            'value' => [
+                'starRating_1' => [self::ONE_STAR_LABEL],
+                'starRating_2' => [self::TWO_STAR_LABEL],
+                'starRating_3' => [self::THREE_STAR_LABEL],
+                'starRating_4' => [self::FOUR_STAR_LABEL],
+                'starRating_5' => [self::FIVE_STAR_LABEL]
+            ],
+            'order' => [
+                'starRating_1' => 4,
+                'starRating_2' => 3,
+                'starRating_3' => 2,
+                'starRating_4' => 1,
+                'starRating_5' => 0
+            ]
+        ];
         
         $eavSetup->addAttribute(
                 Product::ENTITY,
@@ -135,9 +162,7 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
                     'filterable' => true,
                     'filterable_in_search' => true,
                     'default' => 0,
-                    'option' => [
-                        'values' => self::RATING_FILTER_VALUES
-                    ],
+                    'option' => $averageRatingOption,
                     'note' => 'Do not edit, this value is replaced nightly.'
                 ]
             )

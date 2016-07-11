@@ -13,7 +13,9 @@ use TurnTo\SocialCommerce\Setup\InstallData;
 
 class ReviewRenderer
 {
-    //TurntoAverageRating is from 0.0 to 5.0, some uses need a number between 0 and 100 so multiply by 20
+    /**
+     * TurntoAverageRating is from 0.0 to 5.0, some uses need a number between 0 and 100 so multiply by 20
+     */
     const RATING_TO_PERCENTILE_MULTIPLIER = 20;
 
     /**

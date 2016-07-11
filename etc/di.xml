@@ -17,8 +17,5 @@
     <type name="Magento\Catalog\Model\Layer\Filter\Item\DataBuilder">
         <plugin name="turnto_socialcommerce_plugin_catalog_model_layer_filter_item_databuilder" type="TurnTo\SocialCommerce\Plugin\Catalog\Model\Layer\Filter\Item\DataBuilder" sortOrder="1" />
     </type>
-    <type name="Magento\Catalog\Model\Layer\Filter\FilterInterface">
-        <plugin name="turnto_socialcommerce_plugin_catalog_model_layer_filter_filterinterface" type="TurnTo\SocialCommerce\Plugin\Catalog\Model\Layer\Filter\FilterInterface" sortOrder="1" />
-    </type>
 </config>
 

@@ -13,6 +13,9 @@ use TurnTo\SocialCommerce\Plugin\Review\Block\Product\ReviewRenderer;
 
 class DataBuilder
 {
+    /**
+     * Used to append & Up to rendered star rating label
+     */
     const RATING_APPEND_AND_UP = '& Up';
 
     /**

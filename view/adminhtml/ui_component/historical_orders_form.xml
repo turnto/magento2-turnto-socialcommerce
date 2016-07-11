@@ -19,8 +19,8 @@
         <argument name="dataProvider" xsi:type="configurableObject">
             <argument name="class" xsi:type="string">TurnTo\SocialCommerce\Model\HistoricalOrders\DataProvider</argument>
             <argument name="name" xsi:type="string">historical_orders_form_data_source</argument>
-            <argument name="primaryFieldName" xsi:type="string">from_date</argument>
-            <argument name="requestFieldName" xsi:type="string">from_date</argument>
+            <argument name="primaryFieldName" xsi:type="string">code</argument>
+            <argument name="requestFieldName" xsi:type="string">code</argument>
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="submit_url" xsi:type="url" path="turnto/system_historicalorders/download" />
