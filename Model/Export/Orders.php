@@ -141,7 +141,7 @@ class Orders extends AbstractExport
                 && $this->config->getIsHistoricalOrdersFeedEnabled($store->getCode())
             ) {
                 try {
-                    $feedData = $this->createOrdersFeed(
+                    $feedData = $this->getOrdersFeed(
                         $store->getId(),
                         $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P2D'))
                     );
@@ -164,7 +164,7 @@ class Orders extends AbstractExport
      * @param $startDateTime
      * @return null|string
      */
-    public function createOrdersFeed($storeId, $startDateTime) {
+    public function getOrdersFeed($storeId, $startDateTime) {
         $csvData = null;
         $searchCriteria = $this->getOrdersSearchCriteria($storeId, $startDateTime);
 

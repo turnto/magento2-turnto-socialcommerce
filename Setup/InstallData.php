@@ -113,18 +113,18 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
         $averageRatingOption = [
             'attribute_id' => null,
             'value' => [
-                'starRating_1' => [self::ONE_STAR_LABEL],
-                'starRating_2' => [self::TWO_STAR_LABEL],
-                'starRating_3' => [self::THREE_STAR_LABEL],
-                'starRating_4' => [self::FOUR_STAR_LABEL],
-                'starRating_5' => [self::FIVE_STAR_LABEL]
+                'star_rating_1' => [self::ONE_STAR_LABEL],
+                'star_rating_2' => [self::TWO_STAR_LABEL],
+                'star_rating_3' => [self::THREE_STAR_LABEL],
+                'star_rating_4' => [self::FOUR_STAR_LABEL],
+                'star_rating_5' => [self::FIVE_STAR_LABEL]
             ],
             'order' => [
-                'starRating_1' => 4,
-                'starRating_2' => 3,
-                'starRating_3' => 2,
-                'starRating_4' => 1,
-                'starRating_5' => 0
+                'star_rating_1' => 4,
+                'star_rating_2' => 3,
+                'star_rating_3' => 2,
+                'star_rating_4' => 1,
+                'star_rating_5' => 0
             ]
         ];
         

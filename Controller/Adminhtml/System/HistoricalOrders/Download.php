@@ -16,7 +16,7 @@ class Download extends \Magento\Backend\App\Action
     /**
      * Filename used for the client side download file name
      */
-    const DOWNLOAD_FILE_NAME = 'historical_orders.csv';
+    const DOWNLOAD_FILENAME = 'historical_orders.csv';
     
     /**
      * @var \Magento\Framework\Controller\Result\RawFactory|null
@@ -77,7 +77,7 @@ class Download extends \Magento\Backend\App\Action
     {
         $date = $this->getRequest()->getParam('from_date');
         $storeId = $this->getRequest()->getParam('store_ids');
-        $feedData = $this->ordersModel->createOrdersFeed($storeId, $date);
+        $feedData = $this->ordersModel->getOrdersFeed($storeId, $date);
 
         return $this->fileFactory->create(
             self::DOWNLOAD_FILE_NAME,
