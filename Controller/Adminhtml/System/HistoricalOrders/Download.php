@@ -80,7 +80,7 @@ class Download extends \Magento\Backend\App\Action
         $feedData = $this->ordersModel->getOrdersFeed($storeId, $date);
 
         return $this->fileFactory->create(
-            self::DOWNLOAD_FILE_NAME,
+            self::DOWNLOAD_FILENAME,
             $feedData,
             DirectoryList::TMP,
             Orders::FEED_MIME
