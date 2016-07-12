@@ -451,7 +451,7 @@ class Orders extends AbstractExport
         $row[] = $lineItem->getName();
         $row[] = $product->getProductUrl();
         $row[] = $lineItemNumber;
-        $row[] = $order->getShippingAddress()->getPostcode();
+        $row[] = $this->getOrderPostCode($order);
         $row[] = $order->getCustomerFirstname();
         $row[] = $order->getCustomerLastname();
         $row[] = $product->getSku();
@@ -460,6 +460,21 @@ class Orders extends AbstractExport
         $row[] = $shipmentDate;
         
         fputcsv($outputHandle, $row, "\t");
+    }
+
+    /**
+     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @return string
+     */
+    protected function getOrderPostCode(\Magento\Sales\Api\Data\OrderInterface $order)
+    {
+        $postCode = '';
+        $shippingAddress = $order->getShippingAddress();
+        if ($shippingAddress) {
+            $postCode = $shippingAddress->getPostcode();
+        }
+
+        return $postCode;
     }
 }
 
