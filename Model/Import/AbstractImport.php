@@ -29,27 +29,35 @@ class AbstractImport
      * @var \Magento\Framework\Encryption\EncryptorInterface|null
      */
     protected $encryptor = null;
-    
+
+    /**
+     * @var \Magento\Catalog\Model\Indexer\Product\Eav\Processor|null
+     */
+    protected $productEavIndexProcessor = null;
+
     /**
      * AbstractImport constructor.
-     * 
+     *
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
      * @param \Magento\Catalog\Model\ProductFactory $productFactory
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Catalog\Model\Indexer\Product\Eav\Processor $productEavIndexProcessor
      */
     public function __construct (
         \TurnTo\SocialCommerce\Helper\Config $config,
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
         \Magento\Catalog\Model\ProductFactory $productFactory,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Catalog\Model\Indexer\Product\Eav\Processor $productEavIndexProcessor
     ) {
         $this->config = $config;
         $this->logger = $logger;
         $this->productFactory = $productFactory;
         $this->encryptor = $encryptor;
         $this->storeManager = $storeManager;
+        $this->productEavIndexProcessor = $productEavIndexProcessor;
     }
 }

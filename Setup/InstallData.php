@@ -37,7 +37,7 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
 
     const FOUR_STAR_LABEL = '4 Stars & Up';
 
-    const FIVE_STAR_LABEL = '5 Stars & Up';
+    const FIVE_STAR_LABEL = '5 Stars';
 
     const RATING_FILTER_VALUES = [
         self::ONE_STAR_LABEL,
@@ -46,24 +46,39 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
         self::FOUR_STAR_LABEL,
         self::FIVE_STAR_LABEL
     ];
+
     /**#@-*/
 
+    /**
+     * @var \Magento\Eav\Setup\EavSetupFactory|null
+     */
     protected $eavSetupFactory = null;
 
+    /**
+     * @var null|\Psr\Log\LoggerInterface
+     */
     protected $logger = null;
+
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface|null
+     */
+    protected $storeManager = null;
 
     /**
      * InstallData constructor.
      *
      * @param \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory
      * @param \Psr\Log\LoggerInterface $logger
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      */
     public function __construct(
         \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory,
-        \Psr\Log\LoggerInterface $logger
+        \Psr\Log\LoggerInterface $logger,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->eavSetupFactory = $eavSetupFactory;
         $this->logger = $logger;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -94,6 +109,24 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
             }
             $eavSetup->addAttributeGroup(Product::ENTITY, $setId, self::ATTRIBUTE_GROUP_NAME, $sortOrder + 1);
         }
+
+        $averageRatingOption = [
+            'attribute_id' => null,
+            'value' => [
+                'star_rating_1' => [self::ONE_STAR_LABEL],
+                'star_rating_2' => [self::TWO_STAR_LABEL],
+                'star_rating_3' => [self::THREE_STAR_LABEL],
+                'star_rating_4' => [self::FOUR_STAR_LABEL],
+                'star_rating_5' => [self::FIVE_STAR_LABEL]
+            ],
+            'order' => [
+                'star_rating_1' => 4,
+                'star_rating_2' => 3,
+                'star_rating_3' => 2,
+                'star_rating_4' => 1,
+                'star_rating_5' => 0
+            ]
+        ];
         
         $eavSetup->addAttribute(
                 Product::ENTITY,
@@ -103,7 +136,7 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
                     'group' => self::ATTRIBUTE_GROUP_NAME,
                     'type' => 'int',
                     'label' => self::REVIEW_COUNT_ATTRIBUTE_LABEL,
-                    'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_STORE,
+                    'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_GLOBAL,
                     'required' => false,
                     'user_defined' => false,
                     'default' => 0,
@@ -122,15 +155,14 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
                     'input' => 'multiselect',
                     'backend' => '\Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend',
                     'label' => self::AVERAGE_RATING_ATTRIBUTE_LABEL,
+                    'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_GLOBAL,
                     'used_in_product_listing' => true,
                     'is_visible_on_front' => true,
                     'user_defined' => false,
                     'filterable' => true,
                     'filterable_in_search' => true,
                     'default' => 0,
-                    'option' => [
-                        'values' => self::RATING_FILTER_VALUES
-                    ],
+                    'option' => $averageRatingOption,
                     'note' => 'Do not edit, this value is replaced nightly.'
                 ]
             )
@@ -142,7 +174,7 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
                     'group' => self::ATTRIBUTE_GROUP_NAME,
                     'type' => 'decimal',
                     'label' => self::RATING_ATTRIBUTE_LABEL,
-                    'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_STORE,
+                    'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_GLOBAL,
                     'required' => false,
                     'default' => 0.0,
                     'used_in_product_listing' => true,

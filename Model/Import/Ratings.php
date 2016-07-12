@@ -45,6 +45,7 @@ class Ratings extends AbstractImport
      * @param $sku
      * @param $reviewCount
      * @param $averageRating
+     * @return int
      */
     public function updateProduct(
         \Magento\Store\Api\Data\StoreInterface $store,
@@ -52,6 +53,8 @@ class Ratings extends AbstractImport
         $reviewCount,
         $averageRating
     ) {
+        $productId = -1;
+
         $product = $this->productFactory->create()
             ->setStoreId($store->getId())
             ->loadByAttribute(
@@ -65,6 +68,7 @@ class Ratings extends AbstractImport
             );
 
         if ($product) {
+            $productId = (int)$product->getId();
             $product->setData(InstallData::REVIEW_COUNT_ATTRIBUTE_CODE, $reviewCount);
             $product->getResource()->saveAttribute($product, InstallData::REVIEW_COUNT_ATTRIBUTE_CODE);
             $product->setData(InstallData::RATING_ATTRIBUTE_CODE, $averageRating);
@@ -76,6 +80,8 @@ class Ratings extends AbstractImport
             $product->setData(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE, implode(',', $filterValues));
             $product->getResource()->saveAttribute($product, InstallData::AVERAGE_RATING_ATTRIBUTE_CODE);
         }
+
+        return $productId;
     }
 
     /**
@@ -100,61 +106,71 @@ class Ratings extends AbstractImport
      */
     public function cronDownloadFeed()
     {
-        foreach ($this->storeManager->getStores() as $store) {
-            $feedAddress = 'UNK';
-            if (!$this->config->getIsEnabled($store->getCode()) || !$this->config->getReviewsEnabled($store->getCode())) {
-                continue;
-            }
-            try {
-                $feedAddress = $this->getAggregateRatingsFeedAddress($store);
-                $xmlFeed = simplexml_load_file($feedAddress);
-                foreach ($xmlFeed->products->product as $turnToProduct) {
-                    try {
-                        if (
-                            !isset($turnToProduct[self::TURNTO_FEED_KEY_SKU])
-                            || !isset($turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT])
-                        ) {
-                            continue;
-                        }
-                        $sku = null;
-                        $averageRating = null;
-                        $reviewCount = null;
-
-                        $sku = (string)$turnToProduct[self::TURNTO_FEED_KEY_SKU];
-                        if (empty($sku)) {
-                            continue;
-                        }
-
-                        $reviewCount = (int)$turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT];
-                        if ($reviewCount > 0) {
-                            $averageRating = (float)$turnToProduct;
-                            if ($averageRating > 0.0) {
-                                $this->updateProduct($store, $sku, $reviewCount, $averageRating);
-                            } else {
-                                throw new \UnexpectedValueException('Average rating is a non-positive '
-                                    . 'number despite product having reviews');
-                            }
-                        }
-                    } catch (\Exception $e) {
-                        $this->logger->error(
-                            'Failed to read TurnTo aggregate rating data for product',
-                            [
-                                'exception' => $e,
-                                'storeCode' => $store->getCode(),
-                                'sku' => empty($sku) ? 'UNKNOWN' : $sku
-                            ]
-                        );
-                    }
+        $productIdsToReindex = [];
+        try {
+            foreach ($this->storeManager->getStores() as $store) {
+                $feedAddress = 'UNK';
+                if (!$this->config->getIsEnabled($store->getCode()) || !$this->config->getReviewsEnabled($store->getCode())) {
+                    continue;
                 }
-            } catch (\Exception $feedRetrievalException) {
-                $this->logger->error(
-                    'Failed to retrieve TurnTo aggregate rating feed for store',
-                    [
-                        'exception' => $feedRetrievalException,
-                        'storeCode' => $store->getCode(),
-                        'feedAddress' => $feedAddress
-                    ]
-                );
+                try {
+                    $feedAddress = $this->getAggregateRatingsFeedAddress($store);
+                    $xmlFeed = simplexml_load_file($feedAddress);
+                    foreach ($xmlFeed->products->product as $turnToProduct) {
+                        try {
+                            if (
+                                !isset($turnToProduct[self::TURNTO_FEED_KEY_SKU])
+                                || !isset($turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT])
+                            ) {
+                                continue;
+                            }
+                            $sku = null;
+                            $averageRating = null;
+                            $reviewCount = null;
+
+                            $sku = (string)$turnToProduct[self::TURNTO_FEED_KEY_SKU];
+                            if (empty($sku)) {
+                                continue;
+                            }
+
+                            $reviewCount = (int)$turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT];
+                            if ($reviewCount > 0) {
+                                $averageRating = (float)$turnToProduct;
+                                if ($averageRating > 0.0) {
+                                    $productId = $this->updateProduct($store, $sku, $reviewCount, $averageRating);
+                                    if ($productId > 0) {
+                                        $productIdsToReindex[] = $productId;
+                                    }
+                                } else {
+                                    throw new \UnexpectedValueException('Average rating is a non-positive '
+                                        . 'number despite product having reviews');
+                                }
+                            }
+                        } catch (\Exception $e) {
+                            $this->logger->error(
+                                'Failed to read TurnTo aggregate rating data for product',
+                                [
+                                    'exception' => $e,
+                                    'storeCode' => $store->getCode(),
+                                    'sku' => empty($sku) ? 'UNKNOWN' : $sku
+                                ]
+                            );
+                        }
+                    }
+                } catch (\Exception $feedRetrievalException) {
+                    $this->logger->error(
+                        'Failed to retrieve TurnTo aggregate rating feed for store',
+                        [
+                            'exception' => $feedRetrievalException,
+                            'storeCode' => $store->getCode(),
+                            'feedAddress' => $feedAddress
+                        ]
+                    );
+                }
+            }
+        } finally {
+            if (!empty($productIdsToReindex) && !$this->productEavIndexProcessor->getIndexer()->isScheduled()) {
+                $this->productEavIndexProcessor->reindexList(array_unique($productIdsToReindex));
             }
         }
     }

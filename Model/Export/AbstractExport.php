@@ -2,7 +2,6 @@
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
-use \Magento\Framework\HTTP\ZendClientFactory;
 /**
  * Class AbstractExport
  * @package TurnTo\SocialCommerce\Model\Export
@@ -32,10 +31,10 @@ class AbstractExport
     protected $encryptor = null;
 
     /**
-     * @var \Magento\Framework\Stdlib\DateTime\DateTimeFactory|null
+     * @var \Magento\Framework\Intl\DateTimeFactory|null
      */
     protected $dateTimeFactory = null;
-    
+
     /**
      * @var \Magento\Framework\Api\SearchCriteriaBuilder|null
      */
@@ -63,7 +62,7 @@ class AbstractExport
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
-     * @param \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory
+     * @param \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
      * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
@@ -73,7 +72,7 @@ class AbstractExport
         \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
-        \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory,
+        \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
         \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
@@ -109,11 +108,12 @@ class AbstractExport
 
     public function getSearchCriteria($sortOrder, $filters = [], $pageSize = self::DEFAULT_PAGE_SIZE)
     {
-        return $this->searchCriteriaBuilder
-            ->addFilters($filters)
-            ->setPageSize($pageSize)
-            ->addSortOrder($sortOrder)
-            ->create();
+        $searchCriteriaBuilder = $this->searchCriteriaBuilder->setPageSize($pageSize)->addSortOrder($sortOrder);
+        foreach ($filters as $filter) {
+            //add as separate groups to get AND join instead of OR
+            $searchCriteriaBuilder = $searchCriteriaBuilder->addFilters([$filter]);
+        }
+        return $searchCriteriaBuilder->create();
     }
 
     /**

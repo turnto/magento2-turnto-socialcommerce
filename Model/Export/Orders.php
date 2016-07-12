@@ -32,6 +32,21 @@ class Orders extends AbstractExport
     const LINE_ITEM_FIELD_ID = 'lineItem';
     /**#@-*/
 
+    /**#@+
+     * TurnTo Transmission Constants
+     */
+    const FEED_NAME = 'historical-orders-feed';
+
+    const FEED_STYLE = 'tab-style.1';
+
+    const FEED_MIME = 'text/tab-separated-values';
+    /**#@-*/
+
+    /**
+     * Path to temp file used for writing, maximum of 16MB is used as in memory buffer
+     */
+    const TEMP_FILE_PATH = 'php://temp/maxmemory:16384';
+
     /**
      * @var \Magento\Sales\Api\OrderRepositoryInterface|null
      */
@@ -68,7 +83,7 @@ class Orders extends AbstractExport
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
      * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
-     * @param \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory
+     * @param \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
      * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
@@ -84,7 +99,7 @@ class Orders extends AbstractExport
         \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
         \Magento\Framework\Encryption\EncryptorInterface $encryptor,
-        \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTimeFactory,
+        \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
         \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
@@ -115,32 +130,46 @@ class Orders extends AbstractExport
         );
     }
 
+    /**
+     * CRON handler that sends the last 2 days of orders to TurnTo
+     */
     public function cronUploadFeed()
     {
-        $varDirectory = $this->directoryList->getPath(DirectoryList::VAR_DIR) . '/';
-
         foreach ($this->storeManager->getStores() as $store) {
             if (
                 $this->config->getIsEnabled($store->getCode())
                 && $this->config->getIsHistoricalOrdersFeedEnabled($store->getCode())
             ) {
-                $startedAtDateTime = $this->dateTimeFactory->create()->date(DATE_RFC3339, 0);
-                $startDate = $this->config->getHistoricalOrdersFeedMostRecentExportTimestamp($store->getCode());
-                $this->createOrdersFeed($store->getId(), $varDirectory . $store->getId() . '.csv' , $startDate);
-                $this->config->setHistoricalOrdersFeedMostRecentExportTimestamp($store->getCode(), $startedAtDateTime);
+                try {
+                    $feedData = $this->getOrdersFeed(
+                        $store->getId(),
+                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P2D'))
+                    );
+                    $this->transmitFeed($feedData, $store);
+                } catch (\Exception $e) {
+                    $this->logger->error(
+                        'An error occurred while processing Historical Orders Feed Cron',
+                        [
+                            'storeId' => $store->getId(),
+                            'exception' => $e
+                        ]
+                    );
+                }
             }
         }
     }
 
     /**
      * @param $storeId
-     * @param $writeToPath
      * @param $startDateTime
+     * @return null|string
      */
-    public function createOrdersFeed($storeId, $writeToPath, $startDateTime) {
+    public function getOrdersFeed($storeId, $startDateTime) {
+        $csvData = null;
         $searchCriteria = $this->getOrdersSearchCriteria($storeId, $startDateTime);
+
         try {
-            $outputHandle = fopen($writeToPath, 'w');
+            $outputHandle = fopen(self::TEMP_FILE_PATH, 'w');
             fputcsv(
                 $outputHandle,
                 [
@@ -160,14 +189,24 @@ class Orders extends AbstractExport
                 ],
                 "\t"
             );
-            $this->writeOrdersFeed($searchCriteria, $outputHandle, $storeId);
+            $this->writeOrdersFeed($searchCriteria, $outputHandle);
+            rewind($outputHandle);
+            $csvData = stream_get_contents($outputHandle);
         } catch (\Exception $e) {
-            $this->logger->error($e); //TODO make this better
+            $this->logger->error(
+                'An error occurred while processing Historical Orders Feed Cron',
+                [
+                    'storeId' => $storeId,
+                    'exception' => $e
+                ]
+            );
         } finally {
             if (isset($outputHandle)) {
                 fclose($outputHandle);
             }
         }
+
+        return $csvData;
     }
 
     /**
@@ -178,16 +217,67 @@ class Orders extends AbstractExport
     public function getOrdersSearchCriteria($storeId, $startDateTime)
     {
         if (!isset($startDateTime)) {
-            $startDateTime = $this->dateTimeFactory->create()->date(DATE_RFC3339, '1900-01-01');
+            $startDateTime = $this->dateTimeFactory->create('1900-1-1T00:00:00', new \DateTimeZone('UTC'));
+        } elseif (is_string($startDateTime)) {
+            $startDateTime = $this->dateTimeFactory->create($startDateTime, new \DateTimeZone('UTC'));
         }
 
         return $this->getSearchCriteria(
             $this->getSortOrder(self::UPDATED_AT_FIELD_ID),
             [
                 $this->getFilter(self::STORE_ID_FIELD_ID, $storeId, 'eq'),
-                $this->getFilter(self::UPDATED_AT_FIELD_ID, $startDateTime, 'gteq')
+                $this->getFilter(self::UPDATED_AT_FIELD_ID, $startDateTime->format(DATE_ISO8601), 'gteq')
             ]
         );
+    }
+
+    /**
+     * @param $feedData
+     * @param \Magento\Store\Api\Data\StoreInterface $store
+     * @throws \Exception
+     */
+    protected function transmitFeed($feedData, \Magento\Store\Api\Data\StoreInterface $store)
+    {
+        $response = null;
+
+        try {
+            $zendClient = new \Magento\Framework\HTTP\ZendClient;
+            $zendClient
+                ->setUri($this->config
+                    ->getFeedUploadAddress($store->getCode()))
+                ->setMethod(\Zend_Http_Client::POST)
+                ->setParameterPost(
+                    [
+                        'siteKey' => $this->config
+                            ->getSiteKey($store->getCode()),
+                        'authKey' => $this->encryptor->decrypt($this->config
+                            ->getAuthorizationKey($store->getCode())),
+                        'feedStyle' => self::FEED_STYLE
+                    ]
+                )
+                ->setFileUpload(self::FEED_NAME, 'file', $feedData, self::FEED_MIME);
+
+            $response = $zendClient->request();
+
+            if (!$response || !$response->isSuccessful()) {
+                throw new \Exception('TurnTo catalog feed submission failed silently');
+            }
+
+            $body = $response->getBody();
+
+            //It is possible to get a status 200 message who's body is an error message from TurnTo
+            if (empty($body) || $body != Catalog::TURNTO_SUCCESS_RESPONSE) {
+                throw new \Exception("TurnTo catalog feed submission failed with message: $body" );
+            }
+        } catch (\Exception $e) {
+            $this->logger->error('An error occurred while transmitting the catalog feed to TurnTo',
+                [
+                    'exception' => $e,
+                    'response' => $response ? 'null' : $response->getBody()
+                ]
+            );
+            throw $e;
+        }
     }
 
     /**
