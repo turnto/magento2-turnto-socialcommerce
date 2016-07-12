@@ -35,7 +35,7 @@ class Orders extends AbstractExport
     /**#@+
      * TurnTo Transmission Constants
      */
-    const FEED_NAME = 'historical-orders-feed';
+    const FEED_NAME = 'historical-orders-feed.tsv';
 
     const FEED_STYLE = 'tab-style.1';
 
