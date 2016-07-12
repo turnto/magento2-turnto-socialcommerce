@@ -470,7 +470,7 @@ class Orders extends AbstractExport
     {
         $postCode = '';
         $shippingAddress = $order->getShippingAddress();
-        if (isset($shippingAddress)) {
+        if ($shippingAddress) {
             $postCode = $shippingAddress->getPostcode();
         }
 
