@@ -22,8 +22,8 @@
                 <value>Customer Comments</value>
             </parameter>
             <parameter name="limit" xsi:type="text" required="true" visible="true" sort_order="30" >
-                <label translate="true">Product Box Limit</label>
-                <description>The maximum number of product boxes to be displayed on page load. The remaining product boxes will be loaded in batches equal to the limit</description>
+                <label translate="true">Item Limit</label>
+                <description>The maximum number of items to be displayed on page load. The remaining items will be loaded in batches equal to the limit</description>
                 <value>20</value>
             </parameter>
             <parameter name="max_days_old" xsi:type="text" required="true" visible="true" sort_order="40" >
