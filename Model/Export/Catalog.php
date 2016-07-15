@@ -303,6 +303,11 @@ class Catalog extends AbstractExport
                     ->getAttribute($gtinMap[Config::UPC_ATTRIBUTE])
                     ->getFrontend()->getValue($product);
             }
+            if (empty($gtin) && isset($gtinMap[Config::ISBN_ATTRIBUTE])) {
+                $gtin = $product->getResource()
+                    ->getAttribute($gtinMap[Config::ISBN_ATTRIBUTE])
+                    ->getFrontend()->getValue($product);
+            }
             if (empty($gtin) && isset($gtinMap[Config::EAN_ATTRIBUTE])) {
                 $gtin = $product->getResource()
                     ->getAttribute($gtinMap[Config::EAN_ATTRIBUTE])
@@ -313,9 +318,9 @@ class Catalog extends AbstractExport
                     ->getAttribute($gtinMap[Config::JAN_ATTRIBUTE])
                     ->getFrontend()->getValue($product);
             }
-            if (empty($gtin) && isset($gtinMap[Config::ISBN_ATTRIBUTE])) {
+            if (empty($gtin) && isset($gtinMap[Config::ASIN_ATTRIBUTE])) {
                 $gtin = $product->getResource()
-                    ->getAttribute($gtinMap[Config::ISBN_ATTRIBUTE])
+                    ->getAttribute($gtinMap[Config::ASIN_ATTRIBUTE])
                     ->getFrontend()->getValue($product);
             }
             if (!empty($gtin)) {
