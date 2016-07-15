@@ -62,7 +62,7 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
             }
         }
 
-        if ($this->config->getCheckoutCommentsEnabled()) {
+        if ($this->config->getCheckoutCommentsEnabledProductDetail()) {
             $config['chatter'] = [
                 'minimumCommentCount' => 1,
                 'minimumCommentCharacterCount' => 1,

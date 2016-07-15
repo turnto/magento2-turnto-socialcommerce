@@ -64,7 +64,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Checkout Comments
      */
-    const XML_PATH_ENABLE_CHECKOUT_COMMENTS = 'turnto_socialcommerce_configuration/checkout_comments/enable_checkout_comments';
+    const XML_PATH_ENABLE_CHECKOUT_COMMENTS_PRODUCT_DETAIL = 'turnto_socialcommerce_configuration/checkout_comments/enable_product_detail';
     
     const XML_PATH_COLUMNS = 'turnto_socialcommerce_configuration/checkout_comments/columns';
 
@@ -353,7 +353,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * @param $scopeCode
      * @return mixed
      */
-    public function getProductAttributeMapping ($mappingKey, $scopeCode = null)
+    public function getProductAttributeMapping($mappingKey, $scopeCode = null)
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_PRODUCT_GROUP . $mappingKey,
@@ -385,15 +385,15 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Gets the Checkout Comments Enabled configuration value
+     * Gets the Checkout Comments Enabled Product Detail configuration value
      *
      * @param null $store
      * @return mixed
      */
-    public function getCheckoutCommentsEnabled($store = null)
+    public function getCheckoutCommentsEnabledProductDetail($store = null)
     {
         return $this->scopeConfig->getValue(
-            self::XML_PATH_ENABLE_CHECKOUT_COMMENTS,
+            self::XML_PATH_ENABLE_CHECKOUT_COMMENTS_PRODUCT_DETAIL,
             ScopeInterface::SCOPE_STORE,
             isset($store) ? $store : $this->getCurrentStoreCode()
         );

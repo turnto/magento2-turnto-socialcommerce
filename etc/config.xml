@@ -22,7 +22,8 @@
                 <asin_attribute></asin_attribute>
             </product_attribute_mappings>
             <checkout_comments>
-                <enable_checkout_comments>0</enable_checkout_comments>
+                <enable_checkout_success>1</enable_checkout_success>
+                <enable_product_detail>1</enable_product_detail>
                 <columns>1</columns>
             </checkout_comments>
             <qa>
@@ -42,9 +43,9 @@
                 <mobile_page_title>TurnTo - Social Commerce</mobile_page_title>
             </mobile>
             <product_feed>
+                <enable_automatic_submission>1</enable_automatic_submission>
                 <product_feed_url>http://static.www.turnto.com/static/export/</product_feed_url>
                 <feed_submission_url>https://www.turnto.com/feedUpload/postfile</feed_submission_url>
-                <enable_automatic_submission>1</enable_automatic_submission>
             </product_feed>
             <historical_orders_feed>
                 <enable_historical_feed>1</enable_historical_feed>

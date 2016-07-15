@@ -32,7 +32,7 @@
         </referenceBlock>
         <referenceContainer name="product.info.main">
             <block class="Magento\Framework\View\Element\Template" name="turnto.gallery" template="TurnTo_SocialCommerce::product/view/gallery.phtml" />
-            <block class="Magento\Framework\View\Element\Template" name="turnto_checkout_comments" template="TurnTo_SocialCommerce::product/view/comments.phtml" after="product.info.details" ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_checkout_comments" />
+            <block class="Magento\Framework\View\Element\Template" name="turnto_checkout_comments" template="TurnTo_SocialCommerce::product/view/comments.phtml" after="product.info.details" ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_product_detail" />
         </referenceContainer>
     </body>
 </page>
