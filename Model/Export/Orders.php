@@ -35,7 +35,7 @@ class Orders extends AbstractExport
     /**#@+
      * TurnTo Transmission Constants
      */
-    const FEED_NAME = 'historical-orders-feed';
+    const FEED_NAME = 'historical-orders-feed.tsv';
 
     const FEED_STYLE = 'tab-style.1';
 
@@ -79,6 +79,7 @@ class Orders extends AbstractExport
 
     /**
      * Orders constructor.
+     *
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
@@ -87,6 +88,7 @@ class Orders extends AbstractExport
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
      * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
+     * @param \Magento\Sitemap\Model\ResourceModel\Catalog\ProductFactory $siteMapProductFactory
      * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepositoryInterface
      * @param \Magento\Sales\Api\ShipmentRepositoryInterface $shipmentsService
      * @param ProductRepository $productRepository
@@ -103,6 +105,7 @@ class Orders extends AbstractExport
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
         \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
+        \Magento\Sitemap\Model\ResourceModel\Catalog\ProductFactory $siteMapProductFactory,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepositoryInterface,
         \Magento\Sales\Api\ShipmentRepositoryInterface $shipmentsService,
         \Magento\Catalog\Model\ProductRepository $productRepository,
@@ -126,7 +129,8 @@ class Orders extends AbstractExport
             $dateTimeFactory,
             $searchCriteriaBuilder,
             $filterBuilder,
-            $sortOrderBuilder
+            $sortOrderBuilder,
+            $siteMapProductFactory
         );
     }
 
@@ -169,6 +173,7 @@ class Orders extends AbstractExport
         $searchCriteria = $this->getOrdersSearchCriteria($storeId, $startDateTime);
 
         try {
+            $this->setStoreSiteMapData($this->storeManager->getStore($storeId));
             $outputHandle = fopen(self::TEMP_FILE_PATH, 'w');
             fputcsv(
                 $outputHandle,
@@ -317,8 +322,11 @@ class Orders extends AbstractExport
             try {
                 $this->writeOrderToFeed($outputHandle, $order);
             } catch (\Exception $e) {
-                $this->logger->error($e);
-                //todo make the logging better
+                $this->logger->error('An error occurred while writing the historical orders feed',
+                    [
+                        'exception' => $e,
+                    ]
+                );
             } finally {
                 $numberOfRecordsWritten++;
             }
@@ -449,7 +457,7 @@ class Orders extends AbstractExport
         $row[] = $order->getCreatedAt();
         $row[] = $order->getCustomerEmail();
         $row[] = $lineItem->getName();
-        $row[] = $product->getProductUrl();
+        $row[] = $this->getProductUrl($product);
         $row[] = $lineItemNumber;
         $row[] = $this->getOrderPostCode($order);
         $row[] = $order->getCustomerFirstname();

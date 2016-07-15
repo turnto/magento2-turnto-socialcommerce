@@ -37,6 +37,7 @@ class Catalog extends AbstractExport
 
     /**
      * Catalog constructor.
+     * 
      * @param Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
@@ -45,6 +46,7 @@ class Catalog extends AbstractExport
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
      * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
+     * @param \Magento\Sitemap\Model\ResourceModel\Catalog\ProductFactory $siteMapProductFactory
      * @param \Magento\Catalog\Helper\Product $productHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      */
@@ -57,12 +59,14 @@ class Catalog extends AbstractExport
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
         \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
+        \Magento\Sitemap\Model\ResourceModel\Catalog\ProductFactory $siteMapProductFactory,
         \Magento\Catalog\Helper\Product $productHelper,
         \Magento\Store\Model\StoreManagerInterface $storeManager
+        
     ) {
         $this->productHelper = $productHelper;
         $this->storeManager = $storeManager;
-
+        
         parent::__construct(
             $config, 
             $productCollectionFactory,
@@ -71,7 +75,8 @@ class Catalog extends AbstractExport
             $dateTimeFactory,
             $searchCriteriaBuilder,
             $filterBuilder,
-            $sortOrderBuilder
+            $sortOrderBuilder,
+            $siteMapProductFactory
         );
     }
 
@@ -173,6 +178,7 @@ class Catalog extends AbstractExport
         $progressCounter = 0;
 
         try {
+            $this->setStoreSiteMapData($store);
             $products = $this->getProducts($store);
 
             $feed = new \SimpleXMLElement(
@@ -240,7 +246,7 @@ class Catalog extends AbstractExport
             }
             throw $feedException;
         }
-        
+
         return $feed;
     }
 
@@ -263,7 +269,7 @@ class Catalog extends AbstractExport
             throw new \Exception('Product must have a valid sku');
         }
 
-        $productUrl = $product->getUrlInStore();
+        $productUrl = $this->getProductUrl($product);
         if (empty($productUrl)) {
             throw new \Exception('Product must have a valid store-product url');
         }
@@ -279,11 +285,9 @@ class Catalog extends AbstractExport
         $mpn = null;
         $brand = null;
         $identifierExists = 'FALSE';
-        $gtinMap = $this->config
-            ->getGtinAttributesMap($store->getCode());
+        $gtinMap = $this->config->getGtinAttributesMap($store->getCode());
 
         if (!empty($gtinMap)) {
-
             if (isset($gtinMap[Config::MPN_ATTRIBUTE])) {
                 $mpn = $product->getResource()
                     ->getAttribute($gtinMap[Config::MPN_ATTRIBUTE])

@@ -16,7 +16,7 @@ class Download extends \Magento\Backend\App\Action
     /**
      * Filename used for the client side download file name
      */
-    const DOWNLOAD_FILENAME = 'historical_orders.csv';
+    const DOWNLOAD_FILENAME = 'historical_orders.tsv';
     
     /**
      * @var \Magento\Framework\Controller\Result\RawFactory|null
