@@ -30,8 +30,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const XML_PATH_SOCIALCOMMERCE_STATIC_CONTENT_CACHE_TIME = 'turnto_socialcommerce_configuration/general/static_content_cache_time';
 
-    const XML_PATH_SOCIALCOMMERCE_STATIC_TEASER_CACHE_TIME = 'turnto_socialcommerce_configuration/general/static_teaser_cache_time';
-
     /**
      * Product Groups
      */
@@ -282,21 +280,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_STATIC_CONTENT_CACHE_TIME,
-            ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * Gets the Static Teaser Cache Time configuration value
-     *
-     * @param null $store
-     * @return mixed
-     */
-    public function getStaticTeaserCacheTime($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_STATIC_TEASER_CACHE_TIME,
             ScopeInterface::SCOPE_STORE,
             isset($store) ? $store : $this->getCurrentStoreCode()
         );

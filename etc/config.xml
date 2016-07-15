@@ -10,7 +10,6 @@
                 <url>http://www.turnto.com</url>
                 <image_store_base>http://wac.edgecastcdn.net/001A39/prod</image_store_base>
                 <static_content_cache_time>900</static_content_cache_time>
-                <teaser_cache_time>900</teaser_cache_time>
             </general>
             <product_attribute_mappings>
                 <upc_attribute></upc_attribute>

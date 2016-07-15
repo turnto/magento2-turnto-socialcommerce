@@ -69,13 +69,6 @@
                         <field id="enabled">1</field>
                     </depends>
                 </field>
-                <field id="teaser_cache_time" translate="label comment" type="text" sortOrder="80" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Teaser Cache Time</label>
-                    <comment>The amount of time to cache the TurnTo teasers. This setting only applies when full_page cache is disabled. Value is in seconds. Default is 900 (15 minutes)</comment>
-                    <depends>
-                        <field id="enabled">1</field>
-                    </depends>
-                </field>
             </group>
             <group id="checkout_comments" translate="label" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Checkout Comments</label>
