@@ -176,6 +176,7 @@ class Catalog extends AbstractExport
     {
         $feed = null;
         $progressCounter = 0;
+        $products = [];
 
         try {
             $this->setStoreSiteMapData($store);
@@ -401,7 +402,7 @@ class Catalog extends AbstractExport
     {
         try {
             $parent = $category->getParentCategory();
-        } catch (\NoSuchEntityException $isRootEntity) {
+        } catch (\Magento\Framework\Exception\NoSuchEntityException $isRootEntity) {
             $parent = null;
         } finally {
             $categoryBranch[] = $category;
