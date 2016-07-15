@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="turnto_socialcommerce" translate="label" sortOrder="500">
+            <label>TurnTo Social Commerce</label>
+        </tab>
+        <section id="turnto_socialcommerce_configuration" translate="label" sortOrder="500" showInStore="1" showInWebsite="1" showInDefault="1">
+            <label>Configuration</label>
+            <tab>turnto_socialcommerce</tab>
+            <resource>TurnTo_SocialCommerce::socialcommerce_general_config</resource>
+            <group id="general" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>General Settings</label>
+                <field id="enabled" type="select" translate="label" sortOrder="1" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Enable Social Commerce</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="site_key" translate="label comment" type="text" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Site Key</label>
+                    <comment>Site Key from the turnto.com configuration</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                    <can_be_empty>0</can_be_empty>
+                </field>
+                <field id="authorization_key" translate="label comment" type="obscure" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Authorization Key</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment>Authorization Key from the turnto.com configuration</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                    <can_be_empty>0</can_be_empty>
+                </field>
+                <field id="version" translate="label comment" type="text" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Version</label>
+                    <comment>TurnTo API version.  Uses (major).(minor) form, the default is 4.3. Should not be changed, unless instructed by TurnTo.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                    <can_be_empty>0</can_be_empty>
+                </field>
+                <field id="static_url" translate="label comment" type="text" sortOrder="40" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Static URL</label>
+                    <comment>Default is http://static.www.turnto.com. Should not be changed, unless instructed by TurnTo.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                    <can_be_empty>0</can_be_empty>
+                </field>
+                <field id="url" translate="label comment" type="text" sortOrder="50" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>URL</label>
+                    <comment>Default is http://www.turnto.com. Should not be changed, unless instructed by TurnTo.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="image_store_base" translate="label comment" type="text" sortOrder="60" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Image Store Base</label>
+                    <comment>Default is http://wac.edgecastcdn.net/001A39/prod. Should not be changed, unless instructed by TurnTo.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="static_content_cache_time" translate="label comment" type="text" sortOrder="70"
+                       showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Static Content Cache Time</label>
+                    <comment>This setting only applies when using a Setup Type of Static Embed. Value is in seconds. Default is 900 (15 minutes). The cache time is for block-level caching, but since the Full Page Cache caches entire pages, static content may be cached for up to the amount of time configured in STORES > Configuration > ADVANCED > System > Full Page Cache > TTL for public content.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="teaser_cache_time" translate="label comment" type="text" sortOrder="80" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Teaser Cache Time</label>
+                    <comment>The amount of time to cache the TurnTo teasers. This setting only applies when full_page cache is disabled. Value is in seconds. Default is 900 (15 minutes)</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="checkout_comments" translate="label" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>Checkout Comments</label>
+                <field id="enable_checkout_success" type="select" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Enable Capture on Checkout Success Page</label>
+                    <comment>Customers will be shown a list of products they purchased and will be given the opportunity to share why they decided to purchase each product.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="enable_product_detail" type="select" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Enable Display Widget on Product Page</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="columns" type="text" translate="label comment" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Columns on Widget on Product Page</label>
+                    <comment>Can be 1, 2, 3, 4, or 'auto'. 'auto' detects the available width and chooses the best number of columns for you.</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/checkout_comments/enable_product_detail">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="qa" translate="label" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>Questions &amp; Answers</label>
+                <field id="enable_qa" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Enable Q&amp;A</label>
+                    <comment>Enable the Q&amp;A functionality.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="enable_qa_teaser" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Enable Q&amp;A Teaser</label>
+                    <comment>Show the Q&amp;A teaser below the product name on the product details page.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/qa/enable_qa">1</field>
+                    </depends>
+                </field>
+                <field id="setup_type" translate="label comment" type="select" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Setup Type</label>
+                    <comment>Type of presentation used for TurnTo Q&amp;A functionality. Static Embed is the recommended type due to SEO benefits. You must flush cache after changing this setting.</comment>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\SetupTypeSelect</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/qa/enable_qa">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="reviews" translate="label" sortOrder="40" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>Reviews</label>
+                <field id="enable_reviews" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Enable Reviews</label>
+                    <comment>Enable the TurnTo SocialCommerce reviews feature and disable the native reviews functionality.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="enable_reviews_teaser" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Enable Reviews Teaser</label>
+                    <comment>Enable the reviews teaser below the product name on the product details page.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/reviews/enable_reviews">1</field>
+                    </depends>
+                </field>
+                <field id="reviews_setup_type" translate="label comment" type="select" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Setup Type</label>
+                    <comment>Type of presentation used for TurnTo Reviews functionality. Static Embed is the recommended type due to SEO benefits. You must flush cache after changing this setting.</comment>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\SetupTypeSelect</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/reviews/enable_reviews">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="gallery" translate="label" sortOrder="50" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>Gallery</label>
+                <field id="enable_gallery" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Gallery</label>
+                    <comment>Enable the gallery row on the product detail page.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="mobile" translate="label" sortOrder="60" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>Mobile</label>
+                <comment>The TurnTo Mobile Landing Page URL is [baseUrl]/turnto/frontend/mobilelanding which will need to be set in the "Landing Page URL" field in the turnto.com configuration</comment>
+                <field id="mobile_page_title" translate="label comment" type="text" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Mobile Landing Page Title</label>
+                    <comment>The title for the mobile landing page</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="product_feed" translate="label" sortOrder="70" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>Product Feed</label>
+                <comment>On a nightly basis, Magento submits a product feed to TurnTo. This feed includes important information like product urls, image urls, name, etc. The feed is formatted in XML based on the Google Shopping feed specifications.</comment>
+                <field id="enable_automatic_submission" type="select" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Enable Automated Feed Submission</label>
+                    <comment>Should not be disabled, unless instructed by TurnTo.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="product_feed_url" translate="label comment" type="text" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Product Ratings Feed URL</label>
+                    <comment>The URL from which to retrieve the TurnTo Average Rating by Product SKU Feed. Default is http://www.turnto.com/static/export/</comment>
+                    <depends>
+                        <field id="enable_automatic_submission">1</field>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="feed_submission_url" translate="label comment" type="text" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Product Feed Submission URL</label>
+                    <comment>The URL to submit Product Information Feed. Default is https://www.turnto.com/feedUpload/postfile</comment>
+                    <depends>
+                        <field id="enable_automatic_submission">1</field>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="product_attribute_mappings" translate="label comment" sortOrder="80" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>Product Feed - Attributes and Identification</label>
+                <comment>When the product feed is sent to TurnTo, you can map Magento attributes to TurnTo fields. Setting up field mappings is optional.</comment>
+                <field id="brand_attribute" translate="label comment" type="select" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Brand Attribute</label>
+                    <comment>Brand Name. This attribute will map to the "g:brand" node in the XML feed that is sent to TurnTo.</comment>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/product_feed/enable_automatic_submission">1</field>
+                    </depends>
+                </field>
+                <field id="mpn_attribute" translate="label comment" type="select" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>MPN Attribute</label>
+                    <comment>Manufacturer Part Number. This attribute will map to the "g:mpn" node in the XML feed that is sent to TurnTo.</comment>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/product_feed/enable_automatic_submission">1</field>
+                    </depends>
+                </field>
+                <field id="gtin_header" translate="label" type="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label><![CDATA[<strong>Additional Product Identifiers (GTIN)</strong>]]></label>
+                    <comment><![CDATA[It is unlikely that your store will use all/most of the attribute mappings below. Setup the mappings for the attribute types that you do use. The XML feed sent to TurnTo follows the Google Shopping Feed specification. <a href="https://support.google.com/merchants/answer/160161" target="_blank">That specification</a> dictates that the following attribute types belong to a "GTIN" classification. The following attributes will map to the "g:gtin" node in the XML feed that is sent to TurnTo. If a product has values for more than one of the attributes below, the first attribute with a value in the list below will be sent as the GTIN value.]]></comment>
+                </field>
+                <field id="upc_attribute" translate="label comment" type="select" sortOrder="40" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>UPC Attribute</label>
+                    <comment>Universal Product Code (12 digit UPC-A)</comment>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/product_feed/enable_automatic_submission">1</field>
+                    </depends>
+                </field>
+                <field id="isbn_attribute" translate="label comment" type="select" sortOrder="50" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>ISBN Attribute</label>
+                    <comment>International Standard Book Number (ISBN-13)</comment>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/product_feed/enable_automatic_submission">1</field>
+                    </depends>
+                </field>
+                <field id="ean_attribute" translate="label comment" type="select" sortOrder="60" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>EAN Attribute</label>
+                    <comment>International (formerly European) Article Number (EAN-13)</comment>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/product_feed/enable_automatic_submission">1</field>
+                    </depends>
+                </field>
+                <field id="jan_attribute" translate="label comment" type="select" sortOrder="70" showInStore="1"
+                       showInWebsite="1" showInDefault="1">
+                    <label>JAN Attribute</label>
+                    <comment>Japanese Article Number (8 or 13 digit)</comment>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/product_feed/enable_automatic_submission">1</field>
+                    </depends>
+                </field>
+                <field id="asin_attribute" translate="label comment" type="select" sortOrder="80" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>ASIN Attribute</label>
+                    <comment>Amazon Standard Identification Number</comment>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/product_feed/enable_automatic_submission">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="historical_orders_feed" translate="label" sortOrder="90" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>Historical Orders Feed</label>
+                <comment>On a nightly basis, Magento submits a feed of recently updated orders to TurnTo. TODO: Insert message about what TurnTo does with this feed.</comment>
+                <field id="enable_historical_feed" type="select" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Enable Automated Feed Submission</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

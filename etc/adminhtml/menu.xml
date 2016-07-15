@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="TurnTo_SocialCommerce::top_level_menu"
+             title="TurnTo Social Commerce"
+             module="TurnTo_SocialCommerce"
+             sortOrder="90"
+             parent="Magento_Backend::system"
+             resource="Magento_Backend::content"
+        />
+        <add id="TurnTo_SocialCommerce::historical_orders_feed"
+             title="Historical Orders Feed"
+             module="TurnTo_SocialCommerce"
+             sortOrder="10"
+             resource="Magento_Backend::content"
+             parent="TurnTo_SocialCommerce::top_level_menu"
+             action="turnto/system_historicalorders/"
+        />
+    </menu>
+</config>

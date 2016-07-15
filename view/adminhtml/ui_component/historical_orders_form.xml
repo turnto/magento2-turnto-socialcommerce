@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">historical_orders_form.historical_orders_form_data_source</item>
+            <item name="deps" xsi:type="string">historical_orders_form.historical_orders_form_data_source</item>
+        </item>
+        <item name="label" xsi:type="string" translate="true">Historical Orders Feed</item>
+        <item name="config" xsi:type="array">
+            <item name="dataScope" xsi:type="string">data</item>
+            <item name="namespace" xsi:type="string">turnto_orders_form</item>
+        </item>
+        <item name="template" xsi:type="string">templates/form/collapsible</item>
+        <item name="buttons" xsi:type="array">
+            <item name="save" xsi:type="string">TurnTo\SocialCommerce\Block\Adminhtml\Edit\SaveButton</item>
+        </item>
+    </argument>
+    <dataSource name="historical_orders_form_data_source">
+        <argument name="dataProvider" xsi:type="configurableObject">
+            <argument name="class" xsi:type="string">TurnTo\SocialCommerce\Model\HistoricalOrders\DataProvider</argument>
+            <argument name="name" xsi:type="string">historical_orders_form_data_source</argument>
+            <argument name="primaryFieldName" xsi:type="string">code</argument>
+            <argument name="requestFieldName" xsi:type="string">code</argument>
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="submit_url" xsi:type="url" path="turnto/system_historicalorders/download" />
+                </item>
+            </argument>
+        </argument>
+        <argument name="data" xsi:type="array">
+            <item name="js_config" xsi:type="array">
+                <item name="component" xsi:type="string">Magento_Ui/js/form/provider</item>
+            </item>
+        </argument>
+    </dataSource>
+    <fieldset name="feed_details">
+        <argument name="data" xsi:type="array">
+            <item name="config" xsi:type="array">
+                <item name="label" xsi:type="string" translate="true">Feed Details</item>
+            </item>
+        </argument>
+        <field name="store_ids">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="label" xsi:type="string">Store</item>
+                    <item name="dataType" xsi:type="string">number</item>
+                    <item name="formElement" xsi:type="string">select</item>
+                    <item name="validation" xsi:type="array">
+                        <item name="required-entry" xsi:type="boolean">true</item>
+                    </item>
+                    <item name="source" xsi:type="string">turnto</item>
+                    <item name="dataScope" xsi:type="string">store_ids</item>
+                </item>
+                <item name="options" xsi:type="object">TurnTo\SocialCommerce\Model\HistoricalOrders\StoresOptionsProvider</item>
+            </argument>
+        </field>
+        <field name="from_date">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="label" xsi:type="string">From</item>
+                    <item name="visible" xsi:type="boolean">true</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="formElement" xsi:type="string">date</item>
+                    <item name="validation" xsi:type="array">
+                        <item name="validate-date" xsi:type="boolean">true</item>
+                    </item>
+                    <item name="source" xsi:type="string">turnto</item>
+                    <item name="dataScope" xsi:type="string">from_date</item>
+                </item>
+            </argument>
+        </field>
+    </fieldset>
+</form>

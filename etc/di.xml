@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="TurnTo\SocialCommerce\Logger\Handler\FileHandler">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
+    <type name="TurnTo\SocialCommerce\Logger\Monolog">
+        <arguments>
+            <argument name="name" xsi:type="string">turnto</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="file" xsi:type="object">TurnTo\SocialCommerce\Logger\Handler\FileHandler</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Magento\Catalog\Block\Product\View\Description">
+        <plugin name="removeQuestionsTab" type="TurnTo\SocialCommerce\Plugin\Catalog\Block\Product\View\Description" />
+    </type>
+    <type name="Magento\Catalog\Block\Product\ReviewRendererInterface">
+        <plugin name="turnto_socialcommerce_model_reviewrendererinterface_plugin" type="TurnTo\SocialCommerce\Plugin\Review\Block\Product\ReviewRenderer" sortOrder="1" />
+    </type>
+    <type name="Magento\Catalog\Model\Layer\Filter\Item\DataBuilder">
+        <plugin name="turnto_socialcommerce_plugin_catalog_model_layer_filter_item_databuilder" type="TurnTo\SocialCommerce\Plugin\Catalog\Model\Layer\Filter\Item\DataBuilder" sortOrder="1" />
+    </type>
+</config>
+

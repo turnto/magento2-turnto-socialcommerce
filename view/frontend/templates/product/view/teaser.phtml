@@ -1,0 +1,15 @@
+<?php
+$configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
+
+$reviewsEnabled = $configHelper->getReviewsEnabled();
+$qaEnabled = $configHelper->getQaEnabled();
+$reviewsTeaserEnabled = $configHelper->getReviewsTeaserEnabled();
+$qaTeaserEnabled = $configHelper->getQaTeaserEnabled();
+
+if ($reviewsEnabled && $reviewsTeaserEnabled){
+    echo '<span class="TurnToReviewsTeaser"></span>';
+}
+
+if ($qaEnabled && $qaTeaserEnabled) {
+    echo '<span class="TurnToItemTeaser"></span>';
+}
