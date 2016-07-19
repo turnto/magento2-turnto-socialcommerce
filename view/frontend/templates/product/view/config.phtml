@@ -55,8 +55,8 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
          * cache was refreshed. This solution will refresh the content upon page load if either the Reviews or Q&A sections
          * are loaded statically.
          */
-        if($reviewsSetupType == 'staticEmbed' || $qaSetupType == 'staticEmbed'): ?>
-        TurnTo.reset({"sku": "<?= $productSku ?>"});
+        if ($reviewsSetupType == 'staticEmbed' || $qaSetupType == 'staticEmbed'): ?>
+            TurnTo.reset({"sku": "<?= $productSku ?>"});
         <?php endif; ?>
     });
 
@@ -145,11 +145,11 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
     var TurnToItemSku = "<?= $productSku ?>";
 
     <?php if($commentsEnabled): ?>
-    var TurnToChatterSku = TurnToItemSku;
+        var TurnToChatterSku = TurnToItemSku;
     <?php endif; ?>
 
     <?php if($galleryEnabled): ?>
-    var TurnToGallerySkus = TurnToItemSku;
+        var TurnToGallerySkus = TurnToItemSku;
     <?php endif; ?>
 
 </script>
