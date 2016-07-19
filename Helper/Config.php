@@ -62,6 +62,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Checkout Comments
      */
+    const XML_PATH_ENABLE_CHECKOUT_COMMENTS_SUCCESS = 'turnto_socialcommerce_configuration/checkout_comments/enable_checkout_success';
+
     const XML_PATH_ENABLE_CHECKOUT_COMMENTS_PRODUCT_DETAIL = 'turnto_socialcommerce_configuration/checkout_comments/enable_product_detail';
     
     const XML_PATH_COLUMNS = 'turnto_socialcommerce_configuration/checkout_comments/columns';
@@ -365,6 +367,16 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
             }
         }
         return $gtinMap;
+    }
+
+
+    public function getCheckoutCommentsEnabledCheckoutSuccess($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_ENABLE_CHECKOUT_COMMENTS_SUCCESS,
+            ScopeInterface::SCOPE_STORE,
+            isset($store) ? $store : $this->getCurrentStoreCode()
+        );
     }
 
     /**

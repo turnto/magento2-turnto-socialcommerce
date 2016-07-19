@@ -6,6 +6,7 @@ $siteKey = $configHelper->getSiteKey();
 $url = $configHelper->getUrl();
 $staticUrl = preg_replace("(^https?://)", "//", $configHelper->getStaticUrl());
 $version = $configHelper->getTurnToVersion();
+$checkoutCommentsSuccessEnabled = var_export((bool)$configHelper->getCheckoutCommentsEnabledCheckoutSuccess(), true);
 
 ?>
 <script type="text/javascript">
@@ -14,7 +15,7 @@ $version = $configHelper->getTurnToVersion();
         orderConfFlowPauseSeconds:0,
         commentCaptureShowUsername: true,
         postPurchaseFlow:true,
-        embedCommentCapture: true
+        embedCommentCapture: <?= $checkoutCommentsSuccessEnabled ?>
     };
 </script>
 
@@ -32,4 +33,6 @@ $version = $configHelper->getTurnToVersion();
     TurnToFeed.sendFeed();
 </script>
 
-<div id="TTcommentCapture"></div>
+<?php if ($checkoutCommentsSuccessEnabled): ?>
+    <div id="TTcommentCapture"></div>
+<?php endif; ?>
