@@ -41,8 +41,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const XML_PATH_SOCIALCOMMERCE_IMAGE_STORE_BASE = 'turnto_socialcommerce_configuration/general/image_store_base';
 
-    const XML_PATH_SOCIALCOMMERCE_STATIC_CONTENT_CACHE_TIME = 'turnto_socialcommerce_configuration/general/static_content_cache_time';
-
     /**
      * Product Groups
      */
@@ -283,21 +281,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     public function getUrlWithoutProtocol($store = null)
     {
         return preg_replace("(^https?://)", "", $this->getUrl($store));
-    }
-
-    /**
-     * Gets the Static Content Cache Time configuration value
-     *
-     * @param null $store
-     * @return mixed
-     */
-    public function getStaticContentCacheTime($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_STATIC_CONTENT_CACHE_TIME,
-            ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
-        );
     }
 
     /**

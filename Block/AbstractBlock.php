@@ -20,16 +20,6 @@ abstract class AbstractBlock extends \Magento\Catalog\Block\Product\View
     /**
      * @var null
      */
-    protected static $staticCacheTag = null;
-
-    /**
-     * @var null
-     */
-    protected static $staticCacheKey = null;
-
-    /**
-     * @var null
-     */
     protected static $contentType = null;
 
     /**
@@ -90,34 +80,6 @@ abstract class AbstractBlock extends \Magento\Catalog\Block\Product\View
             $priceCurrency,
             $data
         );
-
-        $this->addData($this->getCacheData());
-    }
-
-    /**
-     * @return array
-     */
-    protected function getCacheData()
-    {
-        $cacheKey = static::$staticCacheKey
-            . $this->getProduct()->getId()
-            . md5(
-                static::getSetupType()
-                . $this->config->getTurnToVersion()
-                . $this->_storeManager->getStore()->getId()
-                . $this->config->getSiteKey()
-                . static::$contentType
-            );
-
-        return [
-            'cache_lifetime' => $this->config->getStaticContentCacheTime(),
-            //TODO: Add package and theme to cache_tags
-            'cache_tags' => [
-                static::$staticCacheTag,
-                \Magento\Catalog\Model\Product::CACHE_TAG . '_' . $this->getProduct()->getId(),
-            ],
-            'cache_key' => $cacheKey
-        ];
     }
 
     /**
