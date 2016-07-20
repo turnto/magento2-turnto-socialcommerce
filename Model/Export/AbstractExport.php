@@ -21,6 +21,9 @@ namespace TurnTo\SocialCommerce\Model\Export;
  */
 class AbstractExport
 {
+    /**
+     * Default page size
+     */
     const DEFAULT_PAGE_SIZE = 25;
 
     /**

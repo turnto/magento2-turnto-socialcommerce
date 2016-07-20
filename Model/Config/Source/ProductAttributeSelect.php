@@ -33,7 +33,7 @@ class ProductAttributeSelect implements \Magento\Framework\Option\ArrayInterface
 
     /**
      * ProductAttributeSelect constructor.
-     * @param \Magento\Catalog\Model\Product $productModel
+     * @param \Magento\Catalog\Model\ProductFactory $productFactory
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      */
     public function __construct(

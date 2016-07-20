@@ -42,6 +42,7 @@ class Description
      *
      * @param \Magento\Catalog\Block\Product\View\Description $subject
      * @param $result
+     * @return array
      */
     public function afterGetGroupChildNames(\Magento\Catalog\Block\Product\View\Description $subject, $result)
     {
