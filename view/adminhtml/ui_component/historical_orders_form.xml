@@ -66,7 +66,7 @@
                     <item name="source" xsi:type="string">turnto</item>
                     <item name="dataScope" xsi:type="string">store_ids</item>
                 </item>
-                <item name="options" xsi:type="object">TurnTo\SocialCommerce\Model\HistoricalOrders\StoresOptionsProvider</item>
+                <item name="options" xsi:type="object">Magento\Config\Model\Config\Source\Store</item>
             </argument>
         </field>
         <field name="from_date">
