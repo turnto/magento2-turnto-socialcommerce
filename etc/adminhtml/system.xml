@@ -285,7 +285,7 @@
             </group>
             <group id="historical_orders_feed" translate="label" sortOrder="90" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Historical Orders Feed</label>
-                <comment>On a nightly basis, Magento submits a feed of recently updated orders to TurnTo. TODO: Insert message about what TurnTo does with this feed.</comment>
+                <comment>Magento submits a feed of recently updated orders to TurnTo on a nightly basis. TurnTo uses this order feed data to populate owner pools for Q&amp;A and to schedule review solicitation emails based optionally on ship date instead of order date.</comment>
                 <field id="enable_historical_feed" type="select" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Enable Automated Feed Submission</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
