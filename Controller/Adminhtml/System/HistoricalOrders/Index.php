@@ -20,12 +20,12 @@ class Index extends \Magento\Backend\App\Action
     /**
      * The reference name for the menu which links to this controller
      */
-    const INITIATING_MENU = 'TurnTo_SocialCommerce::historical_orders_feed';
+    const INITIATING_MENU = 'TurnTo_SocialCommerce::historical_orders_export';
 
     /**
      * The title of the page served by this controller
      */
-    const TITLE = 'Historical Orders Feed';
+    const TITLE = 'Historical Orders Export';
 
     /**
      * @var \Magento\Framework\Registry|null

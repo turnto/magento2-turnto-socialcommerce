@@ -23,8 +23,8 @@
              parent="Magento_Backend::system"
              resource="Magento_Backend::content"
         />
-        <add id="TurnTo_SocialCommerce::historical_orders_feed"
-             title="Historical Orders Feed"
+        <add id="TurnTo_SocialCommerce::historical_orders_export"
+             title="Historical Orders Export"
              module="TurnTo_SocialCommerce"
              sortOrder="10"
              resource="Magento_Backend::content"
