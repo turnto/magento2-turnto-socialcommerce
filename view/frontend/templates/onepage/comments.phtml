@@ -19,7 +19,7 @@ $siteKey = $configHelper->getSiteKey();
 $url = $configHelper->getUrl();
 $staticUrl = preg_replace("(^https?://)", "//", $configHelper->getStaticUrl());
 $version = $configHelper->getTurnToVersion();
-$checkoutCommentsSuccessEnabled = var_export((bool)$configHelper->getCheckoutCommentsEnabledCheckoutSuccess(), true);
+$checkoutCommentsSuccessEnabled = (bool)$configHelper->getCheckoutCommentsEnabledCheckoutSuccess();
 
 ?>
 <script type="text/javascript">
@@ -28,7 +28,7 @@ $checkoutCommentsSuccessEnabled = var_export((bool)$configHelper->getCheckoutCom
         orderConfFlowPauseSeconds:0,
         commentCaptureShowUsername: true,
         postPurchaseFlow:true,
-        embedCommentCapture: <?= $checkoutCommentsSuccessEnabled ?>
+        embedCommentCapture: <?= var_export($checkoutCommentsSuccessEnabled, true) ?>
     };
 </script>
 
