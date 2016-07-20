@@ -6,16 +6,18 @@ $siteKey = $configHelper->getSiteKey();
 $url = $configHelper->getUrl();
 $staticUrl = preg_replace("(^https?://)", "//", $configHelper->getStaticUrl());
 $version = $configHelper->getTurnToVersion();
-$checkoutCommentsSuccessEnabled = var_export((bool)$configHelper->getCheckoutCommentsEnabledCheckoutSuccess(), true);
+$checkoutCommentsSuccessEnabled = (bool)$configHelper->getCheckoutCommentsEnabledCheckoutSuccess();
 
 ?>
 <script type="text/javascript">
     var turnToConfig = {
         siteKey: "<?= $siteKey ?>",
         orderConfFlowPauseSeconds:0,
-        commentCaptureShowUsername: true,
-        postPurchaseFlow:true,
-        embedCommentCapture: <?= $checkoutCommentsSuccessEnabled ?>
+        <?php if ($checkoutCommentsSuccessEnabled): ?>
+            commentCaptureShowUsername: true,
+            embedCommentCapture: <?= var_export($checkoutCommentsSuccessEnabled, true) ?>,
+        <?php endif; ?>
+        postPurchaseFlow:true
     };
 </script>
 
