@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * TurnTo_SocialCommerce
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ *
+ * @copyright  Copyright (c) 2016 TurnTo Networks, Inc.
+ * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ */
+-->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <tab id="turnto_socialcommerce" translate="label" sortOrder="500">
@@ -61,23 +76,8 @@
                         <field id="enabled">1</field>
                     </depends>
                 </field>
-                <field id="static_content_cache_time" translate="label comment" type="text" sortOrder="70"
-                       showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Static Content Cache Time</label>
-                    <comment>This setting only applies when using a Setup Type of Static Embed. Value is in seconds. Default is 900 (15 minutes). The cache time is for block-level caching, but since the Full Page Cache caches entire pages, static content may be cached for up to the amount of time configured in STORES > Configuration > ADVANCED > System > Full Page Cache > TTL for public content.</comment>
-                    <depends>
-                        <field id="enabled">1</field>
-                    </depends>
-                </field>
-                <field id="teaser_cache_time" translate="label comment" type="text" sortOrder="80" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Teaser Cache Time</label>
-                    <comment>The amount of time to cache the TurnTo teasers. This setting only applies when full_page cache is disabled. Value is in seconds. Default is 900 (15 minutes)</comment>
-                    <depends>
-                        <field id="enabled">1</field>
-                    </depends>
-                </field>
             </group>
-            <group id="checkout_comments" translate="label" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
+            <group id="checkout_comments" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Checkout Comments</label>
                 <field id="enable_checkout_success" type="select" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Enable Capture on Checkout Success Page</label>
@@ -87,14 +87,14 @@
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
-                <field id="enable_product_detail" type="select" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
+                <field id="enable_product_detail" type="select" translate="label" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Enable Display Widget on Product Page</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
-                <field id="columns" type="text" translate="label comment" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
+                <field id="columns" type="text" translate="label comment" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Columns on Widget on Product Page</label>
                     <comment>Can be 1, 2, 3, 4, or 'auto'. 'auto' detects the available width and chooses the best number of columns for you.</comment>
                     <depends>
@@ -216,7 +216,7 @@
                 <comment>When the product feed is sent to TurnTo, you can map Magento attributes to TurnTo fields. Setting up field mappings is optional.</comment>
                 <field id="brand_attribute" translate="label comment" type="select" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Brand Attribute</label>
-                    <comment>Brand Name. This attribute will map to the "g:brand" node in the XML feed that is sent to TurnTo.</comment>
+                    <comment>Brand Name. This attribute will map to the "brand" node in the XML feed that is sent to TurnTo.</comment>
                     <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
@@ -225,7 +225,7 @@
                 </field>
                 <field id="mpn_attribute" translate="label comment" type="select" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>MPN Attribute</label>
-                    <comment>Manufacturer Part Number. This attribute will map to the "g:mpn" node in the XML feed that is sent to TurnTo.</comment>
+                    <comment>Manufacturer Part Number. This attribute will map to the "mpn" node in the XML feed that is sent to TurnTo.</comment>
                     <source_model>TurnTo\SocialCommerce\Model\Config\Source\ProductAttributeSelect</source_model>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
@@ -234,7 +234,7 @@
                 </field>
                 <field id="gtin_header" translate="label" type="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label><![CDATA[<strong>Additional Product Identifiers (GTIN)</strong>]]></label>
-                    <comment><![CDATA[It is unlikely that your store will use all/most of the attribute mappings below. Setup the mappings for the attribute types that you do use. The XML feed sent to TurnTo follows the Google Shopping Feed specification. <a href="https://support.google.com/merchants/answer/160161" target="_blank">That specification</a> dictates that the following attribute types belong to a "GTIN" classification. The following attributes will map to the "g:gtin" node in the XML feed that is sent to TurnTo. If a product has values for more than one of the attributes below, the first attribute with a value in the list below will be sent as the GTIN value.]]></comment>
+                    <comment><![CDATA[It is unlikely that your store will use all/most of the attribute mappings below. Setup the mappings for the attribute types that you do use. The XML feed sent to TurnTo follows the Google Shopping Feed specification. <a href="https://support.google.com/merchants/answer/160161" target="_blank">That specification</a> dictates that the following attribute types belong to a "GTIN" classification. The following attributes will map to the "gtin" node in the XML feed that is sent to TurnTo. If a product has values for more than one of the attributes below, the first attribute with a value in the list below will be sent as the GTIN value.]]></comment>
                 </field>
                 <field id="upc_attribute" translate="label comment" type="select" sortOrder="40" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>UPC Attribute</label>
@@ -285,7 +285,7 @@
             </group>
             <group id="historical_orders_feed" translate="label" sortOrder="90" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Historical Orders Feed</label>
-                <comment>On a nightly basis, Magento submits a feed of recently updated orders to TurnTo. TODO: Insert message about what TurnTo does with this feed.</comment>
+                <comment>Magento submits a feed of recently updated orders to TurnTo on a nightly basis. TurnTo uses this order feed data to populate owner pools for Q&amp;A and to schedule review solicitation emails based optionally on ship date instead of order date.</comment>
                 <field id="enable_historical_feed" type="select" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Enable Automated Feed Submission</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

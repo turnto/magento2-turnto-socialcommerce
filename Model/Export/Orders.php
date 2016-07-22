@@ -1,16 +1,19 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: kevincarroll
- * Date: 6/24/16
- * Time: 12:42 PM
+ * TurnTo_SocialCommerce
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ *
+ * @copyright  Copyright (c) 2016 TurnTo Networks, Inc.
+ * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
 namespace TurnTo\SocialCommerce\Model\Export;
-
-use Magento\Catalog\Model\ProductRepository;
-use Magento\Framework\Stdlib\DateTime\DateTime;
-use Magento\Framework\App\Filesystem\DirectoryList;
 
 class Orders extends AbstractExport
 {
@@ -58,7 +61,7 @@ class Orders extends AbstractExport
     protected $shipmentsService = null;
 
     /**
-     * @var ProductRepository|null
+     * @var \Magento\Catalog\Model\ProductRepository|null
      */
     protected $productRepository = null;
 
@@ -91,7 +94,7 @@ class Orders extends AbstractExport
      * @param \Magento\Sitemap\Model\ResourceModel\Catalog\ProductFactory $siteMapProductFactory
      * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepositoryInterface
      * @param \Magento\Sales\Api\ShipmentRepositoryInterface $shipmentsService
-     * @param ProductRepository $productRepository
+     * @param \Magento\Catalog\Model\ProductRepository $productRepository
      * @param \Magento\Catalog\Helper\Product $productHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Framework\Filesystem\DirectoryList $directoryList
@@ -147,7 +150,8 @@ class Orders extends AbstractExport
                 try {
                     $feedData = $this->getOrdersFeed(
                         $store->getId(),
-                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P2D'))
+                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P2D')),
+                        true
                     );
                     $this->transmitFeed($feedData, $store);
                 } catch (\Exception $e) {
@@ -166,9 +170,10 @@ class Orders extends AbstractExport
     /**
      * @param $storeId
      * @param $startDateTime
+     * @param bool $includeDeliveryDate
      * @return null|string
      */
-    public function getOrdersFeed($storeId, $startDateTime) {
+    public function getOrdersFeed($storeId, $startDateTime, $includeDeliveryDate = false) {
         $csvData = null;
         $searchCriteria = $this->getOrdersSearchCriteria($storeId, $startDateTime);
 
@@ -194,7 +199,7 @@ class Orders extends AbstractExport
                 ],
                 "\t"
             );
-            $this->writeOrdersFeed($searchCriteria, $outputHandle);
+            $this->writeOrdersFeed($searchCriteria, $outputHandle, $includeDeliveryDate);
             rewind($outputHandle);
             $csvData = stream_get_contents($outputHandle);
         } catch (\Exception $e) {
@@ -288,8 +293,9 @@ class Orders extends AbstractExport
     /**
      * @param \Magento\Framework\Api\SearchCriteria $searchCriteria
      * @param $outputHandle
+     * @param bool $includeDeliveryDate
      */
-    public function writeOrdersFeed(\Magento\Framework\Api\SearchCriteria $searchCriteria, $outputHandle)
+    public function writeOrdersFeed(\Magento\Framework\Api\SearchCriteria $searchCriteria, $outputHandle, $includeDeliveryDate)
     {
         $orderList = $this->orderService->getList($searchCriteria);
         $pageLimit = $orderList->getLastPageNumber();
@@ -301,7 +307,7 @@ class Orders extends AbstractExport
             $paginatedCollection->load();
             
             if ($paginatedCollection->count() > 0) {
-                $this->writeOrdersToFeed($outputHandle, $paginatedCollection);
+                $this->writeOrdersToFeed($outputHandle, $paginatedCollection, $includeDeliveryDate);
             }
         }
     }
@@ -309,9 +315,10 @@ class Orders extends AbstractExport
     /**
      * @param $outputHandle
      * @param $orders
+     * @param bool $includeDeliveryDate
      * @return int
      */
-    protected function writeOrdersToFeed($outputHandle, $orders)
+    protected function writeOrdersToFeed($outputHandle, $orders, $includeDeliveryDate)
     {
         if (!isset($orders) || empty($orders)) {
             return 0;
@@ -320,7 +327,7 @@ class Orders extends AbstractExport
         $numberOfRecordsWritten = 0;
         foreach ($orders as $order) {
             try {
-                $this->writeOrderToFeed($outputHandle, $order);
+                $this->writeOrderToFeed($outputHandle, $order, $includeDeliveryDate);
             } catch (\Exception $e) {
                 $this->logger->error('An error occurred while writing the historical orders feed',
                     [
@@ -338,10 +345,11 @@ class Orders extends AbstractExport
     /**
      * @param $outputHandle
      * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @param bool $includeDeliveryDate
      */
-    protected function writeOrderToFeed($outputHandle, \Magento\Sales\Api\Data\OrderInterface $order)
+    protected function writeOrderToFeed($outputHandle, \Magento\Sales\Api\Data\OrderInterface $order, $includeDeliveryDate)
     {
-        $items = $this->getItemData($order);
+        $items = $this->getItemData($order, $includeDeliveryDate);
         if (empty($items)) {
             return;
         }
@@ -361,9 +369,10 @@ class Orders extends AbstractExport
 
     /**
      * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @param bool $includeDeliveryDate
      * @return array|mixed
      */
-    public function getItemData(\Magento\Sales\Api\Data\OrderInterface $order)
+    public function getItemData(\Magento\Sales\Api\Data\OrderInterface $order, $includeDeliveryDate)
     {
         $items = [];
         $orderId = $order->getEntityId();
@@ -379,7 +388,9 @@ class Orders extends AbstractExport
                 ];
             }
         }
-        $items = $this->addShipDateToItemData($items, $orderId, $order->getStoreId());
+        if ($includeDeliveryDate) {
+            $items = $this->addShipDateToItemData($items, $orderId, $order->getStoreId());
+        }
 
         return $items;
     }

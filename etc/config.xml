@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+/**
+ * TurnTo_SocialCommerce
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ *
+ * @copyright  Copyright (c) 2016 TurnTo Networks, Inc.
+ * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ */
+-->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
@@ -9,8 +24,6 @@
                 <static_url>http://static.www.turnto.com</static_url>
                 <url>http://www.turnto.com</url>
                 <image_store_base>http://wac.edgecastcdn.net/001A39/prod</image_store_base>
-                <static_content_cache_time>900</static_content_cache_time>
-                <teaser_cache_time>900</teaser_cache_time>
             </general>
             <product_attribute_mappings>
                 <upc_attribute></upc_attribute>
@@ -49,8 +62,6 @@
             </product_feed>
             <historical_orders_feed>
                 <enable_historical_feed>1</enable_historical_feed>
-                <website_id>1</website_id>
-                <store_id>1</store_id>
             </historical_orders_feed>
         </turnto_socialcommerce_configuration>
     </default>

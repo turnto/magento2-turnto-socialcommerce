@@ -1,4 +1,17 @@
 <?php
+/**
+ * TurnTo_SocialCommerce
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ *
+ * @copyright  Copyright (c) 2016 TurnTo Networks, Inc.
+ * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ */
 
 $configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
 
@@ -9,10 +22,12 @@ $locale = $this->getLocale();
 
 $reviewsEnabled = $configHelper->getReviewsEnabled();
 $qaEnabled = $configHelper->getQaEnabled();
-$commentsEnabled = $configHelper->getCheckoutCommentsEnabled();
+$commentsEnabled = $configHelper->getCheckoutCommentsEnabledProductDetail();
 $reviewsTeaserEnabled = $configHelper->getReviewsTeaserEnabled();
 $qaTeaserEnabled = $configHelper->getQaTeaserEnabled();
 $galleryEnabled = $configHelper->getGalleryEnabled();
+$reviewsSetupType = $configHelper->getSetupType();
+$qaSetupType = $configHelper->getSetupType();
 
 $productSku = $this->getProduct()->getSku();
 
@@ -27,11 +42,23 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
 
 <script type="text/javascript">
     require([
+        'domReady!',
         '<?= sprintf('%s/sitedata/%s/v%s/%s/d/itemjs', $staticUrl, $siteKey, $version, $productSku) ?>',
         '<?= sprintf('%s/traServer%s/trajs/%s/tra.js', $staticUrl, $version, $siteKey) ?>',
         '<?= $commentsEnabled ? sprintf('%s/traServer%s/chatterjs/%s/turnto-chatter.js', $staticUrl, $version, $siteKey) : '' ?>',
         '<?= $galleryEnabled ? sprintf('%s/traServer%s/galleryjs/%s/turnto-gallery.js/%s', $staticUrl, $version, $siteKey, $locale) : '' ?>'
-    ]);
+    ], function() {
+        <?php
+        /**
+         * This logic is necessary to ensure that the Reviews and Q&A content is up to date with the TurnTo servers.
+         * Without this logic, the full page cache may be missing content and only display content loaded the last time the
+         * cache was refreshed. This solution will refresh the content upon page load if either the Reviews or Q&A sections
+         * are loaded statically.
+         */
+        if ($reviewsSetupType == 'staticEmbed' || $qaSetupType == 'staticEmbed'): ?>
+            TurnTo.reset({"sku": "<?= $productSku ?>"});
+        <?php endif; ?>
+    });
 
     <?php if($qaTeaserEnabled && $qaEnabled): ?>
     function qaTeaser () {
@@ -118,11 +145,11 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
     var TurnToItemSku = "<?= $productSku ?>";
 
     <?php if($commentsEnabled): ?>
-    var TurnToChatterSku = TurnToItemSku;
+        var TurnToChatterSku = TurnToItemSku;
     <?php endif; ?>
 
     <?php if($galleryEnabled): ?>
-    var TurnToGallerySkus = TurnToItemSku;
+        var TurnToGallerySkus = TurnToItemSku;
     <?php endif; ?>
 
 </script>
