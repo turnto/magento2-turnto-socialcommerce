@@ -1,19 +1,22 @@
 <?php
+/**
+ * TurnTo_SocialCommerce
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ *
+ * @copyright  Copyright (c) 2016 TurnTo Networks, Inc.
+ * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ */
 
 namespace TurnTo\SocialCommerce\Block;
 
 abstract class AbstractBlock extends \Magento\Catalog\Block\Product\View
 {
-    /**
-     * @var null
-     */
-    protected static $staticCacheTag = null;
-
-    /**
-     * @var null
-     */
-    protected static $staticCacheKey = null;
-
     /**
      * @var null
      */
@@ -77,34 +80,6 @@ abstract class AbstractBlock extends \Magento\Catalog\Block\Product\View
             $priceCurrency,
             $data
         );
-
-        $this->addData($this->getCacheData());
-    }
-
-    /**
-     * @return array
-     */
-    protected function getCacheData()
-    {
-        $cacheKey = static::$staticCacheKey
-            . $this->getProduct()->getId()
-            . md5(
-                static::getSetupType()
-                . $this->config->getTurnToVersion()
-                . $this->_storeManager->getStore()->getId()
-                . $this->config->getSiteKey()
-                . static::$contentType
-            );
-
-        return [
-            'cache_lifetime' => $this->config->getStaticContentCacheTime(),
-            //TODO: Add package and theme to cache_tags
-            'cache_tags' => [
-                static::$staticCacheTag,
-                \Magento\Catalog\Model\Product::CACHE_TAG . '_' . $this->getProduct()->getId(),
-            ],
-            'cache_key' => $cacheKey
-        ];
     }
 
     /**
