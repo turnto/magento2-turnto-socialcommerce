@@ -26,9 +26,11 @@ $checkoutCommentsSuccessEnabled = (bool)$configHelper->getCheckoutCommentsEnable
     var turnToConfig = {
         siteKey: "<?= $siteKey ?>",
         orderConfFlowPauseSeconds:0,
-        commentCaptureShowUsername: true,
-        postPurchaseFlow:true,
-        embedCommentCapture: <?= var_export($checkoutCommentsSuccessEnabled, true) ?>
+        <?php if ($checkoutCommentsSuccessEnabled): ?>
+            commentCaptureShowUsername: true,
+            embedCommentCapture: <?= var_export($checkoutCommentsSuccessEnabled, true) ?>,
+        <?php endif; ?>
+        postPurchaseFlow:true
     };
 </script>
 
