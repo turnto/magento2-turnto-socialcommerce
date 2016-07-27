@@ -70,24 +70,10 @@ class AbstractExport
      * @var \Magento\Framework\HTTP\ZendClientFactory|null
      */
     protected $zendClientFactory = null;
-    
-    /**
-     * @var \Magento\Sitemap\Model\ResourceModel\Catalog\ProductFactory|null
-     */
-    protected $siteMapProductFactory = null;
-
-    /**
-     * @var array|bool
-     */
-    protected $siteMapProductCollection = false;
-
-    /**
-     * @var string
-     */
-    protected $baseStoreUrl = '';
 
     /**
      * AbstractExport constructor.
+     *
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
@@ -96,7 +82,6 @@ class AbstractExport
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
      * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
-     * @param \Magento\Sitemap\Model\ResourceModel\Catalog\ProductFactory $siteMapProductFactory
      */
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
@@ -106,8 +91,7 @@ class AbstractExport
         \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
-        \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
-        \Magento\Sitemap\Model\ResourceModel\Catalog\ProductFactory $siteMapProductFactory
+        \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
     ) {
         $this->config = $config;
         $this->productCollectionFactory = $productCollectionFactory;
@@ -117,7 +101,6 @@ class AbstractExport
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->filterBuilder = $filterBuilder;
         $this->sortOrderBuilder = $sortOrderBuilder;
-        $this->siteMapProductFactory = $siteMapProductFactory;
     }
 
     /**
@@ -161,6 +144,8 @@ class AbstractExport
             ->addAttributeToSelect('id')
             ->addAttributeToSelect('name')
             ->addAttributeToSelect('sku')
+            ->addAttributeToSelect('url_path')
+            ->addAttributeToSelect('url_key')
             ->addAttributeToSelect('url_in_store')
             ->addAttributeToSelect('image')
             ->addAttributeToSelect('quantity_and_stock_status')
@@ -188,32 +173,5 @@ class AbstractExport
         $collection->addStoreFilter($store);
 
         return $collection;
-    }
-
-    /**
-     * @param \Magento\Store\Api\Data\StoreInterface $store
-     */
-    protected function setStoreSiteMapData(\Magento\Store\Api\Data\StoreInterface $store)
-    {
-        $this->siteMapProductCollection = $this->siteMapProductFactory->create()->getCollection($store->getId());
-        $this->baseStoreUrl = $store->getUrl();
-    }
-    
-    /**
-     * @param \Magento\Catalog\Model\Product $product
-     * @return null|string
-     */
-    protected function getProductUrl(\Magento\Catalog\Model\Product $product)
-    {
-        $productUrl = null;
-
-        if ($this->siteMapProductCollection && isset($this->siteMapProductCollection[$product->getId()])) {
-            $productUrl = $this->baseStoreUrl . $this->siteMapProductCollection[$product->getId()]->getUrl();
-        }
-        if (empty($productUrl)) {
-            $productUrl = $product->getProductUrl();
-        }
-
-        return $productUrl;
     }
 }
