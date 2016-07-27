@@ -100,8 +100,7 @@ class Catalog extends AbstractExport
                 && $this->config->getIsProductFeedSubmissionEnabled($store->getCode())
             ) {
                 $feed = $this->generateProductFeed($store);
-                //$this->transmitFeed($feed, $store);
-                $feed->asXML('/Volumes/Server/sites/turntoce.dev/var/turntofeedNEW.xml');
+                $this->transmitFeed($feed, $store);
             }
         }
     }
