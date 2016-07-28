@@ -91,7 +91,6 @@ class Orders extends AbstractExport
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
      * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
-     * @param \Magento\Sitemap\Model\ResourceModel\Catalog\ProductFactory $siteMapProductFactory
      * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepositoryInterface
      * @param \Magento\Sales\Api\ShipmentRepositoryInterface $shipmentsService
      * @param \Magento\Catalog\Model\ProductRepository $productRepository
@@ -108,7 +107,6 @@ class Orders extends AbstractExport
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
         \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
-        \Magento\Sitemap\Model\ResourceModel\Catalog\ProductFactory $siteMapProductFactory,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepositoryInterface,
         \Magento\Sales\Api\ShipmentRepositoryInterface $shipmentsService,
         \Magento\Catalog\Model\ProductRepository $productRepository,
@@ -132,8 +130,7 @@ class Orders extends AbstractExport
             $dateTimeFactory,
             $searchCriteriaBuilder,
             $filterBuilder,
-            $sortOrderBuilder,
-            $siteMapProductFactory
+            $sortOrderBuilder
         );
     }
 
@@ -178,7 +175,6 @@ class Orders extends AbstractExport
         $searchCriteria = $this->getOrdersSearchCriteria($storeId, $startDateTime);
 
         try {
-            $this->setStoreSiteMapData($this->storeManager->getStore($storeId));
             $outputHandle = fopen(self::TEMP_FILE_PATH, 'w');
             fputcsv(
                 $outputHandle,
@@ -468,7 +464,7 @@ class Orders extends AbstractExport
         $row[] = $order->getCreatedAt();
         $row[] = $order->getCustomerEmail();
         $row[] = $lineItem->getName();
-        $row[] = $this->getProductUrl($product);
+        $row[] = $product->getProductUrl();
         $row[] = $lineItemNumber;
         $row[] = $this->getOrderPostCode($order);
         $row[] = $order->getCustomerFirstname();

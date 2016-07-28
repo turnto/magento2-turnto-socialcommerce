@@ -59,7 +59,6 @@ class Catalog extends AbstractExport
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
      * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
-     * @param \Magento\Sitemap\Model\ResourceModel\Catalog\ProductFactory $siteMapProductFactory
      * @param \Magento\Catalog\Helper\Product $productHelper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      */
@@ -72,10 +71,8 @@ class Catalog extends AbstractExport
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
         \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
-        \Magento\Sitemap\Model\ResourceModel\Catalog\ProductFactory $siteMapProductFactory,
         \Magento\Catalog\Helper\Product $productHelper,
         \Magento\Store\Model\StoreManagerInterface $storeManager
-        
     ) {
         $this->productHelper = $productHelper;
         $this->storeManager = $storeManager;
@@ -88,8 +85,7 @@ class Catalog extends AbstractExport
             $dateTimeFactory,
             $searchCriteriaBuilder,
             $filterBuilder,
-            $sortOrderBuilder,
-            $siteMapProductFactory
+            $sortOrderBuilder
         );
     }
 
@@ -192,7 +188,6 @@ class Catalog extends AbstractExport
         $products = [];
 
         try {
-            $this->setStoreSiteMapData($store);
             $products = $this->getProducts($store);
 
             $feed = new \SimpleXMLElement(
@@ -283,7 +278,7 @@ class Catalog extends AbstractExport
             throw new \Exception('Product must have a valid sku');
         }
 
-        $productUrl = $this->getProductUrl($product);
+        $productUrl = $product->getProductUrl();
         if (empty($productUrl)) {
             throw new \Exception('Product must have a valid store-product url');
         }
