@@ -72,6 +72,16 @@ class AbstractExport
     protected $zendClientFactory = null;
 
     /**
+     * @var \Magento\UrlRewrite\Model\UrlFinderInterface|null
+     */
+    protected $urlFinder = null;
+
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface|null
+     */
+    protected $storeManager = null;
+
+    /**
      * AbstractExport constructor.
      *
      * @param \TurnTo\SocialCommerce\Helper\Config $config
@@ -82,6 +92,8 @@ class AbstractExport
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
      * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
+     * @param \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      */
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
@@ -91,7 +103,9 @@ class AbstractExport
         \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
-        \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
+        \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
+        \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->config = $config;
         $this->productCollectionFactory = $productCollectionFactory;
@@ -101,6 +115,8 @@ class AbstractExport
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->filterBuilder = $filterBuilder;
         $this->sortOrderBuilder = $sortOrderBuilder;
+        $this->urlFinder = $urlFinder;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -173,5 +189,39 @@ class AbstractExport
         $collection->addStoreFilter($store);
 
         return $collection;
+    }
+
+    /**
+     * @param \Magento\Catalog\Model\Product $product
+     * @param $storeId
+     * @return string
+     */
+    protected function getProductUrl(\Magento\Catalog\Model\Product $product, $storeId)
+    {
+        $urlRewrite = $this->urlFinder->findOneByData(
+            [
+                \Magento\UrlRewrite\Service\V1\Data\UrlRewrite::ENTITY_ID => $product->getId(),
+                \Magento\UrlRewrite\Service\V1\Data\UrlRewrite::ENTITY_TYPE =>
+                    \Magento\CatalogUrlRewrite\Model\ProductUrlRewriteGenerator::ENTITY_TYPE,
+                \Magento\UrlRewrite\Service\V1\Data\UrlRewrite::STORE_ID => $storeId
+            ]
+        );
+
+        if (isset($urlRewrite)) {
+            return $this->getAbsoluteUrl($urlRewrite->getRequestPath(), $storeId);
+        } else {
+            return $product->getProductUrl();
+        }
+    }
+
+    /**
+     * @param $relativeUrl
+     * @param $storeId
+     * @return string
+     */
+    protected function getAbsoluteUrl($relativeUrl, $storeId)
+    {
+        $storeUrl = $this->storeManager->getStore($storeId)->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK);
+        return rtrim($storeUrl, '/') . '/' . ltrim($relativeUrl, '/');
     }
 }

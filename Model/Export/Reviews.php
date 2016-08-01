@@ -39,7 +39,7 @@ class Reviews extends AbstractExport
 
     /**
      * Reviews constructor.
-     * 
+     *
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
@@ -48,6 +48,8 @@ class Reviews extends AbstractExport
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
      * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
+     * @param \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Review\Model\ReviewFactory $reviewFactory
      * @param \Magento\Review\Model\ResourceModel\Review\CollectionFactory $reviewCollectionFactory
      * @param \Magento\Review\Model\Rating\Option\VoteFactory $voteFactory
@@ -62,6 +64,8 @@ class Reviews extends AbstractExport
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
         \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
+        \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Review\Model\ReviewFactory $reviewFactory,
         \Magento\Review\Model\ResourceModel\Review\CollectionFactory $reviewCollectionFactory,
         \Magento\Review\Model\Rating\Option\VoteFactory $voteFactory,
@@ -80,7 +84,9 @@ class Reviews extends AbstractExport
             $dateTimeFactory,
             $searchCriteriaBuilder,
             $filterBuilder,
-            $sortOrderBuilder
+            $sortOrderBuilder,
+            $urlFinder,
+            $storeManager
         );
     }
 
