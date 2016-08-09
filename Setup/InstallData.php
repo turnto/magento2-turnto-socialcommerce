@@ -106,10 +106,7 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
             $groupCollection = $eavSetup->getAttributeGroupCollectionFactory();
             $sortOrder = 0;
             foreach ($groupCollection->setAttributeSetFilter($setId) as $group) {
-                if (
-                    $group->getAttributeGroupCode()
-                    === \Magento\Catalog\Ui\DataProvider\Product\Form\Modifier\Images::CODE_IMAGE_MANAGEMENT_GROUP
-                ) {
+                if ($group->getAttributeGroupCode() === 'image-management') {
                     $sortOrder = (int)$group->getSortOrder();
                     break;
                 }
