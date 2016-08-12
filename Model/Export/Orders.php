@@ -71,11 +71,6 @@ class Orders extends AbstractExport
     protected $productHelper = null;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface|null
-     */
-    protected $storeManager = null;
-
-    /**
      * @var \Magento\Framework\Filesystem\DirectoryList|null
      */
     protected $directoryList = null;
@@ -91,11 +86,12 @@ class Orders extends AbstractExport
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
      * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
+     * @param \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepositoryInterface
      * @param \Magento\Sales\Api\ShipmentRepositoryInterface $shipmentsService
      * @param \Magento\Catalog\Model\ProductRepository $productRepository
      * @param \Magento\Catalog\Helper\Product $productHelper
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Framework\Filesystem\DirectoryList $directoryList
      */
     public function __construct(
@@ -107,11 +103,12 @@ class Orders extends AbstractExport
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
         \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
+        \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepositoryInterface,
         \Magento\Sales\Api\ShipmentRepositoryInterface $shipmentsService,
         \Magento\Catalog\Model\ProductRepository $productRepository,
         \Magento\Catalog\Helper\Product $productHelper,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\Filesystem\DirectoryList $directoryList
     ) {
         $this->orderService = $orderRepositoryInterface;
@@ -130,7 +127,9 @@ class Orders extends AbstractExport
             $dateTimeFactory,
             $searchCriteriaBuilder,
             $filterBuilder,
-            $sortOrderBuilder
+            $sortOrderBuilder,
+            $urlFinder,
+            $storeManager
         );
     }
 
@@ -464,7 +463,7 @@ class Orders extends AbstractExport
         $row[] = $order->getCreatedAt();
         $row[] = $order->getCustomerEmail();
         $row[] = $lineItem->getName();
-        $row[] = $product->getProductUrl();
+        $row[] = $this->getProductUrl($product, $order->getStoreId());
         $row[] = $lineItemNumber;
         $row[] = $this->getOrderPostCode($order);
         $row[] = $order->getCustomerFirstname();

@@ -44,13 +44,8 @@ class Catalog extends AbstractExport
     protected $productHelper = null;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface|null
-     */
-    protected $storeManager = null;
-
-    /**
      * Catalog constructor.
-     * 
+     *
      * @param Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
@@ -59,8 +54,9 @@ class Catalog extends AbstractExport
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
      * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
-     * @param \Magento\Catalog\Helper\Product $productHelper
+     * @param \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Catalog\Helper\Product $productHelper
      */
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
@@ -71,8 +67,9 @@ class Catalog extends AbstractExport
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
         \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
-        \Magento\Catalog\Helper\Product $productHelper,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Catalog\Helper\Product $productHelper
     ) {
         $this->productHelper = $productHelper;
         $this->storeManager = $storeManager;
@@ -85,7 +82,9 @@ class Catalog extends AbstractExport
             $dateTimeFactory,
             $searchCriteriaBuilder,
             $filterBuilder,
-            $sortOrderBuilder
+            $sortOrderBuilder,
+            $urlFinder,
+            $storeManager
         );
     }
 
@@ -278,7 +277,7 @@ class Catalog extends AbstractExport
             throw new \Exception('Product must have a valid sku');
         }
 
-        $productUrl = $product->getProductUrl();
+        $productUrl = $this->getProductUrl($product, $store->getId());
         if (empty($productUrl)) {
             throw new \Exception('Product must have a valid store-product url');
         }
