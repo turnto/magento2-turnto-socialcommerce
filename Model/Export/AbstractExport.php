@@ -198,6 +198,7 @@ class AbstractExport
      */
     protected function getProductUrl(\Magento\Catalog\Model\Product $product, $storeId)
     {
+        // Due to core bug, it is necessary to retrieve url using this method (see https://github.com/magento/magento2/issues/3074)
         $urlRewrite = $this->urlFinder->findOneByData(
             [
                 \Magento\UrlRewrite\Service\V1\Data\UrlRewrite::ENTITY_ID => $product->getId(),
