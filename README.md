@@ -2,9 +2,9 @@
 
 This repository contains a Magento 2 extension that connects Magento 2 with TurnTo's Social Commerce service. Compatible with Magento Community and Enterprise, versions 2.0.x - 2.1.0.
 
-# Extension User Guide
+<!--# Extension User Guide
 
-Find installation and configuration instructions here: TODO: Add link to guide
+Find installation and configuration instructions here: TODO: Add link to guide-->
 
 # Installation Instructions
 
