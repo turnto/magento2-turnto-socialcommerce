@@ -1,1 +1,2 @@
 1.0.0 - Initial Release
+1.0.1 - Fixed composer install for Magento 2.0. Works on 2.0 and 2.1 now.
