@@ -89,13 +89,14 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
          * have to be a JavaScript object. json_encode has no way to accomplish this. See this stack overflow question
          * for more context http://stackoverflow.com/questions/6169640/php-json-encode-encode-a-function
          */
-        return \Zend_Json::encode($config, false, array('enableJsonExprFinder' => true));
+        return \Zend_Json::encode($config, false, ['enableJsonExprFinder' => true]);
     }
 
     /**
      * @return null|string
      */
-    public function getLocale() {
+    public function getLocale()
+    {
         return $this->localeResolver->getLocale();
     }
 }

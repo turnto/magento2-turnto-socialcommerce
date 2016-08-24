@@ -45,7 +45,8 @@ class DataBuilder
      * @param $label
      * @return string
      */
-    protected function getRatingLabel($label) {
+    protected function getRatingLabel($label)
+    {
         $idx = array_search($label, InstallData::RATING_FILTER_VALUES);
         if ($idx === false) {
             return $label;

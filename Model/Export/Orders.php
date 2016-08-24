@@ -139,8 +139,7 @@ class Orders extends AbstractExport
     public function cronUploadFeed()
     {
         foreach ($this->storeManager->getStores() as $store) {
-            if (
-                $this->config->getIsEnabled($store->getCode())
+            if ($this->config->getIsEnabled($store->getCode())
                 && $this->config->getIsHistoricalOrdersFeedEnabled($store->getCode())
             ) {
                 try {
@@ -169,7 +168,8 @@ class Orders extends AbstractExport
      * @param bool $includeDeliveryDate
      * @return null|string
      */
-    public function getOrdersFeed($storeId, $startDateTime, $includeDeliveryDate = false) {
+    public function getOrdersFeed($storeId, $startDateTime, $includeDeliveryDate = false)
+    {
         $csvData = null;
         $searchCriteria = $this->getOrdersSearchCriteria($storeId, $startDateTime);
 
@@ -272,10 +272,11 @@ class Orders extends AbstractExport
 
             //It is possible to get a status 200 message who's body is an error message from TurnTo
             if (empty($body) || $body != Catalog::TURNTO_SUCCESS_RESPONSE) {
-                throw new \Exception("TurnTo catalog feed submission failed with message: $body" );
+                throw new \Exception("TurnTo catalog feed submission failed with message: $body");
             }
         } catch (\Exception $e) {
-            $this->logger->error('An error occurred while transmitting the catalog feed to TurnTo',
+            $this->logger->error(
+                'An error occurred while transmitting the catalog feed to TurnTo',
                 [
                     'exception' => $e,
                     'response' => $response ? 'null' : $response->getBody()
@@ -324,7 +325,8 @@ class Orders extends AbstractExport
             try {
                 $this->writeOrderToFeed($outputHandle, $order, $includeDeliveryDate);
             } catch (\Exception $e) {
-                $this->logger->error('An error occurred while writing the historical orders feed',
+                $this->logger->error(
+                    'An error occurred while writing the historical orders feed',
                     [
                         'exception' => $e,
                     ]
@@ -491,4 +493,3 @@ class Orders extends AbstractExport
         return $postCode;
     }
 }
-

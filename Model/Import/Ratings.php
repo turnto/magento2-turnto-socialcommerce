@@ -39,7 +39,7 @@ class Ratings extends AbstractImport
      */
     public function getAggregateRatingsFeedAddress(\Magento\Store\Api\Data\StoreInterface $store)
     {
-        return self::TURNTO_EXPORT_BASE_URI 
+        return self::TURNTO_EXPORT_BASE_URI
             . $this->config->getSiteKey($store->getCode())
             . '/' . $this->encryptor->decrypt($this->config->getAuthorizationKey($store->getCode()))
             . '/' . self::TURNTO_AVERAGE_RATING_BY_SKU_NAME;
@@ -65,7 +65,7 @@ class Ratings extends AbstractImport
         $product = $this->productFactory->create()
             ->setStoreId($store->getId())
             ->loadByAttribute(
-                \Magento\Catalog\Model\Product::SKU, 
+                \Magento\Catalog\Model\Product::SKU,
                 $sku,
                 [
                     InstallData::RATING_ATTRIBUTE_CODE,
@@ -81,7 +81,7 @@ class Ratings extends AbstractImport
             $product->setData(InstallData::RATING_ATTRIBUTE_CODE, $averageRating);
             $product->getResource()->saveAttribute($product, InstallData::RATING_ATTRIBUTE_CODE);
             $filterValues = [];
-            foreach($this->getRatingFilterAttributeValuesFromAverage($averageRating) as $optionText) {
+            foreach ($this->getRatingFilterAttributeValuesFromAverage($averageRating) as $optionText) {
                 $filterValues[] = $product->getResource()->getAttribute(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE)->getSource()->getOptionId($optionText);
             }
             $product->setData(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE, implode(',', $filterValues));
@@ -125,8 +125,7 @@ class Ratings extends AbstractImport
                     $xmlFeed = simplexml_load_file($feedAddress);
                     foreach ($xmlFeed->products->product as $turnToProduct) {
                         try {
-                            if (
-                                !isset($turnToProduct[self::TURNTO_FEED_KEY_SKU])
+                            if (!isset($turnToProduct[self::TURNTO_FEED_KEY_SKU])
                                 || !isset($turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT])
                             ) {
                                 continue;

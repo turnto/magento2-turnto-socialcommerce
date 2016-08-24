@@ -170,7 +170,8 @@ class Reviews extends AbstractExport
      * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function getRatingInformation($reviewId) {
+    protected function getRatingInformation($reviewId)
+    {
         $rating = 0;
         $ratingCount = 0;
 

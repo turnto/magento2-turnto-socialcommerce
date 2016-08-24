@@ -22,7 +22,8 @@ class MobileLanding extends \Magento\Framework\App\Action\Action
      *
      * @return \Magento\Framework\Controller\ResultInterface
      */
-    public function execute() {
+    public function execute()
+    {
         return $this->resultFactory->create(\TurnTo\SocialCommerce\Framework\View\Result\PageBlank::TYPE_PAGE_BLANK);
     }
 }

@@ -176,7 +176,8 @@ class AbstractExport
             }
         }
 
-        $collection->addFieldToFilter('visibility',
+        $collection->addFieldToFilter(
+            'visibility',
             [
                 'in' =>
                 [

@@ -34,7 +34,8 @@ class ReviewRenderer
      * Plugin constructor.
      * @param \TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper
      */
-    public function __construct(\TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper) {
+    public function __construct(\TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper)
+    {
         $this->turnToConfigHelper = $turnToConfigHelper;
     }
 

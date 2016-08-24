@@ -44,8 +44,9 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
         \TurnTo\SocialCommerce\Helper\Config $config,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Catalog\Helper\Image $imageHelper,
-        array $data = [])
-    {
+        array $data = []
+    ) {
+    
         $this->config = $config;
         $this->checkoutSession = $checkoutSession;
         $this->imageHelper = $imageHelper;

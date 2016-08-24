@@ -133,9 +133,9 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
         ];
         
         $eavSetup->addAttribute(
-                Product::ENTITY,
-                self::REVIEW_COUNT_ATTRIBUTE_CODE,
-                [
+            Product::ENTITY,
+            self::REVIEW_COUNT_ATTRIBUTE_CODE,
+            [
                     'visible' => true,
                     'group' => self::ATTRIBUTE_GROUP_NAME,
                     'type' => 'int',
@@ -148,7 +148,7 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
                     'is_visible_on_front' => true,
                     'note' => 'Do not edit, this value is replaced nightly.'
                 ]
-            )
+        )
             ->addAttribute(
                 Product::ENTITY,
                 self::AVERAGE_RATING_ATTRIBUTE_CODE,

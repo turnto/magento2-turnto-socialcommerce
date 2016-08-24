@@ -75,7 +75,7 @@ class Catalog extends AbstractExport
         $this->storeManager = $storeManager;
         
         parent::__construct(
-            $config, 
+            $config,
             $productCollectionFactory,
             $logger,
             $encryptor,
@@ -94,8 +94,7 @@ class Catalog extends AbstractExport
     public function cronUploadFeed()
     {
         foreach ($this->storeManager->getStores() as $store) {
-            if (
-                $this->config->getIsEnabled($store->getCode())
+            if ($this->config->getIsEnabled($store->getCode())
                 && $this->config->getIsProductFeedSubmissionEnabled($store->getCode())
             ) {
                 $feed = $this->generateProductFeed($store);
@@ -142,10 +141,11 @@ class Catalog extends AbstractExport
 
             //It is possible to get a status 200 message who's body is an error message from TurnTo
             if (empty($body) || $body != self::TURNTO_SUCCESS_RESPONSE) {
-                throw new \Exception("TurnTo catalog feed submission failed with message: $body" );
+                throw new \Exception("TurnTo catalog feed submission failed with message: $body");
             }
         } catch (\Exception $e) {
-            $this->logger->error('An error occurred while transmitting the catalog feed to TurnTo',
+            $this->logger->error(
+                'An error occurred while transmitting the catalog feed to TurnTo',
                 [
                     'exception' => $e,
                     'response' => $response ? $response->getBody() : 'null'
@@ -214,7 +214,8 @@ class Catalog extends AbstractExport
                 try {
                     $this->addProductToAtomFeed($feed->addChild('entry'), $product, $store);
                 } catch (\Exception $entryException) {
-                    $this->logger->error('Product failed to be added to feed',
+                    $this->logger->error(
+                        'Product failed to be added to feed',
                         [
                             'exception' => $entryException,
                             'productSKU' => $product->getSku()
@@ -227,16 +228,18 @@ class Catalog extends AbstractExport
         } catch (\Exception $feedException) {
             if ($feed) {
                 $this->logger
-                    ->error('An exception occurred while creating the catalog feed',
+                    ->error(
+                        'An exception occurred while creating the catalog feed',
                         [
                             'exception' => $feedException,
                             'productCount' => count($products),
                             'productsProcessed' => $progressCounter
                         ]
                     );
-            } else if ($products) {
+            } elseif ($products) {
                 $this->logger
-                    ->error('An exception occurred that prevented the creation of the catalog feed',
+                    ->error(
+                        'An exception occurred that prevented the creation of the catalog feed',
                         [
                             'exception' => $feedException,
                             'productCount' => count($products),
@@ -245,7 +248,8 @@ class Catalog extends AbstractExport
                     );
             } else {
                 $this->logger
-                    ->error('An exception occured while retrieving the products for the catalog feed',
+                    ->error(
+                        'An exception occured while retrieving the products for the catalog feed',
                         [
                             'exception' => $feedException,
                             'productsProcessed' => $progressCounter
@@ -334,7 +338,7 @@ class Catalog extends AbstractExport
             if (!empty($gtin)) {
                 $entry->addChild('g:gtin', $this->sanitizeData($gtin));
             }
-            if(!empty($brand)) {
+            if (!empty($brand)) {
                 $entry->addChild('g:brand', $this->sanitizeData($brand));
             }
             if (!empty($mpn)) {
@@ -421,4 +425,3 @@ class Catalog extends AbstractExport
         }
     }
 }
-

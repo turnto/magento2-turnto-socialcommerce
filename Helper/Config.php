@@ -206,7 +206,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getSiteKey($scopeCode = null)
     {
-        return $this->scopeConfig->getValue(self::XML_PATH_SOCIALCOMMERCE_SITE_KEY,
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_SITE_KEY,
             ScopeInterface::SCOPE_STORE,
             $scopeCode ?: $this->getCurrentStoreCode()
         );

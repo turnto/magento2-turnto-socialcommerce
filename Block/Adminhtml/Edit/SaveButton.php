@@ -15,7 +15,6 @@
 
 namespace TurnTo\SocialCommerce\Block\Adminhtml\Edit;
 
-
 class SaveButton implements \Magento\Framework\View\Element\UiComponent\Control\ButtonProviderInterface
 {
     /**

@@ -51,7 +51,8 @@ class HttpClient
 
             if (!$response || !$response->isSuccessful()) {
                 $e = new \Exception(__('TurnTo request responded with an error.'));
-                $this->logger->error(__('An error occurred while requesting content from TurnTo.'),
+                $this->logger->error(
+                    __('An error occurred while requesting content from TurnTo.'),
                     [
                         'exception' => $e,
                         'response' => $response ? 'null' : $response->getBody()
@@ -64,7 +65,8 @@ class HttpClient
 
             return $body;
         } catch (\Exception $e) {
-            $this->logger->error(__('An error occurred while requesting content from TurnTo.'),
+            $this->logger->error(
+                __('An error occurred while requesting content from TurnTo.'),
                 [
                     'exception' => $e,
                     'response' => isset($response) ? $response->getBody() : 'null'

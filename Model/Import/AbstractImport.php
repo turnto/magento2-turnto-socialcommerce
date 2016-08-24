@@ -52,7 +52,7 @@ class AbstractImport
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Catalog\Model\Indexer\Product\Eav\Processor $productEavIndexProcessor
      */
-    public function __construct (
+    public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
         \Magento\Catalog\Model\ProductFactory $productFactory,
