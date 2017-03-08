@@ -96,7 +96,7 @@ abstract class AbstractBlock extends \Magento\Catalog\Block\Product\View
         if ($setupType == \TurnTo\SocialCommerce\Helper\Config::SETUP_TYPE_DYNAMIC_EMBED) {
             return '<div id="TurnTo' . ucfirst(static::$contentType) . 'Content"></div>';
         } elseif ($setupType == \TurnTo\SocialCommerce\Helper\Config::SETUP_TYPE_STATIC_EMBED) {
-            $sku = $this->getProduct()->getSku();
+            $sku = urlencode($this->getProduct()->getSku());
             $url = sprintf(
                 '%s/sitedata/%s/v%s/%s/d/catitem%shtml',
                 $staticUrl,
