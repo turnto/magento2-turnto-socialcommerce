@@ -43,6 +43,7 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
 <script type="text/javascript">
     require([
         'domReady!',
+	'jquery',
         '<?= sprintf('%s/sitedata/%s/v%s/%s/d/itemjs', $staticUrl, $siteKey, $version, $productSku) ?>',
         '<?= sprintf('%s/traServer%s/trajs/%s/tra.js', $staticUrl, $version, $siteKey) ?>',
         '<?= $commentsEnabled ? sprintf('%s/traServer%s/chatterjs/%s/turnto-chatter.js', $staticUrl, $version, $siteKey) : '' ?>',
