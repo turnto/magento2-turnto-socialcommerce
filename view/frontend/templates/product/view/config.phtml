@@ -42,13 +42,10 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
 
 <script type="text/javascript">
     require([
-        'domReady!',
-	'jquery',
-        '<?= sprintf('%s/sitedata/%s/v%s/%s/d/itemjs', $staticUrl, $siteKey, $version, $productSku) ?>',
-        '<?= sprintf('%s/traServer%s/trajs/%s/tra.js', $staticUrl, $version, $siteKey) ?>',
-        '<?= $commentsEnabled ? sprintf('%s/traServer%s/chatterjs/%s/turnto-chatter.js', $staticUrl, $version, $siteKey) : '' ?>',
-        '<?= $galleryEnabled ? sprintf('%s/traServer%s/galleryjs/%s/turnto-gallery.js/%s', $staticUrl, $version, $siteKey, $locale) : '' ?>'
+        'jquery',
     ], function() {
+        jQuery.getScript('<?= sprintf('%s/sitedata/%s/v%s/%s/d/itemjs', $staticUrl, $siteKey, $version, $productSku) ?>');
+        jQuery.getScript('<?= sprintf('%s/traServer%s/trajs/%s/tra.js', $staticUrl, $version, $siteKey) ?>', function() {
         <?php
         /**
          * This logic is necessary to ensure that the Reviews and Q&A content is up to date with the TurnTo servers.
@@ -59,6 +56,9 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
         if ($reviewsSetupType == 'staticEmbed' || $qaSetupType == 'staticEmbed'): ?>
             TurnTo.reset({"sku": "<?= $productSku ?>"});
         <?php endif; ?>
+        });
+        <?= $commentsEnabled ? sprintf('jQuery.getScript("%s/traServer%s/chatterjs/%s/turnto-chatter.js");', $staticUrl, $version, $siteKey) : '' ?>
+        <?= $galleryEnabled ? sprintf('jQuery.getScript("%s/traServer%s/galleryjs/%s/turnto-gallery.js/%s");', $staticUrl, $version, $siteKey, $locale) : '' ?>
     });
 
     <?php if($qaTeaserEnabled && $qaEnabled): ?>
