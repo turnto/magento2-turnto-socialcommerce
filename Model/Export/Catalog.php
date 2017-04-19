@@ -44,8 +44,12 @@ class Catalog extends AbstractExport
     protected $productHelper = null;
 
     /**
+     * @var \Magento\Framework\App\State
+     */
+    protected $appState;
+
+    /**
      * Catalog constructor.
-     *
      * @param Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
@@ -57,6 +61,7 @@ class Catalog extends AbstractExport
      * @param \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Catalog\Helper\Product $productHelper
+     * @param \Magento\Framework\App\State $appState
      */
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
@@ -69,10 +74,12 @@ class Catalog extends AbstractExport
         \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
         \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Catalog\Helper\Product $productHelper
+        \Magento\Catalog\Helper\Product $productHelper,
+        \Magento\Framework\App\State $appState
     ) {
         $this->productHelper = $productHelper;
         $this->storeManager = $storeManager;
+        $this->appState = $appState;
         
         parent::__construct(
             $config,
@@ -359,8 +366,13 @@ class Catalog extends AbstractExport
             $entry->addChild('g:google_product_category', $cleanCategoryName);
             $entry->addChild('g:product_type', $cleanCategoryName);
         }
-
-        $entry->addChild('g:image_link', $this->sanitizeData($this->productHelper->getImageUrl($product)));
+        $product->setImage(null);
+        $productImageUrl = $this->appState->emulateAreaCode(
+            \Magento\Framework\App\Area::AREA_FRONTEND,
+            [$this->productHelper, 'getImageUrl'],
+            [$product]
+        );
+        $entry->addChild('g:image_link', $this->sanitizeData($productImageUrl));
         $entry->addChild('g:condition', 'new');
         $entry->addChild('g:availability', $product->getQuantityAndStockStatus() == 1 ? 'in stock' : 'out of stock');
         $entry->addChild('g:price', $product->getPrice() . ' ' . $store->getBaseCurrencyCode());
