@@ -39,14 +39,9 @@ class Catalog extends AbstractExport
     const TURNTO_SUCCESS_RESPONSE = 'SUCCESS';
 
     /**
-     * @var \Magento\Catalog\Helper\Product|null
+     * @var \Magento\Catalog\Model\Product\Media\Config|null
      */
-    protected $productHelper = null;
-
-    /**
-     * @var \Magento\Framework\App\State
-     */
-    protected $appState;
+    protected $productMediaConfig = null;
 
     /**
      * Catalog constructor.
@@ -60,8 +55,7 @@ class Catalog extends AbstractExport
      * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
      * @param \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Catalog\Helper\Product $productHelper
-     * @param \Magento\Framework\App\State $appState
+     * @param \Magento\Catalog\Model\Product\Media\Config $productMediaConfig
      */
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
@@ -74,13 +68,11 @@ class Catalog extends AbstractExport
         \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
         \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Catalog\Helper\Product $productHelper,
-        \Magento\Framework\App\State $appState
+        \Magento\Catalog\Model\Product\Media\Config $productMediaConfig
     ) {
-        $this->productHelper = $productHelper;
+        $this->productMediaConfig = $productMediaConfig;
         $this->storeManager = $storeManager;
-        $this->appState = $appState;
-        
+
         parent::__construct(
             $config,
             $productCollectionFactory,
@@ -366,12 +358,10 @@ class Catalog extends AbstractExport
             $entry->addChild('g:google_product_category', $cleanCategoryName);
             $entry->addChild('g:product_type', $cleanCategoryName);
         }
-        $product->setImage(null);
-        $productImageUrl = $this->appState->emulateAreaCode(
-            \Magento\Framework\App\Area::AREA_FRONTEND,
-            [$this->productHelper, 'getImageUrl'],
-            [$product]
-        );
+        $baseSecureMediaUrl = $store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA, true);
+        $productImageUrl = $baseSecureMediaUrl
+            . $this->productMediaConfig->getBaseMediaUrlAddition()
+            . $product->getImage();
         $entry->addChild('g:image_link', $this->sanitizeData($productImageUrl));
         $entry->addChild('g:condition', 'new');
         $entry->addChild('g:availability', $product->getQuantityAndStockStatus() == 1 ? 'in stock' : 'out of stock');
