@@ -39,9 +39,9 @@ class Catalog extends AbstractExport
     const TURNTO_SUCCESS_RESPONSE = 'SUCCESS';
 
     /**
-     * @var \Magento\Catalog\Model\Product\Media\Config|null
+     * @var \Magento\Catalog\Helper\Image $imageHelper
      */
-    protected $productMediaConfig = null;
+    protected $imageHelper = null;
 
     /**
      * Catalog constructor.
@@ -55,7 +55,7 @@ class Catalog extends AbstractExport
      * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
      * @param \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Catalog\Model\Product\Media\Config $productMediaConfig
+     * @param \Magento\Catalog\Helper\Image $imageHelper
      */
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
@@ -68,9 +68,9 @@ class Catalog extends AbstractExport
         \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
         \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Catalog\Model\Product\Media\Config $productMediaConfig
+        \Magento\Catalog\Helper\Image $imageHelper
     ) {
-        $this->productMediaConfig = $productMediaConfig;
+        $this->imageHelper = $imageHelper;
         $this->storeManager = $storeManager;
 
         parent::__construct(
@@ -358,10 +358,18 @@ class Catalog extends AbstractExport
             $entry->addChild('g:google_product_category', $cleanCategoryName);
             $entry->addChild('g:product_type', $cleanCategoryName);
         }
-        $baseSecureMediaUrl = $store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA, true);
-        $productImageUrl = $baseSecureMediaUrl
-            . $this->productMediaConfig->getBaseMediaUrlAddition()
-            . $product->getImage();
+
+        // In order for the product image url to use the url from the proper store view, temporarily change the store
+        $currentStore = $this->storeManager->getStore();
+        $this->storeManager->setCurrentStore($store->getStoreId());
+
+        $productImageUrl = $this->imageHelper->init($product, 'product_page_main_image')
+            ->setImageFile($product->getImage())
+            ->getUrl();
+
+        // Restore the "current store"
+        $this->storeManager->setCurrentStore($currentStore);
+
         $entry->addChild('g:image_link', $this->sanitizeData($productImageUrl));
         $entry->addChild('g:condition', 'new');
         $entry->addChild('g:availability', $product->getQuantityAndStockStatus() == 1 ? 'in stock' : 'out of stock');
