@@ -36,6 +36,28 @@ Find installation and configuration instructions here: TODO: Add link to guide--
 
 5. If you are deploying the extension to a production environment, follow the [devdocs.magento.com deployment instructions](http://devdocs.magento.com/guides/v2.1/config-guide/prod/prod_deploy.html#deploy-prod)
 
+# Documentation
+
+## General Configuration
+
+After installing the extension, login to the backend and configure the extension in **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration**. Here is a screenshot of the extension as of version 1.0.0:
+
+![TurnTo Magento 2 Configuration Screenshot](README/turnto_socialcommerce_configuration.png)
+
+## Catalog Feed Export to TurnTo
+
+If the **Enable Automated Feed Submission** configuration option is set to **Yes**, on a nightly basis, Magento will export a feed of all products to TurnTo. This feed will include links to product images. In order for this link to be accurate, you will need to do the following:
+
+1. Login to the backend.
+2. Go to **STORES > Configuration > GENERAL > Web**
+3. Do the following (if you have multiple store views, follow these steps for each "Store View" scope):
+    1. For the **Base URLS > Base URL for User Media Files** field, ensure a value is entered. If the field is blank, enter this value: `{{unsecure_base_url}}media/`
+    2. For the **Base URLS (Secure) > Secure Base URL for User Media Files** field, ensure a value is entered. If the field is blank, enter this value: `{{secure_base_url}}media/`
+
+Here is a screenshot of an example configuration:
+ 
+![Media Url Configuration](README/turnto_socialcommerce_media_url.png)
+
 # About TurnTo Social Commerce
 
 TurnTo is the fastest-growing provider of customer content solutions to top merchants and brands. With a unique suite of 4 innovative products that work beautifully together - Ratings & Reviews, Community Q&A, Visual Reviews, and Checkout Comments - TurnTo produces more content of more different types, delivering greater conversion lift, better SEO, and deeper merchandising insights. 
