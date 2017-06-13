@@ -36,6 +36,14 @@ Find installation and configuration instructions here: TODO: Add link to guide--
 
 5. If you are deploying the extension to a production environment, follow the [devdocs.magento.com deployment instructions](http://devdocs.magento.com/guides/v2.1/config-guide/prod/prod_deploy.html#deploy-prod)
 
+# Documentation
+
+## General Configuration
+
+After installing the extension, login to the backend and configure the extension in **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration**. Here is a screenshot of the extension as of version 1.0.0:
+
+![TurnTo Magento 2 Configuration Screenshot](README/turnto_socialcommerce_configuration.png)
+
 # About TurnTo Social Commerce
 
 TurnTo is the fastest-growing provider of customer content solutions to top merchants and brands. With a unique suite of 4 innovative products that work beautifully together - Ratings & Reviews, Community Q&A, Visual Reviews, and Checkout Comments - TurnTo produces more content of more different types, delivering greater conversion lift, better SEO, and deeper merchandising insights. 
