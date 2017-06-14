@@ -31,6 +31,19 @@ class ReviewRenderer
     protected $turnToConfigHelper = null;
 
     /**
+     * Array of available template name
+     *
+     * This array is a copy of the @see \Magento\Review\Block\Product\ReviewRenderer::$_availableTemplates
+     * array. Copied here so that the aroundGetReviewsSummaryHtml method below can access it
+     *
+     * @var array
+     */
+    protected $_availableTemplates = [
+        self::FULL_VIEW => 'helper/summary.phtml',
+        self::SHORT_VIEW => 'helper/summary_short.phtml',
+    ];
+
+    /**
      * Plugin constructor.
      * @param \TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper
      */
