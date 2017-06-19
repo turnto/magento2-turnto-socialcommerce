@@ -40,9 +40,9 @@ Find installation and configuration instructions here: TODO: Add link to guide--
 
 ## General Configuration
 
-After installing the extension, login to the backend and configure the extension in **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration**. Here is a screenshot of the extension as of version 1.0.0:
+After installing the extension, login to the backend and configure the extension in **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration**. Here is a screenshot of the extension as of version 1.0.3 (click to zoom):
 
-![TurnTo Magento 2 Configuration Screenshot](README/turnto_socialcommerce_configuration.png)
+<img alt="Magento 2 configuration page" src="README/turnto_socialcommerce_configuration.png" height="300"/>
 
 ## Catalog Feed Export to TurnTo
 
