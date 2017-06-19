@@ -140,8 +140,16 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
         });
     }
 
-
+    <?php /** @var \TurnTo\SocialCommerce\Block\Config $block */ ?>
     var turnToConfig = <?= $block->getConfigJson() ?>;
+
+    <?php if ($block->getCustomConfigurationJs()): ?>
+        var customConfiguration = <?= $block->getCustomConfigurationJs() ?>;
+        // Add the keys from the user-supplied object to the existing turnToConfig object
+        for (var k in customConfiguration) {
+            turnToConfig[k]=customConfiguration[k];
+        }
+    <?php endif; ?>
 
     var TurnToItemSku = "<?= $productSku ?>";
 

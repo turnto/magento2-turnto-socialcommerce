@@ -93,6 +93,17 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
     }
 
     /**
+     * Get custom configuration entered by user via admin
+     *
+     * @return bool|string
+     */
+    public function getCustomConfigurationJs()
+    {
+        $userConfig = $this->config->getCustomConfigurationJs();
+        return strlen($userConfig) > 0 ? $userConfig : false;
+    }
+
+    /**
      * @return null|string
      */
     public function getLocale()

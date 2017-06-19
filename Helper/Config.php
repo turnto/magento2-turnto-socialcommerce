@@ -41,6 +41,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const XML_PATH_SOCIALCOMMERCE_IMAGE_STORE_BASE = 'turnto_socialcommerce_configuration/general/image_store_base';
 
+    const XML_PATH_SOCIALCOMMERCE_CUSTOM_CONFIGURATION = 'turnto_socialcommerce_configuration/general/custom_configuration';
+
     /**
      * Product Groups
      */
@@ -260,6 +262,21 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
             ScopeInterface::SCOPE_STORE,
             isset($store) ? $store : $this->getCurrentStoreCode()
         );
+    }
+
+    /**
+     * Get custom configuration entered by user via admin
+     *
+     * @param null $store
+     * @return string
+     */
+    public function getCustomConfigurationJs($store = null)
+    {
+        return trim($this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_CUSTOM_CONFIGURATION,
+            ScopeInterface::SCOPE_STORE,
+            isset($store) ? $store : $this->getCurrentStoreCode()
+        ));
     }
 
     /**
