@@ -42,7 +42,7 @@ Find installation and configuration instructions here: TODO: Add link to guide--
 
 After installing the extension, login to the backend and configure the extension in **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration**. Here is a screenshot of the extension as of version 1.0.3 (click to zoom):
 
-<img alt="Magento 2 configuration page" src="README/turnto_socialcommerce_configuration.png" height="300"/>
+[<img alt="Magento 2 configuration page" src="README/turnto_socialcommerce_configuration.png" height="300"/>](https://raw.githubusercontent.com/turnto/magento2-turnto-socialcommerce/develop/README/turnto_socialcommerce_configuration.png)
 
 ## Catalog Feed Export to TurnTo
 
