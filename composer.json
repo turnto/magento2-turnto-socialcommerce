@@ -1,7 +1,7 @@
 {
     "name": "turnto/social-commerce",
     "type": "magento2-module",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "require": {
         "magento/framework": "100.*"
     },
