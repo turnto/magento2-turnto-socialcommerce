@@ -40,9 +40,9 @@ Find installation and configuration instructions here: TODO: Add link to guide--
 
 ## General Configuration
 
-After installing the extension, login to the backend and configure the extension in **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration**. Here is a screenshot of the extension as of version 1.0.0:
+After installing the extension, login to the backend and configure the extension in **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration**. Here is a screenshot of the extension as of version 1.0.3 (click to zoom):
 
-![TurnTo Magento 2 Configuration Screenshot](README/turnto_socialcommerce_configuration.png)
+[<img alt="Magento 2 configuration page" src="README/turnto_socialcommerce_configuration.png" height="300"/>](https://raw.githubusercontent.com/turnto/magento2-turnto-socialcommerce/develop/README/turnto_socialcommerce_configuration.png)
 
 ## Catalog Feed Export to TurnTo
 
@@ -57,6 +57,26 @@ If the **Enable Automated Feed Submission** configuration option is set to **Yes
 Here is a screenshot of an example configuration:
  
 ![Media Url Configuration](README/turnto_socialcommerce_media_url.png)
+
+## Custom Configuration
+
+Note: This is an advanced configuration option and should only be configured by a developer.
+
+If you'd to customize the `turnToConfig` JS object that gets output on product detail pages, you can do so by adding a JS object to the **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration > Custom Configuration** field. You must enter a valid JS object into this field, as the contents of the JS object that you enter will get __merged__ with the contents of the existing `turnToConfig` object. Here is an example of a valid value that could be added to the **Custom Configuration** field:
+
+```
+{
+    reviewTitleInstruction: 'Summary for your review',
+    eventHandlers: {
+         reviewSubmit: function(evt) {
+            //your code here
+         }
+    }
+}
+
+```
+
+When you add values to this configuration field, it is critical that you enter a valid JS object and that you test to ensure you didn't cause any JS errors. 
 
 # About TurnTo Social Commerce
 
