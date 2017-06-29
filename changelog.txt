@@ -1,6 +1,6 @@
 ## 1.0.3 (2017-06-29)
 
-* Allow admins to add custom values to the turnToConfig object ([see docs](https://github.com/turnto/magento2-turnto-socialcommerce##custom-configuration))
+* Allow admins to add custom values to the turnToConfig object ([see docs](https://github.com/turnto/magento2-turnto-socialcommerce#custom-configuration))
 
 ## 1.0.2 (2017-06-13)
 
