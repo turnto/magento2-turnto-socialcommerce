@@ -174,6 +174,13 @@ class Ratings extends AbstractImport
                     );
                 }
             }
+        } catch (\Exception $exception) {
+            $this->logger->error(
+                'Failed to download feed',
+                [
+                    'exception' => $exception
+                ]
+            );
         } finally {
             if (!empty($productIdsToReindex) && !$this->productEavIndexProcessor->getIndexer()->isScheduled()) {
                 $this->productEavIndexProcessor->reindexList(array_unique($productIdsToReindex));
