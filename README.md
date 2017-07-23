@@ -62,17 +62,24 @@ Here is a screenshot of an example configuration:
 
 Note: This is an advanced configuration option and should only be configured by a developer.
 
-If you'd to customize the `turnToConfig` JS object that gets output on product detail pages, you can do so by adding a JS object to the **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration > Custom Configuration** field. You must enter a valid JS object into this field, as the contents of the JS object that you enter will get __merged__ with the contents of the existing `turnToConfig` object. Here is an example of a valid value that could be added to the **Custom Configuration** field:
+If you'd to customize the `turnToConfig` JS object that gets output whenever TurnTo is used on the frontend, you can do so by adding a JS object to the **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration > Custom Configuration** field. You must enter a valid JS object into this field, as the contents of the JS object that you enter will get __merged__ with the contents of the existing `turnToConfig` object. Here is an example of a valid value that could be added to the **Custom Configuration** field:
 
 ```
 {
     reviewTitleInstruction: 'Summary for your review',
     eventHandlers: {
          reviewSubmit: function(evt) {
-            //your code here
+            // your code here
          }
     }
 }
+
+These are the following locations where the `turnToConfig` object gets output on the frontend:
+
+* Product detail pages (reviews, Q&A, checkout comment display widget, visual gallery widget)
+* Checkout comments on checkout confirmation page
+* Pinboard widget
+* Mobile landing page
 
 ```
 
