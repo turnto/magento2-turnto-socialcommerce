@@ -10,10 +10,10 @@ Find installation and configuration instructions here: TODO: Add link to guide--
 
 ## Install using Composer (recommended)
 
-1. Run these commands in your root Magento installation directory (this extension is registered on Packagist):
+1. Run these commands in your root Magento installation directory:
 
     ```
-    composer require turnto/social-commerce:dev-master
+    composer require turnto/social-commerce
     bin/magento module:enable --clear-static-content TurnTo_SocialCommerce
     bin/magento setup:upgrade
     bin/magento cache:flush
@@ -62,7 +62,7 @@ Here is a screenshot of an example configuration:
 
 Note: This is an advanced configuration option and should only be configured by a developer.
 
-If you'd to customize the `turnToConfig` JS object that gets output whenever TurnTo is used on the frontend, you can do so by adding a JS object to the **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration > Custom Configuration** field. You must enter a valid JS object into this field, as the contents of the JS object that you enter will get __merged__ with the contents of the existing `turnToConfig` object. Here is an example of a valid value that could be added to the **Custom Configuration** field:
+If you'd to customize the `turnToConfig` JS object that gets output whenever TurnTo is used on the frontend, you can do so by adding a JS object to the **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration > Custom Configuration** field. You must enter a valid JS object into this field, as the contents of the JS object that you enter will get __merged__ with the contents of the existing `turnToConfig` object. [Event Callbacks](https://turnto.zendesk.com/hc/en-us/articles/207957286-Event-Callbacks-4-3) are one example of what you might want to add to this config field. Here is an example of a valid value that could be added to the **Custom Configuration** field:
 
 ```
 {
