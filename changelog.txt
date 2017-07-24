@@ -1,6 +1,7 @@
 ## 1.0.3 (2017-06-29)
 
 * Allow admins to add custom values to the turnToConfig object ([see docs](https://github.com/turnto/magento2-turnto-socialcommerce#custom-configuration))
+* Fix issue where reviews were not showing on product listing or search result pages ([#7](https://github.com/turnto/magento2-turnto-socialcommerce/issues/7))
 
 ## 1.0.2 (2017-06-13)
 
