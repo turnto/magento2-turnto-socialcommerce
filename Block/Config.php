@@ -99,4 +99,32 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
     {
         return $this->localeResolver->getLocale();
     }
+
+    /**
+     * @return string
+     */
+    public function getProductSku()
+    {
+        $product = $this->getProduct();
+        $children = $this->config->getUseChildSku() ? $product->getTypeInstance()->getUsedProducts($product) : [];
+
+        return count($children) > 0 ? array_values($children)[0]->getSku() : $product->getSku();
+    }
+    
+    public function getGallerySkus()
+    {
+        $gallerySkus[] = $this->getProduct()->getSku();
+
+        if ($this->config->getGalleryEnabled()) {
+            $product = $this->getProuct();
+            $children = $product->getTypeInstance()->getUsedProducts($product);
+            if (count($children) > 0) {
+                foreach ($children as $child) {
+                    $gallerySkus[] = $child->getSku();
+                }
+            }
+        }
+
+        return $gallerySkus;
+    }
 }

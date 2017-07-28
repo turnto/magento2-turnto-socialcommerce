@@ -21,6 +21,7 @@ $staticUrl = preg_replace("(^https?://)", "//", $configHelper->getStaticUrl());
 $version = $configHelper->getTurnToVersion();
 $locale = $this->getLocale();
 
+// Config variables
 $reviewsEnabled = $configHelper->getReviewsEnabled();
 $qaEnabled = $configHelper->getQaEnabled();
 $commentsEnabled = $configHelper->getCheckoutCommentsEnabledProductDetail();
@@ -29,10 +30,12 @@ $qaTeaserEnabled = $configHelper->getQaTeaserEnabled();
 $galleryEnabled = $configHelper->getGalleryEnabled();
 $reviewsSetupType = $configHelper->getSetupType();
 $qaSetupType = $configHelper->getSetupType();
+$useSimpleProduct = $configHelper->getUseChildSku();
 
-$productSku = $this->getProduct()->getSku();
+$productSku = $this->getProductSku();
+$gallerySkus = $this->getGallerySkus();
 
-if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
+if ($reviewsEnabled || $qaEnabled || $commentsEnabled || $galleryEnabled):
 ?>
 
 <link rel="stylesheet" href="<?= sprintf('%s/tra%s/tra.css', $staticUrl, $version) ?>" />
@@ -159,9 +162,10 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
     <?php endif; ?>
 
     <?php if($galleryEnabled): ?>
-        var TurnToGallerySkus = TurnToItemSku;
+        var TurnToGallerySkus = <?= json_encode($gallerySkus) ?>;
     <?php endif; ?>
 
+    window.turnToUseChildSku = <?= $useSimpleProduct ?>;
 </script>
 <?php endif; ?>
 

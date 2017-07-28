@@ -77,15 +77,15 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
         $orderItems = [];
 
         foreach ($order->getAllVisibleItems() as $item) {
-            $product = $item->getProduct();
             $orderItems[] = json_encode([
                 'title' => $product->getName(),
                 'url' => $product->getProductUrl(),
-                'sku' => $product->getSku(),
+                'sku' => $this->config->getUseChildSku() ? $item->getSku() : $product->getSku(),
                 'getPrice' => $product->getFinalPrice(),
                 'itemImageUrl' => $this->imageHelper->init($product, 'product_small_image')->getUrl()
             ], JSON_PRETTY_PRINT);
         }
+
         return $orderItems;
     }
 }

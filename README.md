@@ -2,10 +2,6 @@
 
 This repository contains a Magento 2 extension that connects Magento 2 with TurnTo's Social Commerce service. Compatible with Magento Community and Enterprise, versions 2.0.x - 2.1.0.
 
-<!--# Extension User Guide
-
-Find installation and configuration instructions here: TODO: Add link to guide-->
-
 # Installation Instructions
 
 ## Install using Composer (recommended)
@@ -43,6 +39,10 @@ Find installation and configuration instructions here: TODO: Add link to guide--
 After installing the extension, login to the backend and configure the extension in **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration**. Here is a screenshot of the extension as of version 1.0.3 (click to zoom):
 
 [<img alt="Magento 2 configuration page" src="README/turnto_socialcommerce_configuration.png" height="300"/>](https://raw.githubusercontent.com/turnto/magento2-turnto-socialcommerce/develop/README/turnto_socialcommerce_configuration.png)
+
+## CRON Configuration
+
+This extension depends on the Magento CRON being configured in order to work properly. Reference the [Magento DevDocs](http://devdocs.magento.com/guides/v2.2/config-guide/cli/config-cli-subcommands-cron.html) for details on how to configure the Magento CRON.
 
 ## Catalog Feed Export to TurnTo
 
