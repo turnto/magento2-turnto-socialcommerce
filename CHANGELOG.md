@@ -1,3 +1,10 @@
+## 1.0.4 (2017-07-28)
+
+* Add user-supplied turnToConfig JS to all places it is used ([#5](https://github.com/turnto/magento2-turnto-socialcommerce/issues/5))
+* Fix errors when attempting to import ratings ([#4](https://github.com/turnto/magento2-turnto-socialcommerce/issues/4))
+* Fix error when historical orders are exported with products that have been deleted ([#3](https://github.com/turnto/magento2-turnto-socialcommerce/issues/3))
+* Increase CRON history lifetime to provide more robust debugging information
+
 ## 1.0.3 (2017-06-29)
 
 * Allow admins to add custom values to the turnToConfig object ([see docs](https://github.com/turnto/magento2-turnto-socialcommerce#custom-configuration))
