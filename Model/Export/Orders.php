@@ -375,14 +375,18 @@ class Orders extends AbstractExport
         $orderId = $order->getEntityId();
 
         foreach ($order->getItems() as $item) {
-            if (!$item->isDeleted() && !$item->getParentItemId()) {
-                $itemId = $item->getItemId();
-                $key = "$orderId.$itemId";
-                $items[$key] = [
-                    self::LINE_ITEM_FIELD_ID => $item,
-                    self::PRODUCT_FIELD_ID => $this->productRepository->getById($item->getProductId()),
-                    self::SHIP_DATE_FIELD_ID => ''
-                ];
+            try {
+                if (!$item->isDeleted() && !$item->getParentItemId()) {
+                    $itemId = $item->getItemId();
+                    $key = "$orderId.$itemId";
+                    $items[$key] = [
+                        self::LINE_ITEM_FIELD_ID => $item,
+                        self::PRODUCT_FIELD_ID => $this->productRepository->getById($item->getProductId()),
+                        self::SHIP_DATE_FIELD_ID => ''
+                    ];
+                }
+            } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
+                // Do nothing
             }
         }
         if ($includeDeliveryDate) {

@@ -285,15 +285,16 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Get custom configuration entered by user via admin
      *
      * @param null $store
-     * @return string
+     * @return string|bool
      */
     public function getCustomConfigurationJs($store = null)
     {
-        return trim($this->scopeConfig->getValue(
+        $configValue = trim($this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_CUSTOM_CONFIGURATION,
             ScopeInterface::SCOPE_STORE,
             isset($store) ? $store : $this->getCurrentStoreCode()
         ));
+        return strlen($configValue) > 0 ? $configValue : false;
     }
 
     /**

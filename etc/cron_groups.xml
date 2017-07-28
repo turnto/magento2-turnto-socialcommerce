@@ -17,11 +17,13 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/cron_groups.xsd">
     <group id="turnto_socialcommerce">
         <schedule_generate_every>5</schedule_generate_every>
-        <schedule_ahead_for>20</schedule_ahead_for>
-        <schedule_lifetime>20</schedule_lifetime>
-        <history_cleanup_every>10</history_cleanup_every>
-        <history_success_lifetime>1080</history_success_lifetime>
-        <history_failure_lifetime>1080</history_failure_lifetime>
-        <use_separate_process>0</use_separate_process>
+        <schedule_ahead_for>1440</schedule_ahead_for>
+        <schedule_lifetime>1440</schedule_lifetime>
+        <history_cleanup_every>60</history_cleanup_every>
+        <!-- 1 week -->
+        <history_success_lifetime>10080</history_success_lifetime>
+        <!-- Keep failures for 3 weeks to assist with debugging -->
+        <history_failure_lifetime>30240</history_failure_lifetime>
+        <use_separate_process>1</use_separate_process>
     </group>
 </config>

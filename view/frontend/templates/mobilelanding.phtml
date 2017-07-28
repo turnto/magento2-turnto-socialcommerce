@@ -16,7 +16,10 @@
 <!DOCTYPE HTML PUBLIC "-­//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
     <head>
-        <?php $helper = $this->helper('TurnTo\SocialCommerce\Helper\Config'); ?>
+        <?php
+        /** @var TurnTo\SocialCommerce\Helper\Config $helper */
+        $helper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
+        ?>
         <title><?= $helper->getMobilePageTitle(); ?></title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
         <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -27,6 +30,14 @@
                 siteKey: "<?= $helper->getSiteKey($helper->getCurrentStoreCode()); ?>",
                 setupType:"mobileTT"
             };
+
+            <?php if ($helper->getCustomConfigurationJs()): ?>
+                var customConfiguration = <?= $helper->getCustomConfigurationJs() ?>;
+                // Add the keys from the user-supplied object to the existing turnToConfig object
+                for (var k in customConfiguration) {
+                    turnToConfig[k]=customConfiguration[k];
+                }
+            <?php endif; ?>
         </script>
         <script type="text/javascript" src="//static.www.turnto.com/tra<?php
             echo $helper->getTurnToVersion($helper->getCurrentStoreCode());
