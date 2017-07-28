@@ -24,6 +24,6 @@
         <history_success_lifetime>10080</history_success_lifetime>
         <!-- Keep failures for 3 weeks to assist with debugging -->
         <history_failure_lifetime>30240</history_failure_lifetime>
-        <use_separate_process>0</use_separate_process>
+        <use_separate_process>1</use_separate_process>
     </group>
 </config>
