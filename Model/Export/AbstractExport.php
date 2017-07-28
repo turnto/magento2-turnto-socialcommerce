@@ -176,16 +176,18 @@ class AbstractExport
             }
         }
 
-        $collection->addFieldToFilter(
-            'visibility',
-            [
-                'in' =>
+        if (!$this->config->getUseChildSku($store->getId())) {
+            $collection->addFieldToFilter(
+                'visibility',
                 [
-                    \Magento\Catalog\Model\Product\Visibility::VISIBILITY_BOTH,
-                    \Magento\Catalog\Model\Product\Visibility::VISIBILITY_IN_CATALOG
+                    'in' =>
+                        [
+                            \Magento\Catalog\Model\Product\Visibility::VISIBILITY_BOTH,
+                            \Magento\Catalog\Model\Product\Visibility::VISIBILITY_IN_CATALOG
+                        ]
                 ]
-            ]
-        );
+            );
+        }
 
         $collection->addStoreFilter($store);
 

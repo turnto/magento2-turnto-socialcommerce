@@ -37,5 +37,6 @@
     <type name="Magento\Catalog\Model\Layer\Filter\Item\DataBuilder">
         <plugin name="turnto_socialcommerce_plugin_catalog_model_layer_filter_item_databuilder" type="TurnTo\SocialCommerce\Plugin\Catalog\Model\Layer\Filter\Item\DataBuilder" sortOrder="1" />
     </type>
+    <preference for="Magento\Swatches\Controller\Ajax\Media" type="TurnTo\SocialCommerce\Controller\Ajax\Media"/>
 </config>
 
