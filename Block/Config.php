@@ -20,6 +20,11 @@ use \Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 class Config extends \Magento\Catalog\Block\Product\View\Description
 {
     /**
+     * @var \Magento\Catalog\Model\Product
+     */
+    protected $_product;
+
+    /**
      * @var \TurnTo\SocialCommerce\Helper\Config
      */
     protected $config;
@@ -47,6 +52,7 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
         $this->config = $config;
         $this->localeResolver = $localeResolver;
         parent::__construct($context, $registry, $data);
+        $this->_product = $this->getProduct();
     }
 
     /**
@@ -107,7 +113,7 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
      */
     public function getProductSku()
     {
-        $product = $this->getProduct();
+        $product = $this->_product;
         $children = [];
 
         if ($product->getType() == Configurable::TYPE_CODE) {
@@ -119,20 +125,19 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
     
     public function getGallerySkus()
     {
-        $gallerySkus[] = $this->getProduct()->getSku();
+        $product = $this->_product;
+        $gallerySkus[] = $product->getSku();
 
-        if ($this->config->getGalleryEnabled()) {
-            $product = $this->getProuct();
-            if ($product->getType() == Configurable::TYPE_CODE) {
-                $children = $product->getTypeInstance()->getUsedProducts($product);
-                if (count($children) > 0) {
-                    foreach ($children as $child) {
-                        $gallerySkus[] = $child->getSku();
-                    }
+        if ($this->config->getGalleryEnabled() && $product->getType() == Configurable::TYPE_CODE) {
+            $children = $product->getTypeInstance()->getUsedProducts($product);
+            if (count($children) > 0) {
+                foreach ($children as $child) {
+                    $gallerySkus[] = $child->getSku();
                 }
             }
         }
 
         return $gallerySkus;
     }
+
 }
