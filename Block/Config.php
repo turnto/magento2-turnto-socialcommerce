@@ -15,6 +15,8 @@
 
 namespace TurnTo\SocialCommerce\Block;
 
+use \Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+
 class Config extends \Magento\Catalog\Block\Product\View\Description
 {
     /**
@@ -106,7 +108,11 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
     public function getProductSku()
     {
         $product = $this->getProduct();
-        $children = $this->config->getUseChildSku() ? $product->getTypeInstance()->getUsedProducts($product) : [];
+        $children = [];
+
+        if ($product->getType() == Configurable::TYPE_CODE) {
+            $children = $this->config->getUseChildSku() ? $product->getTypeInstance()->getUsedProducts($product) : [];
+        }
 
         return count($children) > 0 ? array_values($children)[0]->getSku() : $product->getSku();
     }
@@ -117,10 +123,12 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
 
         if ($this->config->getGalleryEnabled()) {
             $product = $this->getProuct();
-            $children = $product->getTypeInstance()->getUsedProducts($product);
-            if (count($children) > 0) {
-                foreach ($children as $child) {
-                    $gallerySkus[] = $child->getSku();
+            if ($product->getType() == Configurable::TYPE_CODE) {
+                $children = $product->getTypeInstance()->getUsedProducts($product);
+                if (count($children) > 0) {
+                    foreach ($children as $child) {
+                        $gallerySkus[] = $child->getSku();
+                    }
                 }
             }
         }
