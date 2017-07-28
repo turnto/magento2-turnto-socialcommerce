@@ -116,6 +116,8 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
         $gallerySkus[] = $this->getProduct()->getSku();
 
         if ($this->config->getGalleryEnabled()) {
+            $product = $this->getProuct();
+            $children = $product->getTypeInstance()->getUsedProducts($product);
             if (count($children) > 0) {
                 foreach ($children as $child) {
                     $gallerySkus[] = $child->getSku();
