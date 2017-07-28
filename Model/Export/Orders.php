@@ -474,7 +474,7 @@ class Orders extends AbstractExport
         $row[] = $this->getOrderPostCode($order);
         $row[] = $order->getCustomerFirstname();
         $row[] = $order->getCustomerLastname();
-        $row[] = $product->getSku();
+        $row[] = $this->config->getUseChildSku($order->getStoreId()) ? $lineItem->getSku() : $product->getSku();
         $row[] = $lineItem->getOriginalPrice();
         $row[] = $this->productHelper->getImageUrl($product);
         $row[] = $shipmentDate;

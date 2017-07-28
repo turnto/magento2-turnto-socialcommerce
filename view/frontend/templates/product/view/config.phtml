@@ -21,6 +21,7 @@ $staticUrl = preg_replace("(^https?://)", "//", $configHelper->getStaticUrl());
 $version = $configHelper->getTurnToVersion();
 $locale = $this->getLocale();
 
+// Config variables
 $reviewsEnabled = $configHelper->getReviewsEnabled();
 $qaEnabled = $configHelper->getQaEnabled();
 $commentsEnabled = $configHelper->getCheckoutCommentsEnabledProductDetail();
@@ -29,10 +30,24 @@ $qaTeaserEnabled = $configHelper->getQaTeaserEnabled();
 $galleryEnabled = $configHelper->getGalleryEnabled();
 $reviewsSetupType = $configHelper->getSetupType();
 $qaSetupType = $configHelper->getSetupType();
+$useSimpleProduct = $configHelper->getUseChildSku();
 
-$productSku = $this->getProduct()->getSku();
+// Set the product SKU
+$product = $this->getProduct();
+$children = $useSimpleProduct ? $product->getTypeInstance()->getUsedProducts($product) : [];
+$productSku = count($children) > 0 ? array_values($children)[0]->getSku() : $product->getSku();
 
-if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
+// Set the gallery SKUs
+if ($galleryEnabled) {
+    $gallerySkus[] = $product->getSku();
+    if (count($children) > 0) {
+        foreach ($children as $child) {
+            $gallerySkus[] = $child->getSku();
+        }
+    }
+}
+
+if ($reviewsEnabled || $qaEnabled || $commentsEnabled || $galleryEnabled):
 ?>
 
 <link rel="stylesheet" href="<?= sprintf('%s/tra%s/tra.css', $staticUrl, $version) ?>" />
@@ -159,9 +174,10 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled):
     <?php endif; ?>
 
     <?php if($galleryEnabled): ?>
-        var TurnToGallerySkus = TurnToItemSku;
+        var TurnToGallerySkus = <?= json_encode($gallerySkus) ?>;
     <?php endif; ?>
 
+    window.turnto = { 'useChildSku': <?= $useSimpleProduct ?> };
 </script>
 <?php endif; ?>
 
