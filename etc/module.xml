@@ -19,6 +19,7 @@
         <sequence>
             <module name="Magento_Checkout"/>
             <module name="Magento_Catalog"/>
+            <module name="Magento_ConfigurableProduct"/>
         </sequence>
     </module>
 </config>

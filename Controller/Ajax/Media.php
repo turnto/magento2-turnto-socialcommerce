@@ -20,6 +20,28 @@ use \Magento\Framework\Controller\ResultFactory;
 class Media extends \Magento\Swatches\Controller\Ajax\Media
 {
     /**
+     * @var \TurnTo\SocialCommerce\Helper\Config
+     */
+    protected $config;
+
+    /**
+     * Media constructor.
+     * @param \Magento\Framework\App\Action\Context $context
+     * @param \Magento\Swatches\Helper\Data $swatchHelper
+     * @param \Magento\Catalog\Model\ProductFactory $productModelFactory
+     * @param \TurnTo\SocialCommerce\Helper\Config $config
+     */
+    public function __construct(
+        \Magento\Framework\App\Action\Context $context,
+        \Magento\Swatches\Helper\Data $swatchHelper,
+        \Magento\Catalog\Model\ProductFactory $productModelFactory,
+        \TurnTo\SocialCommerce\Helper\Config $config
+    ){
+        $this->config = $config;
+        parent::__construct($context, $swatchHelper, $productModelFactory);
+    }
+
+    /**
      * Get product media by fallback:
      * 1stly by default attribute values
      * 2ndly by getting base image from configurable product
@@ -28,6 +50,12 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
      */
     public function execute()
     {
+        // Begin Edit
+        if (!$this->config->getUseChildSku()) {
+            return parent::execute();
+        }
+        // End Edit
+
         $productMedia = [];
         if ($productId = (int)$this->getRequest()->getParam('product_id')) {
             $currentConfigurable = $this->productModelFactory->create()->load($productId);
@@ -41,20 +69,19 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
                 $product = $currentConfigurable;
             }
             $productMedia = $this->swatchHelper->getProductMediaGallery($product);
+
+            // Begin Edit
+            $childProduct = $this->swatchHelper->loadVariationByFallback($product, $attributes);
+            if ($childProduct) {
+                $productMedia['sku'] = $childProduct->getSku();
+            } else {
+                $productMedia['sku'] = $product->getSku();
+            }
+            // End Edit
         }
 
         /** @var \Magento\Framework\Controller\Result\Json $resultJson */
         $resultJson = $this->resultFactory->create(ResultFactory::TYPE_JSON);
-
-        // Begin Edit
-        $childProduct = $this->swatchHelper->loadVariationByFallback($product, $attributes);
-        if ($childProduct) {
-            $productMedia['sku'] = $childProduct->getSku();
-        } else {
-            $productMedia['sku'] = $product->getSku();
-        }
-        // End Edit
-
         $resultJson->setData($productMedia);
 
         return $resultJson;

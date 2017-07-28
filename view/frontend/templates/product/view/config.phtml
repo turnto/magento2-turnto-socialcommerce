@@ -32,20 +32,8 @@ $reviewsSetupType = $configHelper->getSetupType();
 $qaSetupType = $configHelper->getSetupType();
 $useSimpleProduct = $configHelper->getUseChildSku();
 
-// Set the product SKU
-$product = $this->getProduct();
-$children = $useSimpleProduct ? $product->getTypeInstance()->getUsedProducts($product) : [];
-$productSku = count($children) > 0 ? array_values($children)[0]->getSku() : $product->getSku();
-
-// Set the gallery SKUs
-if ($galleryEnabled) {
-    $gallerySkus[] = $product->getSku();
-    if (count($children) > 0) {
-        foreach ($children as $child) {
-            $gallerySkus[] = $child->getSku();
-        }
-    }
-}
+$productSku = $this->getProductSku();
+$gallerySkus = $this->getGallerySkus();
 
 if ($reviewsEnabled || $qaEnabled || $commentsEnabled || $galleryEnabled):
 ?>
@@ -177,7 +165,7 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled || $galleryEnabled):
         var TurnToGallerySkus = <?= json_encode($gallerySkus) ?>;
     <?php endif; ?>
 
-    window.turnto = { 'useChildSku': <?= $useSimpleProduct ?> };
+    window.turnToUseChildSku = <?= $useSimpleProduct ?>;
 </script>
 <?php endif; ?>
 

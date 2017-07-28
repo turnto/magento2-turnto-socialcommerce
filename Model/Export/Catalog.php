@@ -235,8 +235,19 @@ class Catalog extends AbstractExport
                 if ($this->config->getUseChildSku($store->getId()) && isset($childProducts[$product->getSku()])) {
                     $parent = $childProducts[$product->getSku()];
                 }
-                $this->addProductToAtomFeed($feed->addChild('entry'), $product, $store, $parent);
-                $progressCounter++;
+                try {
+                    $this->addProductToAtomFeed($feed->addChild('entry'), $product, $store, $parent);
+                } catch (\Exception $entryException) {
+                    $this->logger->error(
+                        'Product failed to be added to feed',
+                        [
+                            'exception' => $entryException,
+                            'productSKU' => $product->getSku()
+                        ]
+                    );
+                } finally {
+                    $progressCounter++;
+                }
             }
         } catch (\Exception $feedException) {
             if ($feed) {
@@ -286,122 +297,112 @@ class Catalog extends AbstractExport
      */
     protected function addProductToAtomFeed($entry, $product, $store, $parent)
     {
-        try {
-            if (empty($product)) {
-                throw new \Exception('Product can not be null or empty');
+        if (empty($product)) {
+            throw new \Exception('Product can not be null or empty');
+        }
+
+        $sku = $product->getSku();
+        if (empty($sku)) {
+            throw new \Exception('Product must have a valid sku');
+        }
+
+        $productUrl = $this->getProductUrl($parent ?: $product, $store->getId());
+        if (empty($productUrl)) {
+            throw new \Exception('Product must have a valid store-product url');
+        }
+
+        $productName = $product->getName();
+        if (empty($productName)) {
+            throw new \Exception('Product must have a valid name');
+        }
+
+        $entry->addChild('id', $this->sanitizeData($sku));
+
+        $gtin = null;
+        $mpn = null;
+        $brand = null;
+        $identifierExists = 'FALSE';
+        $gtinMap = $this->config->getGtinAttributesMap($store->getCode());
+
+        if (!empty($gtinMap)) {
+            if (isset($gtinMap[Config::MPN_ATTRIBUTE])) {
+                $mpn = $product->getResource()
+                    ->getAttribute($gtinMap[Config::MPN_ATTRIBUTE])
+                    ->getFrontend()->getValue($product);
             }
-
-            $sku = $product->getSku();
-            if (empty($sku)) {
-                throw new \Exception('Product must have a valid sku');
+            if (isset($gtinMap[Config::BRAND_ATTRIBUTE])) {
+                $brand = $product->getResource()
+                    ->getAttribute($gtinMap[\TurnTo\SocialCommerce\Helper\Config::BRAND_ATTRIBUTE])
+                    ->getFrontend()->getValue($product);
             }
-
-            $productUrl = $this->getProductUrl($parent ?: $product, $store->getId());
-            if (empty($productUrl)) {
-                throw new \Exception('Product must have a valid store-product url');
+            if (empty($gtin) && isset($gtinMap[Config::UPC_ATTRIBUTE])) {
+                $gtin = $product->getResource()
+                    ->getAttribute($gtinMap[Config::UPC_ATTRIBUTE])
+                    ->getFrontend()->getValue($product);
             }
-
-            $productName = $product->getName();
-            if (empty($productName)) {
-                throw new \Exception('Product must have a valid name');
+            if (empty($gtin) && isset($gtinMap[Config::ISBN_ATTRIBUTE])) {
+                $gtin = $product->getResource()
+                    ->getAttribute($gtinMap[Config::ISBN_ATTRIBUTE])
+                    ->getFrontend()->getValue($product);
             }
-
-            $entry->addChild('id', $this->sanitizeData($sku));
-
-            $gtin = null;
-            $mpn = null;
-            $brand = null;
-            $identifierExists = 'FALSE';
-            $gtinMap = $this->config->getGtinAttributesMap($store->getCode());
-
-            if (!empty($gtinMap)) {
-                if (isset($gtinMap[Config::MPN_ATTRIBUTE])) {
-                    $mpn = $product->getResource()
-                        ->getAttribute($gtinMap[Config::MPN_ATTRIBUTE])
-                        ->getFrontend()->getValue($product);
-                }
-                if (isset($gtinMap[Config::BRAND_ATTRIBUTE])) {
-                    $brand = $product->getResource()
-                        ->getAttribute($gtinMap[\TurnTo\SocialCommerce\Helper\Config::BRAND_ATTRIBUTE])
-                        ->getFrontend()->getValue($product);
-                }
-                if (empty($gtin) && isset($gtinMap[Config::UPC_ATTRIBUTE])) {
-                    $gtin = $product->getResource()
-                        ->getAttribute($gtinMap[Config::UPC_ATTRIBUTE])
-                        ->getFrontend()->getValue($product);
-                }
-                if (empty($gtin) && isset($gtinMap[Config::ISBN_ATTRIBUTE])) {
-                    $gtin = $product->getResource()
-                        ->getAttribute($gtinMap[Config::ISBN_ATTRIBUTE])
-                        ->getFrontend()->getValue($product);
-                }
-                if (empty($gtin) && isset($gtinMap[Config::EAN_ATTRIBUTE])) {
-                    $gtin = $product->getResource()
-                        ->getAttribute($gtinMap[Config::EAN_ATTRIBUTE])
-                        ->getFrontend()->getValue($product);
-                }
-                if (empty($gtin) && isset($gtinMap[Config::JAN_ATTRIBUTE])) {
-                    $gtin = $product->getResource()
-                        ->getAttribute($gtinMap[Config::JAN_ATTRIBUTE])
-                        ->getFrontend()->getValue($product);
-                }
-                if (empty($gtin) && isset($gtinMap[Config::ASIN_ATTRIBUTE])) {
-                    $gtin = $product->getResource()
-                        ->getAttribute($gtinMap[Config::ASIN_ATTRIBUTE])
-                        ->getFrontend()->getValue($product);
-                }
-                if (!empty($gtin)) {
-                    $entry->addChild('g:gtin', $this->sanitizeData($gtin));
-                }
-                if (!empty($brand)) {
-                    $entry->addChild('g:brand', $this->sanitizeData($brand));
-                }
-                if (!empty($mpn)) {
-                    $entry->addChild('g:mpn', $this->sanitizeData($mpn));
-                }
-                if (!empty($brand) && (!empty($gtin) || !empty($mpn))) {
-                    $identifierExists = 'TRUE';
-                }
+            if (empty($gtin) && isset($gtinMap[Config::EAN_ATTRIBUTE])) {
+                $gtin = $product->getResource()
+                    ->getAttribute($gtinMap[Config::EAN_ATTRIBUTE])
+                    ->getFrontend()->getValue($product);
             }
-
-            $entry->addChild('g:identifier_exists', $identifierExists);
-            $entry->addChild('g:link', $this->sanitizeData($productUrl));
-            $entry->addChild('g:title', $this->sanitizeData($productName));
-
-            $categoryName = $this->getCategoryTreeString($product);
-            if (!empty($categoryName)) {
-                $cleanCategoryName = $this->sanitizeData($categoryName);
-                $entry->addChild('g:google_product_category', $cleanCategoryName);
-                $entry->addChild('g:product_type', $cleanCategoryName);
+            if (empty($gtin) && isset($gtinMap[Config::JAN_ATTRIBUTE])) {
+                $gtin = $product->getResource()
+                    ->getAttribute($gtinMap[Config::JAN_ATTRIBUTE])
+                    ->getFrontend()->getValue($product);
             }
-
-            // In order for the product image url to use the url from the proper store view, temporarily change the store
-            $currentStore = $this->storeManager->getStore();
-            $this->storeManager->setCurrentStore($store->getStoreId());
-
-            $productImageUrl = $this->imageHelper->init($product, 'product_page_main_image')
-                ->setImageFile($product->getImage())
-                ->getUrl();
-
-            // Restore the "current store"
-            $this->storeManager->setCurrentStore($currentStore);
-
-            $entry->addChild('g:image_link', $this->sanitizeData($productImageUrl));
-            $entry->addChild('g:condition', 'new');
-            $entry->addChild('g:availability', $product->getQuantityAndStockStatus() == 1 ? 'in stock' : 'out of stock');
-            $entry->addChild('g:price', $product->getPrice() . ' ' . $store->getBaseCurrencyCode());
-            $entry->addChild('g:description', $this->sanitizeData($product->getDescription()));
-            if ($parent) {
-                $entry->addChild('g:item_group_id', $parent->getSku());
+            if (empty($gtin) && isset($gtinMap[Config::ASIN_ATTRIBUTE])) {
+                $gtin = $product->getResource()
+                    ->getAttribute($gtinMap[Config::ASIN_ATTRIBUTE])
+                    ->getFrontend()->getValue($product);
             }
-        } catch (\Exception $entryException) {
-            $this->logger->error(
-                'Product failed to be added to feed',
-                [
-                    'exception' => $entryException,
-                    'productSKU' => $product->getSku()
-                ]
-            );
+            if (!empty($gtin)) {
+                $entry->addChild('g:gtin', $this->sanitizeData($gtin));
+            }
+            if (!empty($brand)) {
+                $entry->addChild('g:brand', $this->sanitizeData($brand));
+            }
+            if (!empty($mpn)) {
+                $entry->addChild('g:mpn', $this->sanitizeData($mpn));
+            }
+            if (!empty($brand) && (!empty($gtin) || !empty($mpn))) {
+                $identifierExists = 'TRUE';
+            }
+        }
+
+        $entry->addChild('g:identifier_exists', $identifierExists);
+        $entry->addChild('g:link', $this->sanitizeData($productUrl));
+        $entry->addChild('g:title', $this->sanitizeData($productName));
+
+        $categoryName = $this->getCategoryTreeString($product);
+        if (!empty($categoryName)) {
+            $cleanCategoryName = $this->sanitizeData($categoryName);
+            $entry->addChild('g:google_product_category', $cleanCategoryName);
+            $entry->addChild('g:product_type', $cleanCategoryName);
+        }
+
+        // In order for the product image url to use the url from the proper store view, temporarily change the store
+        $currentStore = $this->storeManager->getStore();
+        $this->storeManager->setCurrentStore($store->getStoreId());
+
+        $productImageUrl = $this->imageHelper->init($product, 'product_page_main_image')
+            ->setImageFile($product->getImage())
+            ->getUrl();
+
+        // Restore the "current store"
+        $this->storeManager->setCurrentStore($currentStore);
+
+        $entry->addChild('g:image_link', $this->sanitizeData($productImageUrl));
+        $entry->addChild('g:condition', 'new');
+        $entry->addChild('g:availability', $product->getQuantityAndStockStatus() == 1 ? 'in stock' : 'out of stock');
+        $entry->addChild('g:price', $product->getPrice() . ' ' . $store->getBaseCurrencyCode());
+        $entry->addChild('g:description', $this->sanitizeData($product->getDescription()));
+        if ($parent) {
+            $entry->addChild('g:item_group_id', $parent->getSku());
         }
     }
 

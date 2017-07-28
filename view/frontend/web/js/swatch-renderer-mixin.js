@@ -29,12 +29,12 @@ define([
             _ProductMediaCallback: function ($this, response) {
                 this._super($this, response);
 
-                if (window.turnto.useChildSku) {
-                    if (typeof TurnTo != "undefined") {
+                if (window.turnToUseChildSku) {
+                    if (typeof TurnTo != "undefined" && typeof response.sku != "undefined") {
                         TurnTo.reset({"sku": response.sku});
                     }
 
-                    if (typeof TurnToChatter != "undefined") {
+                    if (typeof TurnToChatter != "undefined" && typeof response.sku != "undefined") {
                         TurnToChatter.reset({"sku": response.sku});
                     }
                 }

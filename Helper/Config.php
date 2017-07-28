@@ -267,7 +267,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Gets the URL configuration value
+     * Gets the Use Child SKU configuration value
      *
      * @param null $store
      * @return mixed

@@ -77,35 +77,15 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
         $orderItems = [];
 
         foreach ($order->getAllVisibleItems() as $item) {
-            $product = $this->config->getUseChildSku() ? $this->getChildProduct($item) : $item->getProduct();
             $orderItems[] = json_encode([
                 'title' => $product->getName(),
                 'url' => $product->getProductUrl(),
-                'sku' => $product->getSku(),
+                'sku' => $this->config->getUseChildSku() ? $item->getSku() : $product->getSku(),
                 'getPrice' => $product->getFinalPrice(),
                 'itemImageUrl' => $this->imageHelper->init($product, 'product_small_image')->getUrl()
             ], JSON_PRETTY_PRINT);
         }
 
         return $orderItems;
-    }
-
-    /**
-     * @param $item
-     * @return mixed
-     */
-    public function getChildProduct($item)
-    {
-        $product = $item->getProduct();
-        $childSku = $item->getSku();
-        $childProducts = $product->getTypeInstance()->getUsedProducts($product);
-
-        foreach ($childProducts as $childProduct) {
-            if ($childProduct->getSku() == $childSku) {
-                return $childProduct;
-            }
-        }
-
-        return $product;
     }
 }
