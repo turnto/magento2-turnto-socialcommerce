@@ -6,10 +6,10 @@ This repository contains a Magento 2 extension that connects Magento 2 with Turn
 
 ## Install using Composer (recommended)
 
-1. Run these commands in your root Magento installation directory (this extension is registered on Packagist):
+1. Run these commands in your root Magento installation directory:
 
     ```
-    composer require turnto/social-commerce:dev-master
+    composer require turnto/social-commerce
     bin/magento module:enable --clear-static-content TurnTo_SocialCommerce
     bin/magento setup:upgrade
     bin/magento cache:flush
@@ -62,21 +62,31 @@ Here is a screenshot of an example configuration:
 
 Note: This is an advanced configuration option and should only be configured by a developer.
 
-If you'd to customize the `turnToConfig` JS object that gets output on product detail pages, you can do so by adding a JS object to the **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration > Custom Configuration** field. You must enter a valid JS object into this field, as the contents of the JS object that you enter will get __merged__ with the contents of the existing `turnToConfig` object. Here is an example of a valid value that could be added to the **Custom Configuration** field:
+If you'd to customize the `turnToConfig` JS object that gets output whenever TurnTo is used on the frontend, you can do so by adding a JS object to the **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration > Custom Configuration** field. You must enter a valid JS object into this field, as the contents of the JS object that you enter will get __merged__ with the contents of the existing `turnToConfig` object. [Event Callbacks](https://turnto.zendesk.com/hc/en-us/articles/207957286-Event-Callbacks-4-3) are one example of what you might want to add to this config field. Here is an example of a valid value that could be added to the **Custom Configuration** field:
 
 ```
 {
     reviewTitleInstruction: 'Summary for your review',
     eventHandlers: {
          reviewSubmit: function(evt) {
-            //your code here
+            // your code here
          }
     }
 }
-
 ```
 
+These are the following locations where the `turnToConfig` object gets output on the frontend:
+
+* Product detail pages (reviews, Q&A, checkout comment display widget, visual gallery widget)
+* Checkout comments on checkout confirmation page
+* Pinboard widget
+* Mobile landing page
+
 When you add values to this configuration field, it is critical that you enter a valid JS object and that you test to ensure you didn't cause any JS errors. 
+
+## Troubleshooting
+
+If you experience issues with the extension, review the errors in the `var/log/turnto.log` file, as that is where all TurnTo errors are logged.
 
 # About TurnTo Social Commerce
 
