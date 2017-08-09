@@ -21,6 +21,7 @@ $url = $configHelper->getUrl();
 $staticUrl = preg_replace("(^https?://)", "//", $configHelper->getStaticUrl());
 $version = $configHelper->getTurnToVersion();
 $checkoutCommentsSuccessEnabled = (bool)$configHelper->getCheckoutCommentsEnabledCheckoutSuccess();
+$customConfiguration = $configHelper->getCustomConfigurationJs();
 
 ?>
 <script type="text/javascript">
@@ -34,27 +35,28 @@ $checkoutCommentsSuccessEnabled = (bool)$configHelper->getCheckoutCommentsEnable
         postPurchaseFlow: true
     };
 
-    <?php if ($configHelper->getCustomConfigurationJs()): ?>
-        var customConfiguration = <?= $configHelper->getCustomConfigurationJs() ?>;
+    <?php if ($customConfiguration): ?>
+        var customConfiguration = <?= $customConfiguration ?>;
         // Add the keys from the user-supplied object to the existing turnToConfig object
         for (var k in customConfiguration) {
             turnToConfig[k]=customConfiguration[k];
         }
     <?php endif; ?>
-</script>
+    
+    require(['jquery'], function ($) {
+        $.getScript("<?= sprintf("%s/tra%s/turntoFeed.js", $staticUrl, $version) ?>", function () {
+            $.getScript("<?= sprintf("%s/traServer%s/trajs/%s/tra.js", $staticUrl, $version, $siteKey)?>", function () {
+                TurnToFeed.addFeedPurchaseOrder(<?= $block->getFeedPurchaseOrderData() ?>);
 
-<script src='<?= $staticUrl ?>/tra<?= $version ?>/turntoFeed.js' type='text/javascript'></script>
+                <?php foreach($block->getOrderItemData() as $item): ?>
+                    TurnToFeed.addFeedLineItem(<?= $item ?>);
+                <?php endforeach; ?>
 
-<script src='<?= $staticUrl ?>/traServer<?= $version ?>/trajs/<?= $siteKey ?>/tra.js' type='text/javascript'></script>
-
-<script type="text/javascript">
-    TurnToFeed.addFeedPurchaseOrder(<?= $block->getFeedPurchaseOrderData() ?>);
-
-    <?php foreach($block->getOrderItemData() as $item): ?>
-            TurnToFeed.addFeedLineItem(<?= $item ?>);
-    <?php endforeach; ?>
-
-    TurnToFeed.sendFeed();
+                TurnToFeed.sendFeed();
+            });
+        });
+    });
+    
 </script>
 
 <?php if ($checkoutCommentsSuccessEnabled): ?>

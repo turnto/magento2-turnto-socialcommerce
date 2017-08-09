@@ -59,12 +59,23 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
     public function getFeedPurchaseOrderData()
     {
         $order = $this->checkoutSession->getLastRealOrder();
+        $firstName = $order->getCustomerFirstname();
+        $lastName = $order->getCustomerLastname();
+
+        if (is_null($order->getCustomer())) {
+            $address = $order->getShippingAddress();
+            if (is_null($address)) {
+                $address = $order->getBillingAddress();
+            }
+            $firstName = $address->getFirstname();
+            $lastName = $address->getLastname();
+        }
 
         return json_encode([
             'orderId' => $order->getRealOrderId(),
             'email' => $order->getCustomerEmail(),
-            'firstName' => $order->getCustomerFirstname(),
-            'lastName' => $order->getCustomerLastname()
+            'firstName' => $firstName,
+            'lastName' => $lastName
         ], JSON_PRETTY_PRINT);
     }
 
@@ -77,6 +88,7 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
         $orderItems = [];
 
         foreach ($order->getAllVisibleItems() as $item) {
+            $product = $item->getProduct();
             $orderItems[] = json_encode([
                 'title' => $product->getName(),
                 'url' => $product->getProductUrl(),
