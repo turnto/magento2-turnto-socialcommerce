@@ -84,6 +84,14 @@
                         <field id="enabled">1</field>
                     </depends>
                 </field>
+                <field id="single_sign_on" translate="label comment" type="select" sortOrder="75" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Enable Single Sign On</label>
+                    <comment><![CDATA[Allow your users to register/sign-in to both the TurnTo system and your website.]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
                 <field id="custom_configuration" translate="label comment" type="textarea" sortOrder="80" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Custom Configuration</label>
                     <comment><![CDATA[Default is empty. Should not be changed, unless instructed by TurnTo. Anything entered here will be merged with the <code>turnToConfig</code> JS object that is output on the frontend. Refer to <a href="https://github.com/turnto/magento2-turnto-socialcommerce#custom-configuration">the documentation</a> for specifics of what can be entered into this field.]]></comment>

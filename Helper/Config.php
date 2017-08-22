@@ -43,6 +43,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const XML_PATH_SOCIALCOMMERCE_USE_CHILD_SKU = 'turnto_socialcommerce_configuration/general/use_child_sku';
 
+    const XML_PATH_SOCIALCOMMERCE_SINGLE_SIGN_ON = 'turnto_socialcommerce_configuration/general/single_sign_on';
+
     const XML_PATH_SOCIALCOMMERCE_CUSTOM_CONFIGURATION = 'turnto_socialcommerce_configuration/general/custom_configuration';
 
     /**
@@ -276,6 +278,21 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_USE_CHILD_SKU,
+            ScopeInterface::SCOPE_STORE,
+            isset($store) ? $store : $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * Gets the Enable Single Sign On configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
+    public function getSingleSignOn($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_SINGLE_SIGN_ON,
             ScopeInterface::SCOPE_STORE,
             isset($store) ? $store : $this->getCurrentStoreCode()
         );
