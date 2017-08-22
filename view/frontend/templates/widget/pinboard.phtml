@@ -36,7 +36,9 @@ $version = $configHelper->getTurnToVersion();
         }
     <?php endif; ?>
 
-    require(['<?= $staticUrl ?>/traServer<?= $version ?>/pinboardjs/<?= $siteKey ?>/turnto-pinboard.js']);
+    require(['jquery'], function ($) {
+        $.getScript("<?= sprintf("%s/traServer%s/pinboardjs/%s/turnto-pinboard.js", $staticUrl, $version, $siteKey) ?>");
+    });
 </script>
 
 <div id="TurnToPinboardContent"></div>

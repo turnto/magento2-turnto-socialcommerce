@@ -20,6 +20,11 @@ use \Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 class Config extends \Magento\Catalog\Block\Product\View\Description
 {
     /**
+     * @var \Magento\Catalog\Model\Product
+     */
+    protected $_product;
+
+    /**
      * @var \TurnTo\SocialCommerce\Helper\Config
      */
     protected $config;
@@ -47,6 +52,7 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
         $this->config = $config;
         $this->localeResolver = $localeResolver;
         parent::__construct($context, $registry, $data);
+        $this->_product = $this->getProduct();
     }
 
     /**
@@ -107,32 +113,32 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
      */
     public function getProductSku()
     {
-        $product = $this->getProduct();
-        $children = [];
+        $product = $this->_product;
 
-        if ($product->getType() == Configurable::TYPE_CODE) {
-            $children = $this->config->getUseChildSku() ? $product->getTypeInstance()->getUsedProducts($product) : [];
+        if ($this->config->getUseChildSku() && $product->getTypeId() == Configurable::TYPE_CODE) {
+            return array_values($product->getTypeInstance()->getUsedProducts($product))[0]->getSku();
         }
 
-        return count($children) > 0 ? array_values($children)[0]->getSku() : $product->getSku();
+        return $product->getSku();
     }
     
     public function getGallerySkus()
     {
-        $gallerySkus[] = $this->getProduct()->getSku();
+        $product = $this->_product;
+        $gallerySkus = [];
 
-        if ($this->config->getGalleryEnabled()) {
-            $product = $this->getProuct();
-            if ($product->getType() == Configurable::TYPE_CODE) {
-                $children = $product->getTypeInstance()->getUsedProducts($product);
-                if (count($children) > 0) {
-                    foreach ($children as $child) {
-                        $gallerySkus[] = $child->getSku();
-                    }
+        if ($product->getTypeId() == Configurable::TYPE_CODE) {
+            $children = $product->getTypeInstance()->getUsedProducts($product);
+            if (count($children) > 0) {
+                foreach ($children as $child) {
+                    $gallerySkus[] = $child->getSku();
                 }
             }
+        } else {
+            $gallerySkus[] = $product->getSku();
         }
 
-        return $gallerySkus;
+        return json_encode($gallerySkus);
     }
+
 }
