@@ -92,6 +92,15 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
             ];
         }
 
+        if ($this->config->getSingleSignOn()) {
+            $config['registration'] = [
+                'localGetLoginStatusFunction' => new \Zend_Json_Expr('localGetLoginStatusFunction'),
+                'localRegistrationUrl' => 'turnto/sso/login',
+                'localGetUserInfoFunction' => new \Zend_Json_Expr('localGetUserInfoFunction'),
+                'localLogoutFunction' => new \Zend_Json_Expr('localLogoutFunction')
+            ];
+        }
+
         /*
          * Zend_Json::encode is used instead of json_encode because the values of iTeaserFunc and reviewsTeaserFunc
          * have to be a JavaScript object. json_encode has no way to accomplish this. See this stack overflow question

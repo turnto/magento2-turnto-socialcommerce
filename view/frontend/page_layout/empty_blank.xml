@@ -18,5 +18,7 @@
     <!-- The purpose of this layout type is to provide a layout that will only output content added to the root
          container, rather than the header/footer/etc content that gets output by the empty layout and those that extend
          it. -->
-    <container name="root" />
+    <container name="root">
+        <container name="after.body.start" as="after.body.start" before="-" label="Page Top"/>
+    </container>
 </layout>

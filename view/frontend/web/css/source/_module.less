@@ -16,41 +16,130 @@
         margin-bottom: 20px;
     }
 
+    #TTpartnerRegWindow {
+        width: 800px;
+        height: 750px;
+    }
+
+    #TTpartnerRegWindowClose {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 17px;
+        height: 17px;
+        border-radius: 100%;
+        overflow: hidden;
+        background: @color-black;
+        border: 2px solid @color-white;
+        &:before {
+            color: @color-white;
+            font-family: @icons__font-name;
+            content: @icon-remove;
+            padding-right: 10px;
+            padding-left: 3px;
+            -webkit-font-smoothing: antialiased;
+            font-weight: bold;
+        }
+    }
+
     .TurnToItemTeaser {
-        display:inline-block;
-        font-family: "Helvetica Neue",Helvetica,Verdana,Arial,Helvetica,sans-serif;
+        display: inline-block;
+        font-family: "Helvetica Neue", Helvetica, Verdana, Arial, Helvetica, sans-serif;
         font-size: 12px !important;
+        a {
+            text-decoration: none !important;
+            &:hover {
+                color: #000;
+            }
+        }
     }
 
-    .TurnToItemTeaser a{
-        text-decoration: none !important;
+    .TurnToReviewsTeaser {
+        font-family: "Helvetica Neue", Helvetica, Verdana, Arial, Helvetica, sans-serif;
+        font-size: 12px !important;
+        display: inline-block;
+        a {
+            text-decoration: none !important;
+            &:hover {
+                color: #000;
+            }
+        }
     }
 
-    .TurnToItemTeaser a:hover {
-        color: #000;
-    }
     .TTratingBox {
         height: 16px;
         width: 90px;
         margin-right: 5px;
-        display:inline-block;
-    }
-
-    .TurnToReviewsTeaser {
-        font-family: "Helvetica Neue",Helvetica,Verdana,Arial,Helvetica,sans-serif;
-        font-size: 12px !important;
-        display:inline-block;
-    }
-
-    .TurnToReviewsTeaser a {
-        text-decoration: none !important;
-    }
-
-    .TurnToReviewsTeaser a:hover {
-        color: #000;
+        display: inline-block;
     }
 
     .TTGalleryContent {
         width: auto !important;
+    }
+
+    .TTAccountForm {
+        max-width: 600px;
+        min-width: 300px;
+        padding: 20px;
+        background: @panel__background-color;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        .logo {
+            display: block;
+            float: none;
+            margin: 0 0 20px;
+            max-width: 100%;
+            width: 100%;
+            img {
+                margin: 0 auto;
+            }
+        }
+        .block {
+            margin-bottom: 0;
+        }
+        .block-title {
+            display: none;
+        }
+        .field.note {
+            display: none;
+        }
+        .secondary {
+            text-align: center;
+        }
+        .form-login {
+            .primary,
+            .secondary {
+                width: 100%;
+                .action {
+                    width: 100%;
+                }
+            }
+        }
+        .form-create-account {
+            .fieldset {
+                &.create.account {
+                    margin: 0;
+                }
+                &.create.info {
+                    margin: 0 0 20px;
+                }
+                > .field {
+                    padding: 0 1%;
+                    margin: 0 0 10px;
+                    &.field-name-firstname,
+                    &.field-name-lastname,
+                    &.password,
+                    &.confirmation {
+                        float: left;
+                        width: 48%;
+                    }
+                }
+                > .legend {
+                    margin: 0 0 10px;
+                }
+            }
+        }
     }
 }

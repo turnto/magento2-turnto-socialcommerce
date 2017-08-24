@@ -31,6 +31,7 @@ $galleryEnabled = $configHelper->getGalleryEnabled();
 $reviewsSetupType = $configHelper->getSetupType();
 $qaSetupType = $configHelper->getSetupType();
 $useSimpleProduct = $configHelper->getUseChildSku();
+$singleSignOn = $configHelper->getSingleSignOn();
 
 $productSku = $this->getProductSku();
 $gallerySkus = $this->getGallerySkus();
@@ -46,10 +47,9 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled || $galleryEnabled):
 
 <script type="text/javascript">
 
-
     <?php if($qaTeaserEnabled && $qaEnabled): ?>
-    function qaTeaser () {
-        if(typeof(TurnToItemData) == 'undefined' || typeof(TurnToItemData.counts) == 'undefined') {
+    function qaTeaser() {
+        if (typeof(TurnToItemData) == 'undefined' || typeof(TurnToItemData.counts) == 'undefined') {
             return '';
         } else {
             var answerCount = TurnToItemData.counts.a;
@@ -57,14 +57,14 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled || $galleryEnabled):
             var teaserContainer = TurnTojQuery(".TurnToItemTeaser");
             var teaserHtml = '';
             <?php
-                if ($reviewsEnabled && $reviewsTeaserEnabled):
+            if ($reviewsEnabled && $reviewsTeaserEnabled):
             ?>
             var teaserHtml = '&nbsp;|&nbsp;';
             <?php
-                endif;
+            endif;
             ?>
 
-            if(questionCount == 0) {
+            if (questionCount == 0) {
                 teaserHtml = teaserHtml + '<a id="askQuestion" href="javascript:void(0)"><?= __('Ask a Question') ?></a>';
             } else {
                 teaserHtml = teaserHtml + '<a id="readQuestions" href="javascript:void(0)">' + questionCount + ' Question' + (questionCount == 1 ? '' : 's') + ', ' + answerCount + ' Answer' + (answerCount == 1 ? '' : 's') + '</a>';
@@ -76,16 +76,16 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled || $galleryEnabled):
             teaserContainer.html(teaserHtml);
 
             // Add the appropriate listeners to the links
-            scrollToTab(teaserContainer, '#askQuestion', '#turnto_qa','#tab-label-turnto_qa-title');
+            scrollToTab(teaserContainer, '#askQuestion', '#turnto_qa', '#tab-label-turnto_qa-title');
 
-            scrollToTab(teaserContainer, '#readQuestions', '#turnto_qa','#tab-label-turnto_qa-title');
+            scrollToTab(teaserContainer, '#readQuestions', '#turnto_qa', '#tab-label-turnto_qa-title');
         }
     }
     <?php endif; ?>
 
     <?php if($reviewsTeaserEnabled && $reviewsEnabled): ?>
     function reviewsTeaser() {
-        if(typeof(TurnToItemData) == 'undefined' || typeof(TurnToItemData.counts) == 'undefined') {
+        if (typeof(TurnToItemData) == 'undefined' || typeof(TurnToItemData.counts) == 'undefined') {
             return '';
         } else {
             var reviewCount = TurnToItemData.counts.r;
@@ -98,7 +98,7 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled || $galleryEnabled):
             var decimal = parseInt(rating.substring(2, 3));
             rating = rating.substring(0, 1) + "-" + (decimal >= 5 ? '5' : '0');
 
-            if(reviewCount == 0) {
+            if (reviewCount == 0) {
                 teaserHtml = '<div class="TT2left TTratingBox TTrating-0-0"></div> <a id="writeReview" href="javascript:void(0)"><?= __('Write a Review') ?></a>';
             } else {
                 teaserHtml = '<div class="TTratingBox TTrating-' + rating + '"></div><a id="readReviews" href="javascript:void(0)">' + reviewCount + ' Review' + (reviewCount == 1 ? '' : 's') + '</a>';
@@ -109,7 +109,7 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled || $galleryEnabled):
             scrollToTab(teaserContainer, '#readReviews', '#turnto_reviews', '#tab-label-turnto_reviews-title');
 
             // Listener on 'write review' link
-            teaserContainer.find('#writeReview').click(function(e) {
+            teaserContainer.find('#writeReview').click(function (e) {
                 TurnTo.writeReview();
             });
         }
@@ -117,34 +117,67 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled || $galleryEnabled):
     <?php endif; ?>
 
     function scrollToTab(teaserContainer, clickElement, container, tab) {
-        teaserContainer.find(clickElement).click(function(e) {
+        teaserContainer.find(clickElement).click(function (e) {
             e.preventDefault();
-            if(!jQuery(tab).parent().hasClass('active')) {
+            if (!jQuery(tab).parent().hasClass('active')) {
                 jQuery(tab).click();
             }
-            jQuery("html, body").animate({ scrollTop: jQuery(container).offset().top - 20 }, 1000);
+            jQuery("html, body").animate({scrollTop: jQuery(container).offset().top - 20}, 1000);
         });
     }
 
     <?php /** @var \TurnTo\SocialCommerce\Block\Config $block */ ?>
     var turnToConfig = <?= $block->getConfigJson() ?>;
 
+    <?php if ($singleSignOn): ?>
+    function localLogoutFunction(callbackFn) {
+        require(['jquery', 'mage/url'], function ($, urlBuilder) {
+            $.ajax({
+                type: "POST",
+                url: urlBuilder.build('customer/account/logout')
+            }).done(function(result) {
+                callbackFn(JSON.parse(result.responseText));
+            });
+        });
+    }
+
+    function localGetLoginStatusFunction(callbackFn) {
+        localGetUserInfoFunction(callbackFn);
+    }
+
+    function localGetUserInfoFunction(callbackFn) {
+        require(['jquery', 'mage/url'], function ($, urlBuilder) {
+            $.ajax({
+                type: "POST",
+                url: urlBuilder.build('turnto/sso/getUserStatus')
+            }).done(function (userInfo) {
+                if (userInfo.error) {
+                    callbackFn({user_auth_token: null});
+                }
+                else {
+                    callbackFn(userInfo);
+                }
+            });
+        });
+    }
+    <?php endif; ?>
+
     <?php if ($configHelper->getCustomConfigurationJs()): ?>
-        var customConfiguration = <?= $configHelper->getCustomConfigurationJs() ?>;
-        // Add the keys from the user-supplied object to the existing turnToConfig object
-        for (var k in customConfiguration) {
-            turnToConfig[k]=customConfiguration[k];
-        }
+    var customConfiguration = <?= $configHelper->getCustomConfigurationJs() ?>;
+    // Add the keys from the user-supplied object to the existing turnToConfig object
+    for (var k in customConfiguration) {
+        turnToConfig[k] = customConfiguration[k];
+    }
     <?php endif; ?>
 
     var TurnToItemSku = "<?= $productSku ?>";
 
-    <?php if($commentsEnabled): ?>
-        var TurnToChatterSku = TurnToItemSku;
+    <?php if ($commentsEnabled): ?>
+    var TurnToChatterSku = TurnToItemSku;
     <?php endif; ?>
 
-    <?php if($galleryEnabled): ?>
-        var TurnToGallerySkus = <?= $gallerySkus ?>;
+    <?php if ($galleryEnabled): ?>
+    var TurnToGallerySkus = <?= $gallerySkus ?>;
     <?php endif; ?>
 
     window.turnToUseChildSku = <?= $useSimpleProduct ?>;
