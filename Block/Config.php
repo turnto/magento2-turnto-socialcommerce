@@ -9,7 +9,7 @@
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
  *
- * @copyright  Copyright (c) 2016 TurnTo Networks, Inc.
+ * @copyright  Copyright (c) 2017 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
@@ -89,6 +89,15 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
                 'minimumCommentCharacterCount' => 1,
                 'minimumCommentWordCount' => 1,
                 'columns' => $this->config->getColumns()
+            ];
+        }
+
+        if ($this->config->getSingleSignOn()) {
+            $config['registration'] = [
+                'localGetLoginStatusFunction' => new \Zend_Json_Expr('localGetLoginStatusFunction'),
+                'localRegistrationUrl' => 'turnto/sso/login',
+                'localGetUserInfoFunction' => new \Zend_Json_Expr('localGetUserInfoFunction'),
+                'localLogoutFunction' => new \Zend_Json_Expr('localLogoutFunction')
             ];
         }
 

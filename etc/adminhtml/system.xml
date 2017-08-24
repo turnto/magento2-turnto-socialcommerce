@@ -10,7 +10,7 @@
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
  *
- * @copyright  Copyright (c) 2016 TurnTo Networks, Inc.
+ * @copyright  Copyright (c) 2017 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 -->
@@ -79,6 +79,14 @@
                 <field id="use_child_sku" translate="label comment" type="select" sortOrder="70" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Use child SKU instead of parent SKU</label>
                     <comment><![CDATA[Default is "No". If set to "No", the parent SKU of configurable products will be used. If set to "Yes", the child SKU will be used everywhere that this extension references SKUs.]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="single_sign_on" translate="label comment" type="select" sortOrder="75" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Enable Single Sign On</label>
+                    <comment><![CDATA[Default is "No". When enabled, users will login or signup for customer accounts directly via the Magento website before writing reviews or other actions that require the user to be signed in. When disabled, users will login or signup to a TurnTo account that is not linked to their Magento account. Guest users who have recently checked out are signed into a temporary TurnTo account that will allow them to submit reviews and questions when this option is disabled. Refer to <a href="https://github.com/turnto/magento2-turnto-socialcommerce#single-sign-on">the documentation</a> for additional information.]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="enabled">1</field>

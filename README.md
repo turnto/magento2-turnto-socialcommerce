@@ -58,6 +58,9 @@ Here is a screenshot of an example configuration:
  
 ![Media Url Configuration](README/turnto_socialcommerce_media_url.png)
 
+## Single Sign On
+TurnTo requires that some user actions, such as answering a question, can only be done by a logged-in user. TurnTo has its own authentication system that will display a registration screen to the user of the widgets when appropriate. If you choose instead to use your site’s authentication / registration functionality so that users who are already logged into your site do not need to register again when using the TurnTo widgets, you can make use of the TurnTo single sign-on (SSO) features.
+
 ## Custom Configuration
 
 Note: This is an advanced configuration option and should only be configured by a developer.
