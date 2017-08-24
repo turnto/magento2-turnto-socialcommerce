@@ -9,7 +9,7 @@
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
  *
- * @copyright  Copyright (c) 2016 TurnTo Networks, Inc.
+ * @copyright  Copyright (c) 2017 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
@@ -176,16 +176,18 @@ class AbstractExport
             }
         }
 
-        $collection->addFieldToFilter(
-            'visibility',
-            [
-                'in' =>
+        if (!$this->config->getUseChildSku($store->getId())) {
+            $collection->addFieldToFilter(
+                'visibility',
                 [
-                    \Magento\Catalog\Model\Product\Visibility::VISIBILITY_BOTH,
-                    \Magento\Catalog\Model\Product\Visibility::VISIBILITY_IN_CATALOG
+                    'in' =>
+                        [
+                            \Magento\Catalog\Model\Product\Visibility::VISIBILITY_BOTH,
+                            \Magento\Catalog\Model\Product\Visibility::VISIBILITY_IN_CATALOG
+                        ]
                 ]
-            ]
-        );
+            );
+        }
 
         $collection->addStoreFilter($store);
 

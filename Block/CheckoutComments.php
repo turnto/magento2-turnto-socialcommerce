@@ -9,7 +9,7 @@
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
  *
- * @copyright  Copyright (c) 2016 TurnTo Networks, Inc.
+ * @copyright  Copyright (c) 2017 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
@@ -59,12 +59,23 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
     public function getFeedPurchaseOrderData()
     {
         $order = $this->checkoutSession->getLastRealOrder();
+        $firstName = $order->getCustomerFirstname();
+        $lastName = $order->getCustomerLastname();
+
+        if (is_null($order->getCustomer())) {
+            $address = $order->getShippingAddress();
+            if (is_null($address)) {
+                $address = $order->getBillingAddress();
+            }
+            $firstName = $address->getFirstname();
+            $lastName = $address->getLastname();
+        }
 
         return json_encode([
             'orderId' => $order->getRealOrderId(),
             'email' => $order->getCustomerEmail(),
-            'firstName' => $order->getCustomerFirstname(),
-            'lastName' => $order->getCustomerLastname()
+            'firstName' => $firstName,
+            'lastName' => $lastName
         ], JSON_PRETTY_PRINT);
     }
 
@@ -81,11 +92,12 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
             $orderItems[] = json_encode([
                 'title' => $product->getName(),
                 'url' => $product->getProductUrl(),
-                'sku' => $product->getSku(),
+                'sku' => $this->config->getUseChildSku() ? $item->getSku() : $product->getSku(),
                 'getPrice' => $product->getFinalPrice(),
                 'itemImageUrl' => $this->imageHelper->init($product, 'product_small_image')->getUrl()
             ], JSON_PRETTY_PRINT);
         }
+
         return $orderItems;
     }
 }

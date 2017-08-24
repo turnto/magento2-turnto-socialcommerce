@@ -9,13 +9,14 @@
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
  *
- * @copyright  Copyright (c) 2016 TurnTo Networks, Inc.
+ * @copyright  Copyright (c) 2017 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
 use TurnTo\SocialCommerce\Helper\Config;
+use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 
 /**
  * Class Catalog
@@ -209,9 +210,33 @@ class Catalog extends AbstractExport
                 $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB))
             );
 
+            $childProducts = [];
+            // TurnTo requires a product feed where children of configurable products are aware of their parent SKUs
+            // and include that parent SKU in the feed. This code is not very performant and therefore the feed will
+            // take longer to generate in large catalogs with many configurable products. However in the interest of
+            // development time, this simpler approach is being taken and if it proves to not scale well, can be
+            // refactored in the future to use a query that loads all child products for all configurable products
+            // at one time.
+            if ($this->config->getUseChildSku($store->getId())) {
+                foreach ($products as $product) {
+                    if ($product->getTypeId() !== Configurable::TYPE_CODE) {
+                        continue;
+                    }
+
+                    $children = $product->getTypeInstance()->getUsedProducts($product);
+                    foreach ($children as $child) {
+                        $childProducts[$child->getSku()] = $product;
+                    }
+                }
+            }
+
             foreach ($products as $product) {
+                $parent = false;
+                if ($this->config->getUseChildSku($store->getId()) && isset($childProducts[$product->getSku()])) {
+                    $parent = $childProducts[$product->getSku()];
+                }
                 try {
-                    $this->addProductToAtomFeed($feed->addChild('entry'), $product, $store);
+                    $this->addProductToAtomFeed($feed->addChild('entry'), $product, $store, $parent);
                 } catch (\Exception $entryException) {
                     $this->logger->error(
                         'Product failed to be added to feed',
@@ -267,9 +292,10 @@ class Catalog extends AbstractExport
      * @param $entry
      * @param $product
      * @param $store
+     * @param $parent bool|\Magento\Catalog\Model\Product
      * @throws \Exception
      */
-    protected function addProductToAtomFeed($entry, $product, $store)
+    protected function addProductToAtomFeed($entry, $product, $store, $parent)
     {
         if (empty($product)) {
             throw new \Exception('Product can not be null or empty');
@@ -280,7 +306,7 @@ class Catalog extends AbstractExport
             throw new \Exception('Product must have a valid sku');
         }
 
-        $productUrl = $this->getProductUrl($product, $store->getId());
+        $productUrl = $this->getProductUrl($parent ?: $product, $store->getId());
         if (empty($productUrl)) {
             throw new \Exception('Product must have a valid store-product url');
         }
@@ -375,6 +401,9 @@ class Catalog extends AbstractExport
         $entry->addChild('g:availability', $product->getQuantityAndStockStatus() == 1 ? 'in stock' : 'out of stock');
         $entry->addChild('g:price', $product->getPrice() . ' ' . $store->getBaseCurrencyCode());
         $entry->addChild('g:description', $this->sanitizeData($product->getDescription()));
+        if ($parent) {
+            $entry->addChild('g:item_group_id', $parent->getSku());
+        }
     }
 
     /**
