@@ -86,7 +86,7 @@
                 </field>
                 <field id="single_sign_on" translate="label comment" type="select" sortOrder="75" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Enable Single Sign On</label>
-                    <comment><![CDATA[Allow your users to register/sign-in to both the TurnTo system and your website.]]></comment>
+                    <comment><![CDATA[Default is "No". When enabled, users will login or signup for customer accounts directly via the Magento website before writing reviews or other actions that require the user to be signed in. When disabled, users will login or signup to a TurnTo account that is not linked to their Magento account. Guest users who have recently checked out are signed into a temporary TurnTo account that will allow them to submit reviews and questions when this option is disabled. Refer to <a href="https://github.com/turnto/magento2-turnto-socialcommerce#single-sign-on">the documentation</a> for additional information.]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="enabled">1</field>

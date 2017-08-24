@@ -86,22 +86,18 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
         return $resultJson;
     }
 
+    /**
+     * Creates a signature that authenticates the user information with TurnTo's servers
+     * https://docs.google.com/document/d/1AEpganoUMVbDyqlYBctN9m9r3J8v8hug5haFkX81934/edit
+     * Section: Computing the signature
+     *
+     * @param $customerData
+     * @return mixed
+     */
     public function getSignature($customerData) {
         // Sort the fields on user alphabetically
         ksort($customerData);
-
-        // Build a parameter string to be hashed. Format: key1=value1&key2=value2...
-        $params = '';
-        foreach ($customerData as $key => $val) {
-            // make sure to exclude parameters that are null or ''
-            if ($val) {
-                $params .= $key . '=' . $val . '&';
-            }
-        }
-
-        // Remove the last &
-        $params = substr($params, 0, -1);
-
+        $params = urldecode(http_build_query($customerData, null, '&', PHP_QUERY_RFC3986));
         $authKey = $this->configHelper->getAuthorizationKey();
 
         // Hash the parameter string and base64 encode it because the hash result is binary
