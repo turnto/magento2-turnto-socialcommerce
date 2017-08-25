@@ -62,9 +62,6 @@ $setupType = $configHelper->getSetupType();
                 }).done(function (response) {
                     if (response.success) {
                         TurnTo.localAuthenticationComplete();
-                    } else {
-                        // Reload the page to display any error messages
-                        location.reload(true);
                     }
                 });
             }
