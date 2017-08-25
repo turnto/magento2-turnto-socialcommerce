@@ -53,8 +53,7 @@ class CreatePost extends \Magento\Customer\Controller\Account\CreatePost
         \Magento\Customer\Model\CustomerExtractor $customerExtractor,
         \Magento\Framework\Api\DataObjectHelper $dataObjectHelper,
         \Magento\Customer\Model\Account\Redirect $accountRedirect,
-        \Magento\Framework\Controller\ResultFactory $resultFactory,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\Framework\Controller\ResultFactory $resultFactory
     ){
         $this->resultFactory = $resultFactory;
         $this->customerSession = $customerSession;

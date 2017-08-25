@@ -21,8 +21,7 @@
                 <block class="Magento\Framework\View\Element\Template" name="ajax.message.placeholder" template="Magento_Theme::html/messages.phtml"/>
                 <block class="Magento\Framework\View\Element\Messages" name="messages" as="messages" template="Magento_Theme::messages.phtml"/>
             </container>
-            <block name="turnto_frontend_sso_form" class="\Magento\Framework\View\Element\Template" template="TurnTo_SocialCommerce::sso/form.phtml">
-                <block name="turnto_frontend_sso_logo" class="TurnTo\SocialCommerce\Block\SSO\Logo" template="TurnTo_SocialCommerce::sso/logo.phtml" />
+            <block name="turnto_frontend_sso_form" class="TurnTo\SocialCommerce\Block\SSO\Form" template="TurnTo_SocialCommerce::sso/form.phtml">
                 <container name="form-fields">
                     <container name="form-extras">
                         <block class="\Magento\Framework\View\Element\Template" name="parent-link-fix" template="TurnTo_SocialCommerce::sso/parent-link-fix.phtml" />

@@ -15,7 +15,7 @@
 
 namespace TurnTo\SocialCommerce\Block\SSO;
 
-class Logo extends \Magento\Framework\View\Element\Template
+class Form extends \Magento\Framework\View\Element\Template
 {
     /**
      * @var \Magento\Theme\Block\Html\Header\Logo
@@ -33,6 +33,14 @@ class Logo extends \Magento\Framework\View\Element\Template
     ) {
         $this->logo = $logo;
         parent::__construct($context);
+    }
+    
+    public function getCurrentUrl()
+    {
+        return $this->_urlBuilder->getBaseUrl([
+            '_type' => \Magento\Framework\UrlInterface::URL_TYPE_LINK,
+            '_secure' => $this->_storeManager->getStore()->isCurrentlySecure()
+        ]);
     }
 
     /**
