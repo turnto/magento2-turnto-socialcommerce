@@ -23,7 +23,12 @@ $setupType = $configHelper->getSetupType();
 ?>
 
 <div class="TTAccountForm">
-    <?= $this->getChildHtml('turnto_frontend_sso_logo') ?>
+    <div class="logo">
+        <img src="<?= $block->getLogoSrc() ?>"
+             alt="<?= $block->getLogoAlt() ?>"
+            <?= $block->getLogoWidth() ? 'width="' . $block->getLogoWidth() . '" ' : '' ?>
+            <?= $block->getLogoHeight() ? 'height="' . $block->getLogoHeight() . '" ' : '' ?> />
+    </div>
     <?= $block->getChildHtml('form-fields') ?>
     <?php echo $block->getChildHtml('form-extras'); ?>
 </div>
@@ -43,7 +48,7 @@ $setupType = $configHelper->getSetupType();
         'use strict';
 
         var form = $('form');
-        urlBuilder.setBaseUrl("<?= $block->getBaseUrl() ?>");
+        urlBuilder.setBaseUrl("<?= $block->getCurrentUrl() ?>");
 
         form.on('submit', function (event) {
             event.preventDefault();
