@@ -149,11 +149,11 @@ if ($reviewsEnabled || $qaEnabled || $commentsEnabled || $galleryEnabled):
                         type: "POST",
                         url: urlBuilder.build('turnto/sso/getUserStatus')
                     }).done(function (userInfo) {
-                        if (userInfo.error) {
+                        if (userInfo.error || userInfo.payload.user_auth_token == null) {
                             callbackFn({user_auth_token: null});
                         }
                         else {
-                            callbackFn(userInfo);
+                            callbackFn(userInfo.payload, userInfo.signature);
                         }
                     });
                 });

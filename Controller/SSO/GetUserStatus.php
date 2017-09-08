@@ -62,21 +62,23 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
 
         if ($customer->getId()) {
             $customerData = [
-                'user_auth_token' => $customer->getId(),
-                'first_name' => $customer->getFirstname(),
-                'last_name' => $customer->getLastname(),
-                'email' => $customer->getEmail(),
-                'email_confirmed' => true,
-                'nickname' => null,
-                'issued_at' => time()
+                'payload' => [
+                    'user_auth_token' => $customer->getId(),
+                    'first_name' => $customer->getFirstname(),
+                    'last_name' => $customer->getLastname(),
+                    'email' => $customer->getEmail(),
+                    'email_confirmed' => true,
+                    'nickname' => null,
+                    'issued_at' => time()
+                ]
             ];
         } else {
-            $customerData = [
+            $customerData['payload'] = [
                 'user_auth_token' => null
             ];
         }
 
-        if (!is_null($customerData['user_auth_token'])) {
+        if (!is_null($customerData['payload']['user_auth_token'])) {
             $customerData['signature'] = $this->getSignature($customerData);
         }
 
