@@ -31,23 +31,21 @@ $customConfiguration = $helper->getCustomConfigurationJs();
         <meta name="apple-mobile-web-app-capable" content="yes"/>
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
         <script type="text/javascript">
-            require(['jquery'], function ($) {
-                var turnToConfig = {
-                    siteKey: "<?= $siteKey ?>",
-                    setupType:"mobileTT"
-                };
+            var turnToConfig = {
+                siteKey: "<?= $siteKey ?>",
+                setupType:"mobileTT"
+            };
 
-                <?php if ($customConfiguration): ?>
+            <?php if ($customConfiguration): ?>
                 var customConfiguration = <?= $customConfiguration ?>;
                 // Add the keys from the user-supplied object to the existing turnToConfig object
                 for (var k in customConfiguration) {
                     turnToConfig[k]=customConfiguration[k];
                 }
-                <?php endif; ?>
+            <?php endif; ?>
 
-                <?= sprintf('$.getScript("%s/tra%s/mobile-landing.js");', $staticUrl, $version) ?>
-            });
         </script>
+        <script type="text/javascript" src="<?= sprintf('%s/tra%s/mobile-landing.js', $staticUrl, $version) ?>"></script>
     </head>
     <body>
         <div id="mobileTT-content"></div>
