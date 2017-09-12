@@ -81,7 +81,7 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
         }
 
         $resultJson = $this->resultFactory->create(ResultFactory::TYPE_JSON);
-        $resultJson->setData($customerData);
+        $resultJson->setData($customerData['payload']);
 
         return $resultJson;
     }
