@@ -148,20 +148,26 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     protected $resourceModel = null;
 
     /**
+     * @var \Magento\Framework\Encryption\Encryptor
+     */
+    protected $encryptor;
+
+    /**
      * Config constructor.
-     *
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Config\Model\ResourceModel\Config $resourceModel
+     * @param \Magento\Framework\Encryption\Encryptor $encryptor
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Config\Model\ResourceModel\Config $resourceModel
+        \Magento\Config\Model\ResourceModel\Config $resourceModel,
+        \Magento\Framework\Encryption\Encryptor $encryptor
     ) {
         $this->storeManager = $storeManager;
         $this->resourceModel = $resourceModel;
-
+        $this->encryptor = $encryptor;
         parent::__construct($context);
     }
 
@@ -344,11 +350,17 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getAuthorizationKey($store = null)
     {
-        return $this->scopeConfig->getValue(
+        $authKey = $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_AUTHORIZATION_KEY,
             ScopeInterface::SCOPE_STORE,
             $store ? $store : $this->getCurrentStoreCode()
         );
+
+        if ($authKey) {
+            $authKey = $this->encryptor->decrypt($authKey);
+        }
+
+        return $authKey;
     }
 
     /**

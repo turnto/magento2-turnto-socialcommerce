@@ -15,7 +15,7 @@
 
 namespace TurnTo\SocialCommerce\Controller\SSO;
 
-use \Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Controller\ResultFactory;
 
 class GetUserStatus extends \Magento\Framework\App\Action\Action
 {
@@ -66,8 +66,7 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
                     'last_name' => $customer->getLastname(),
                     'email' => $customer->getEmail(),
                     'email_confirmed' => true,
-                    'nickname' => null,
-                    'issued_at' => time()
+                    'nick_name' => $customer->getFirstname()
                 ]
             ];
         } else {
@@ -80,6 +79,11 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
             $customerData['signature'] = $this->getSignature($customerData);
         }
 
+        /*
+         * Due to a bug in the TurnTo code, the signature must be computed using nick_name but nickname (not snake case
+         * must be included in the payload so the TurnTo code will pick up the value and not fail.
+         */
+        $customerData['payload']['nickname'] = $customer->getFirstname();
         $resultJson = $this->resultFactory->create(ResultFactory::TYPE_JSON);
         $resultJson->setData($customerData);
 
