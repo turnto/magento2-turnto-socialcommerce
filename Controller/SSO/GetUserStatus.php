@@ -38,17 +38,15 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
      * GetUserStatus constructor.
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Magento\Customer\Model\Session $customerSession
-     * @param ResultFactory $resultFactory
      * @param \TurnTo\SocialCommerce\Helper\Config $configHelper
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Customer\Model\Session $customerSession,
-        ResultFactory $resultFactory,
         \TurnTo\SocialCommerce\Helper\Config $configHelper
     ) {
         $this->customerSession = $customerSession;
-        $this->resultFactory = $resultFactory;
+        $this->resultFactory = $context->getResultFactory();
         $this->configHelper = $configHelper;
         parent::__construct($context);
     }

@@ -34,6 +34,27 @@ class CreatePost extends \Magento\Customer\Controller\Account\CreatePost
      */
     protected $storeManager;
 
+    /**
+     * CreatePost constructor.
+     * @param \Magento\Framework\App\Action\Context $context
+     * @param \Magento\Customer\Model\Session $customerSession
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Customer\Api\AccountManagementInterface $accountManagement
+     * @param \Magento\Customer\Helper\Address $addressHelper
+     * @param \Magento\Framework\UrlFactory $urlFactory
+     * @param \Magento\Customer\Model\Metadata\FormFactory $formFactory
+     * @param \Magento\Newsletter\Model\SubscriberFactory $subscriberFactory
+     * @param \Magento\Customer\Api\Data\RegionInterfaceFactory $regionDataFactory
+     * @param \Magento\Customer\Api\Data\AddressInterfaceFactory $addressDataFactory
+     * @param \Magento\Customer\Api\Data\CustomerInterfaceFactory $customerDataFactory
+     * @param \Magento\Customer\Model\Url $customerUrl
+     * @param \Magento\Customer\Model\Registration $registration
+     * @param \Magento\Framework\Escaper $escaper
+     * @param \Magento\Customer\Model\CustomerExtractor $customerExtractor
+     * @param \Magento\Framework\Api\DataObjectHelper $dataObjectHelper
+     * @param \Magento\Customer\Model\Account\Redirect $accountRedirect
+     */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Customer\Model\Session $customerSession,
@@ -52,10 +73,9 @@ class CreatePost extends \Magento\Customer\Controller\Account\CreatePost
         \Magento\Framework\Escaper $escaper,
         \Magento\Customer\Model\CustomerExtractor $customerExtractor,
         \Magento\Framework\Api\DataObjectHelper $dataObjectHelper,
-        \Magento\Customer\Model\Account\Redirect $accountRedirect,
-        \Magento\Framework\Controller\ResultFactory $resultFactory
+        \Magento\Customer\Model\Account\Redirect $accountRedirect
     ){
-        $this->resultFactory = $resultFactory;
+        $this->resultFactory = $context->getResultFactory();
         $this->customerSession = $customerSession;
         $this->storeManager = $storeManager;
         parent::__construct(

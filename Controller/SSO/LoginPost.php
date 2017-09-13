@@ -42,7 +42,6 @@ class LoginPost extends \Magento\Customer\Controller\Account\LoginPost
      * @param \Magento\Customer\Model\Url $customerHelperData
      * @param \Magento\Framework\Data\Form\FormKey\Validator $formKeyValidator
      * @param \Magento\Customer\Model\Account\Redirect $accountRedirect
-     * @param ResultFactory $resultFactory
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      */
     public function __construct(
@@ -52,10 +51,9 @@ class LoginPost extends \Magento\Customer\Controller\Account\LoginPost
         \Magento\Customer\Model\Url $customerHelperData,
         \Magento\Framework\Data\Form\FormKey\Validator $formKeyValidator,
         \Magento\Customer\Model\Account\Redirect $accountRedirect,
-        ResultFactory $resultFactory,
         \Magento\Store\Model\StoreManagerInterface $storeManager
     ){
-        $this->resultFactory = $resultFactory;
+        $this->resultFactory = $context->getResultFactory();
         $this->customerSession = $customerSession;
         $this->storeManager = $storeManager;
         parent::__construct(
