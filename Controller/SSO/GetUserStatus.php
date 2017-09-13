@@ -76,7 +76,7 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
         }
 
         if (!is_null($customerData['payload']['user_auth_token'])) {
-            $customerData['signature'] = $this->getSignature($customerData);
+            $customerData['signature'] = $this->getSignature($customerData['payload']);
         }
 
         /*
