@@ -66,7 +66,8 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
                     'last_name' => $customer->getLastname(),
                     'email' => $customer->getEmail(),
                     'email_confirmed' => true,
-                    'nick_name' => $customer->getFirstname()
+                    'nick_name' => $customer->getFirstname(),
+                    'issued_at' => time()
                 ]
             ];
         } else {
