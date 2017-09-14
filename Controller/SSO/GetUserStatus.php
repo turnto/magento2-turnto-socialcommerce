@@ -65,7 +65,10 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
                     'first_name' => $customer->getFirstname(),
                     'last_name' => $customer->getLastname(),
                     'email' => $customer->getEmail(),
-                    'email_confirmed' => true,
+                    // The TurnTo backend currently returns a 1 or a 0 for boolean values which messes up the signature
+                    // generation process. This will eventually be fixed to cast the 'email_confirmed' value to a
+                    // boolean but for now it is fine to use 'true' since it will be parsed as true.
+                    'email_confirmed' => 'true',
                     'nick_name' => $customer->getFirstname(),
                     'issued_at' => time()
                 ]
