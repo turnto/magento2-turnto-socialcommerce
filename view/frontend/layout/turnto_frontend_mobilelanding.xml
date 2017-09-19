@@ -20,6 +20,8 @@
             <block template="TurnTo_SocialCommerce::mobilelanding.phtml"
                class="Magento\Framework\View\Element\Template"
                name="turnto_frontend_mobilelanding"/>
+            <!-- Remove extraneous HTML/JS that is being output above the <html> tag -->
+            <referenceBlock name="after.body.start" remove="true"/>
         </referenceContainer>
     </body>
 </page>
