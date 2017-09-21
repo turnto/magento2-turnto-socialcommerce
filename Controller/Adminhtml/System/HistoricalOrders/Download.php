@@ -82,9 +82,10 @@ class Download extends \Magento\Backend\App\Action
      */
     public function execute()
     {
-        $date = $this->getRequest()->getParam('from_date');
+        $fromDate = $this->getRequest()->getParam('from_date');
+        $toDate = $this->getRequest()->getParam('to_date');
         $storeId = $this->getRequest()->getParam('store_ids');
-        $feedData = $this->ordersModel->getOrdersFeed($storeId, $date);
+        $feedData = $this->ordersModel->getOrdersFeed($storeId, $fromDate, $toDate);
 
         return $this->fileFactory->create(
             self::DOWNLOAD_FILENAME,

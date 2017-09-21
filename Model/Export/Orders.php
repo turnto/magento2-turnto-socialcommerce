@@ -146,6 +146,7 @@ class Orders extends AbstractExport
                     $feedData = $this->getOrdersFeed(
                         $store->getId(),
                         $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P2D')),
+                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC')),
                         true
                     );
                     $this->transmitFeed($feedData, $store);
@@ -164,14 +165,15 @@ class Orders extends AbstractExport
 
     /**
      * @param $storeId
-     * @param $startDateTime
+     * @param $fromDate
+     * @param $toDate
      * @param bool $includeDeliveryDate
      * @return null|string
      */
-    public function getOrdersFeed($storeId, $startDateTime, $includeDeliveryDate = false)
+    public function getOrdersFeed($storeId, $fromDate, $toDate, $includeDeliveryDate = false)
     {
         $csvData = null;
-        $searchCriteria = $this->getOrdersSearchCriteria($storeId, $startDateTime);
+        $searchCriteria = $this->getOrdersSearchCriteria($storeId, $fromDate, $toDate);
 
         try {
             $outputHandle = fopen(self::TEMP_FILE_PATH, 'w');
@@ -216,22 +218,27 @@ class Orders extends AbstractExport
 
     /**
      * @param $storeId
-     * @param $startDateTime
+     * @param $fromDate
+     * @param $toDate
      * @return \Magento\Framework\Api\SearchCriteria
      */
-    public function getOrdersSearchCriteria($storeId, $startDateTime)
+    public function getOrdersSearchCriteria($storeId, $fromDate, $toDate)
     {
-        if (!isset($startDateTime)) {
-            $startDateTime = $this->dateTimeFactory->create('1900-1-1T00:00:00', new \DateTimeZone('UTC'));
-        } elseif (is_string($startDateTime)) {
-            $startDateTime = $this->dateTimeFactory->create($startDateTime, new \DateTimeZone('UTC'));
-        }
+        $fromDate = $this->dateTimeFactory->create($fromDate, new \DateTimeZone('UTC'));
+        // A normal user would expect the "To" date to include orders on that date. However, by default the field will
+        // hold a value where the time is YYYY-MM-DD 00:00:00.000000. The below code will add one day the "To" date then
+        // subtract 1 second so that all orders placed before YYYY-MM-DD 23:59:59:000000 will be picked up.
+        $toDate = $this->dateTimeFactory
+            ->create($toDate, new \DateTimeZone('UTC'))
+            ->add(new \DateInterval('P1D'))
+            ->sub(new \DateInterval('PT1S'));
 
         return $this->getSearchCriteria(
             $this->getSortOrder(self::UPDATED_AT_FIELD_ID),
             [
                 $this->getFilter(self::STORE_ID_FIELD_ID, $storeId, 'eq'),
-                $this->getFilter(self::UPDATED_AT_FIELD_ID, $startDateTime->format(DATE_ISO8601), 'gteq')
+                $this->getFilter(self::UPDATED_AT_FIELD_ID, $fromDate->format(DATE_ISO8601), 'gteq'),
+                $this->getFilter(self::UPDATED_AT_FIELD_ID, $toDate->format(DATE_ISO8601), 'lteq')
             ]
         );
     }

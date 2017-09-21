@@ -77,10 +77,27 @@
                     <item name="dataType" xsi:type="string">text</item>
                     <item name="formElement" xsi:type="string">date</item>
                     <item name="validation" xsi:type="array">
+                        <item name="required-entry" xsi:type="boolean">true</item>
                         <item name="validate-date" xsi:type="boolean">true</item>
                     </item>
                     <item name="source" xsi:type="string">turnto</item>
                     <item name="dataScope" xsi:type="string">from_date</item>
+                </item>
+            </argument>
+        </field>
+        <field name="to_date">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="label" xsi:type="string">To</item>
+                    <item name="visible" xsi:type="boolean">true</item>
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="formElement" xsi:type="string">date</item>
+                    <item name="validation" xsi:type="array">
+                        <item name="required-entry" xsi:type="boolean">true</item>
+                        <item name="validate-date" xsi:type="boolean">true</item>
+                    </item>
+                    <item name="source" xsi:type="string">turnto</item>
+                    <item name="dataScope" xsi:type="string">to_date</item>
                 </item>
             </argument>
         </field>
