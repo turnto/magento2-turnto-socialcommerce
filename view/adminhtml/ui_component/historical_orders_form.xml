@@ -82,6 +82,9 @@
                     </item>
                     <item name="source" xsi:type="string">turnto</item>
                     <item name="dataScope" xsi:type="string">from_date</item>
+                    <item name="tooltip" xsi:type="array">
+                        <item name="description" xsi:type="string" translate="true">Orders modified (not created) within this date range will be exported.</item>
+                    </item>
                 </item>
             </argument>
         </field>
@@ -98,6 +101,9 @@
                     </item>
                     <item name="source" xsi:type="string">turnto</item>
                     <item name="dataScope" xsi:type="string">to_date</item>
+                    <item name="tooltip" xsi:type="array">
+                        <item name="description" xsi:type="string" translate="true">Orders modified (not created) within this date range will be exported.</item>
+                    </item>
                 </item>
             </argument>
         </field>
