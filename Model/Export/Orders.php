@@ -165,12 +165,12 @@ class Orders extends AbstractExport
 
     /**
      * @param $storeId
-     * @param $fromDate
-     * @param $toDate
+     * @param \DateTime $fromDate
+     * @param \DateTime $toDate
      * @param bool $includeDeliveryDate
      * @return null|string
      */
-    public function getOrdersFeed($storeId, $fromDate, $toDate, $includeDeliveryDate = false)
+    public function getOrdersFeed($storeId, \DateTime $fromDate, \DateTime $toDate, $includeDeliveryDate = false)
     {
         $csvData = null;
         $searchCriteria = $this->getOrdersSearchCriteria($storeId, $fromDate, $toDate);
@@ -218,21 +218,12 @@ class Orders extends AbstractExport
 
     /**
      * @param $storeId
-     * @param $fromDate
-     * @param $toDate
+     * @param \DateTime $fromDate
+     * @param \DateTime $toDate
      * @return \Magento\Framework\Api\SearchCriteria
      */
-    public function getOrdersSearchCriteria($storeId, $fromDate, $toDate)
+    public function getOrdersSearchCriteria($storeId, \DateTime $fromDate, \DateTime $toDate)
     {
-        $fromDate = $this->dateTimeFactory->create($fromDate, new \DateTimeZone('UTC'));
-        // A normal user would expect the "To" date to include orders on that date. However, by default the field will
-        // hold a value where the time is YYYY-MM-DD 00:00:00.000000. The below code will add one day the "To" date then
-        // subtract 1 second so that all orders placed before YYYY-MM-DD 23:59:59:000000 will be picked up.
-        $toDate = $this->dateTimeFactory
-            ->create($toDate, new \DateTimeZone('UTC'))
-            ->add(new \DateInterval('P1D'))
-            ->sub(new \DateInterval('PT1S'));
-
         return $this->getSearchCriteria(
             $this->getSortOrder(self::UPDATED_AT_FIELD_ID),
             [
