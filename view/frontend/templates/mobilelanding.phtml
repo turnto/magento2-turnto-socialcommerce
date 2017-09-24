@@ -9,39 +9,43 @@
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
  *
- * @copyright  Copyright (c) 2016 TurnTo Networks, Inc.
+ * @copyright  Copyright (c) 2017 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
+
+
+/** @var TurnTo\SocialCommerce\Helper\Config $helper */
+$helper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
+
+$mobilePageTitle = $helper->getMobilePageTitle();
+$siteKey = $helper->getSiteKey();
+$staticUrl = preg_replace("(^https?://)", "//", $helper->getStaticUrl());
+$version = $helper->getTurnToVersion();
+$customConfiguration = $helper->getCustomConfigurationJs();
 ?>
 <!DOCTYPE HTML PUBLIC "-­//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
     <head>
-        <?php
-        /** @var TurnTo\SocialCommerce\Helper\Config $helper */
-        $helper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
-        ?>
-        <title><?= $helper->getMobilePageTitle(); ?></title>
+        <title><?= $mobilePageTitle ?></title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
         <meta name="apple-mobile-web-app-capable" content="yes"/>
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-
         <script type="text/javascript">
             var turnToConfig = {
-                siteKey: "<?= $helper->getSiteKey($helper->getCurrentStoreCode()); ?>",
+                siteKey: "<?= $siteKey ?>",
                 setupType:"mobileTT"
             };
 
-            <?php if ($helper->getCustomConfigurationJs()): ?>
-                var customConfiguration = <?= $helper->getCustomConfigurationJs() ?>;
+            <?php if ($customConfiguration): ?>
+                var customConfiguration = <?= $customConfiguration ?>;
                 // Add the keys from the user-supplied object to the existing turnToConfig object
                 for (var k in customConfiguration) {
                     turnToConfig[k]=customConfiguration[k];
                 }
             <?php endif; ?>
+
         </script>
-        <script type="text/javascript" src="//static.www.turnto.com/tra<?php
-            echo $helper->getTurnToVersion($helper->getCurrentStoreCode());
-        ?>/mobile-landing.js"></script>
+        <script type="text/javascript" src="<?= sprintf('%s/tra%s/mobile-landing.js', $staticUrl, $version) ?>"></script>
     </head>
     <body>
         <div id="mobileTT-content"></div>

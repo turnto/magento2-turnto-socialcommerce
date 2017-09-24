@@ -9,7 +9,7 @@
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
  *
- * @copyright  Copyright (c) 2016 TurnTo Networks, Inc.
+ * @copyright  Copyright (c) 2017 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
@@ -40,6 +40,10 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_PATH_SOCIALCOMMERCE_URL = 'turnto_socialcommerce_configuration/general/url';
 
     const XML_PATH_SOCIALCOMMERCE_IMAGE_STORE_BASE = 'turnto_socialcommerce_configuration/general/image_store_base';
+
+    const XML_PATH_SOCIALCOMMERCE_USE_CHILD_SKU = 'turnto_socialcommerce_configuration/general/use_child_sku';
+
+    const XML_PATH_SOCIALCOMMERCE_SINGLE_SIGN_ON = 'turnto_socialcommerce_configuration/general/single_sign_on';
 
     const XML_PATH_SOCIALCOMMERCE_CUSTOM_CONFIGURATION = 'turnto_socialcommerce_configuration/general/custom_configuration';
 
@@ -144,20 +148,26 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     protected $resourceModel = null;
 
     /**
+     * @var \Magento\Framework\Encryption\Encryptor
+     */
+    protected $encryptor;
+
+    /**
      * Config constructor.
-     *
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Config\Model\ResourceModel\Config $resourceModel
+     * @param \Magento\Framework\Encryption\Encryptor $encryptor
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Config\Model\ResourceModel\Config $resourceModel
+        \Magento\Config\Model\ResourceModel\Config $resourceModel,
+        \Magento\Framework\Encryption\Encryptor $encryptor
     ) {
         $this->storeManager = $storeManager;
         $this->resourceModel = $resourceModel;
-
+        $this->encryptor = $encryptor;
         parent::__construct($context);
     }
 
@@ -265,6 +275,36 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Gets the Use Child SKU configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
+    public function getUseChildSku($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_USE_CHILD_SKU,
+            ScopeInterface::SCOPE_STORE,
+            isset($store) ? $store : $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * Gets the Enable Single Sign On configuration value
+     *
+     * @param null $store
+     * @return mixed
+     */
+    public function getSingleSignOn($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_SINGLE_SIGN_ON,
+            ScopeInterface::SCOPE_STORE,
+            isset($store) ? $store : $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
      * Get custom configuration entered by user via admin
      *
      * @param null $store
@@ -310,11 +350,17 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getAuthorizationKey($store = null)
     {
-        return $this->scopeConfig->getValue(
+        $authKey = $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_AUTHORIZATION_KEY,
             ScopeInterface::SCOPE_STORE,
             $store ? $store : $this->getCurrentStoreCode()
         );
+
+        if ($authKey) {
+            $authKey = $this->encryptor->decrypt($authKey);
+        }
+
+        return $authKey;
     }
 
     /**

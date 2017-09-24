@@ -9,14 +9,21 @@
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
  *
- * @copyright  Copyright (c) 2016 TurnTo Networks, Inc.
+ * @copyright  Copyright (c) 2017 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
 namespace TurnTo\SocialCommerce\Block;
 
+use \Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+
 class Config extends \Magento\Catalog\Block\Product\View\Description
 {
+    /**
+     * @var \Magento\Catalog\Model\Product
+     */
+    protected $_product;
+
     /**
      * @var \TurnTo\SocialCommerce\Helper\Config
      */
@@ -45,6 +52,7 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
         $this->config = $config;
         $this->localeResolver = $localeResolver;
         parent::__construct($context, $registry, $data);
+        $this->_product = $this->getProduct();
     }
 
     /**
@@ -84,6 +92,15 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
             ];
         }
 
+        if ($this->config->getSingleSignOn()) {
+            $config['registration'] = [
+                'localGetLoginStatusFunction' => new \Zend_Json_Expr('localGetLoginStatusFunction'),
+                'localRegistrationUrl' => 'turnto/sso/login',
+                'localGetUserInfoFunction' => new \Zend_Json_Expr('localGetUserInfoFunction'),
+                'localLogoutFunction' => new \Zend_Json_Expr('localLogoutFunction')
+            ];
+        }
+
         /*
          * Zend_Json::encode is used instead of json_encode because the values of iTeaserFunc and reviewsTeaserFunc
          * have to be a JavaScript object. json_encode has no way to accomplish this. See this stack overflow question
@@ -99,4 +116,38 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
     {
         return $this->localeResolver->getLocale();
     }
+
+    /**
+     * @return string
+     */
+    public function getProductSku()
+    {
+        $product = $this->_product;
+
+        if ($this->config->getUseChildSku() && $product->getTypeId() == Configurable::TYPE_CODE) {
+            return array_values($product->getTypeInstance()->getUsedProducts($product))[0]->getSku();
+        }
+
+        return $product->getSku();
+    }
+    
+    public function getGallerySkus()
+    {
+        $product = $this->_product;
+        $gallerySkus = [];
+
+        if ($product->getTypeId() == Configurable::TYPE_CODE) {
+            $children = $product->getTypeInstance()->getUsedProducts($product);
+            if (count($children) > 0) {
+                foreach ($children as $child) {
+                    $gallerySkus[] = $child->getSku();
+                }
+            }
+        } else {
+            $gallerySkus[] = $product->getSku();
+        }
+
+        return json_encode($gallerySkus);
+    }
+
 }

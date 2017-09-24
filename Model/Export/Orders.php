@@ -9,7 +9,7 @@
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
  *
- * @copyright  Copyright (c) 2016 TurnTo Networks, Inc.
+ * @copyright  Copyright (c) 2017 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
@@ -474,7 +474,7 @@ class Orders extends AbstractExport
         $row[] = $this->getOrderPostCode($order);
         $row[] = $order->getCustomerFirstname();
         $row[] = $order->getCustomerLastname();
-        $row[] = $product->getSku();
+        $row[] = $this->config->getUseChildSku($order->getStoreId()) ? $lineItem->getSku() : $product->getSku();
         $row[] = $lineItem->getOriginalPrice();
         $row[] = $this->productHelper->getImageUrl($product);
         $row[] = $shipmentDate;
