@@ -170,7 +170,7 @@ class Orders extends AbstractExport
      * @param bool $includeDeliveryDate
      * @return null|string
      */
-    public function getOrdersFeed($storeId, \DateTime $fromDate, \DateTime $toDate, $includeDeliveryDate = false)
+    public function getOrdersFeed($storeId, \DateTime $fromDate, \DateTime $toDate, $includeDeliveryDate = true)
     {
         $csvData = null;
         $searchCriteria = $this->getOrdersSearchCriteria($storeId, $fromDate, $toDate);
