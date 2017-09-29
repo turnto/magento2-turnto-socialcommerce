@@ -136,7 +136,7 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
         $product = $this->_product;
         $gallerySkus = [];
 
-        if ($product->getTypeId() == Configurable::TYPE_CODE) {
+        if ($this->config->getUseChildSku() && $product->getTypeId() == Configurable::TYPE_CODE) {
             $children = $product->getTypeInstance()->getUsedProducts($product);
             if (count($children) > 0) {
                 foreach ($children as $child) {
