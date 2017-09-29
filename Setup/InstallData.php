@@ -160,6 +160,7 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
                     'backend' => '\Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend',
                     'label' => self::AVERAGE_RATING_ATTRIBUTE_LABEL,
                     'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_GLOBAL,
+                    'required' => false,
                     'used_in_product_listing' => true,
                     'is_visible_on_front' => true,
                     'user_defined' => false,

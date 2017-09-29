@@ -1,3 +1,7 @@
+## 1.1.0 (2017-09-24)
+* Add SSO (Single Sign On) feature ([#14](https://github.com/turnto/magento2-turnto-socialcommerce/issues/14))
+* Add support for using child/variant SKUs instead of parent SKUs ([#8](https://github.com/turnto/magento2-turnto-socialcommerce/issues/8))
+
 ## 1.0.4 (2017-07-28)
 
 * Add user-supplied turnToConfig JS to all places it is used ([#5](https://github.com/turnto/magento2-turnto-socialcommerce/issues/5))
