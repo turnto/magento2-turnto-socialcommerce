@@ -308,7 +308,7 @@
             </group>
             <group id="historical_orders_feed" translate="label" sortOrder="90" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Historical Orders Feed</label>
-                <comment>If enabled, Magento submits a feed of recently updated orders to TurnTo on a nightly basis. TurnTo uses this order feed data to populate owner pools for Q&amp;A and to schedule review solicitation emails based optionally on ship date instead of order date. In the file that is sent to TurnTo, the ship date (DELIVERYDATE) column is populated by sending the "created at" date of the first shipment that is linked to an order.</comment>
+                <comment>If enabled, Magento submits a feed of recently updated orders to TurnTo on a nightly basis. TurnTo uses this order feed data to populate owner pools for Q&amp;A and to schedule review solicitation emails based optionally on ship date instead of order date. In the file that is sent to TurnTo, the ship date (DELIVERYDATE) column is the creation date of the shipment that contains that specific order item.</comment>
                 <field id="enable_historical_feed" type="select" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Enable Automated Feed Submission</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
