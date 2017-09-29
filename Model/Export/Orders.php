@@ -81,7 +81,6 @@ class Orders extends AbstractExport
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
-     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
@@ -98,7 +97,6 @@ class Orders extends AbstractExport
         \TurnTo\SocialCommerce\Helper\Config $config,
         \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
@@ -123,7 +121,6 @@ class Orders extends AbstractExport
             $config,
             $productCollectionFactory,
             $logger,
-            $encryptor,
             $dateTimeFactory,
             $searchCriteriaBuilder,
             $filterBuilder,
@@ -253,10 +250,8 @@ class Orders extends AbstractExport
                 ->setMethod(\Zend_Http_Client::POST)
                 ->setParameterPost(
                     [
-                        'siteKey' => $this->config
-                            ->getSiteKey($store->getCode()),
-                        'authKey' => $this->encryptor->decrypt($this->config
-                            ->getAuthorizationKey($store->getCode())),
+                        'siteKey' => $this->config->getSiteKey($store->getCode()),
+                        'authKey' => $this->config->getAuthorizationKey($store->getCode()),
                         'feedStyle' => self::FEED_STYLE
                     ]
                 )
