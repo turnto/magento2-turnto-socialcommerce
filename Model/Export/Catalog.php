@@ -396,9 +396,25 @@ class Catalog extends AbstractExport
         $entry->addChild('g:availability', $product->getQuantityAndStockStatus() == 1 ? 'in stock' : 'out of stock');
         $entry->addChild('g:price', $product->getPrice() . ' ' . $store->getBaseCurrencyCode());
         $entry->addChild('g:description', $this->sanitizeData($product->getDescription()));
+        $itemGroupId = $this->getItemGroupId($product, $parent);
         if ($parent) {
-            $entry->addChild('g:item_group_id', $parent->getSku());
+            $entry->addChild('g:item_group_id', $itemGroupId);
         }
+    }
+    
+    /**
+     * Get item group ID for a given product
+     *
+     * @param \Magento\Catalog\Model\Product $product
+     * @param \Magento\Catalog\Model\Product|bool $parent
+     * @return string|bool
+     */
+    public function getItemGroupId($product, $parent)
+    {
+        if ($parent) {
+            return $parent->getSku();
+        }
+        return false;
     }
 
     /**
