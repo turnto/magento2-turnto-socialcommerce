@@ -146,7 +146,7 @@ class AbstractExport
      * @param \Magento\Store\Api\Data\StoreInterface $store
      * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
      */
-    protected function getProducts(\Magento\Store\Api\Data\StoreInterface $store)
+    public function getProducts(\Magento\Store\Api\Data\StoreInterface $store)
     {
         $collection = $this->productCollectionFactory->create()
             ->addAttributeToSelect('id')
