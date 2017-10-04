@@ -81,7 +81,6 @@ class Orders extends AbstractExport
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
-     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
@@ -98,7 +97,6 @@ class Orders extends AbstractExport
         \TurnTo\SocialCommerce\Helper\Config $config,
         \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
@@ -123,7 +121,6 @@ class Orders extends AbstractExport
             $config,
             $productCollectionFactory,
             $logger,
-            $encryptor,
             $dateTimeFactory,
             $searchCriteriaBuilder,
             $filterBuilder,
@@ -146,6 +143,7 @@ class Orders extends AbstractExport
                     $feedData = $this->getOrdersFeed(
                         $store->getId(),
                         $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P2D')),
+                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC')),
                         true
                     );
                     $this->transmitFeed($feedData, $store);
@@ -164,14 +162,15 @@ class Orders extends AbstractExport
 
     /**
      * @param $storeId
-     * @param $startDateTime
+     * @param \DateTime $fromDate
+     * @param \DateTime $toDate
      * @param bool $includeDeliveryDate
      * @return null|string
      */
-    public function getOrdersFeed($storeId, $startDateTime, $includeDeliveryDate = false)
+    public function getOrdersFeed($storeId, \DateTime $fromDate, \DateTime $toDate, $includeDeliveryDate = true)
     {
         $csvData = null;
-        $searchCriteria = $this->getOrdersSearchCriteria($storeId, $startDateTime);
+        $searchCriteria = $this->getOrdersSearchCriteria($storeId, $fromDate, $toDate);
 
         try {
             $outputHandle = fopen(self::TEMP_FILE_PATH, 'w');
@@ -216,22 +215,18 @@ class Orders extends AbstractExport
 
     /**
      * @param $storeId
-     * @param $startDateTime
+     * @param \DateTime $fromDate
+     * @param \DateTime $toDate
      * @return \Magento\Framework\Api\SearchCriteria
      */
-    public function getOrdersSearchCriteria($storeId, $startDateTime)
+    public function getOrdersSearchCriteria($storeId, \DateTime $fromDate, \DateTime $toDate)
     {
-        if (!isset($startDateTime)) {
-            $startDateTime = $this->dateTimeFactory->create('1900-1-1T00:00:00', new \DateTimeZone('UTC'));
-        } elseif (is_string($startDateTime)) {
-            $startDateTime = $this->dateTimeFactory->create($startDateTime, new \DateTimeZone('UTC'));
-        }
-
         return $this->getSearchCriteria(
             $this->getSortOrder(self::UPDATED_AT_FIELD_ID),
             [
                 $this->getFilter(self::STORE_ID_FIELD_ID, $storeId, 'eq'),
-                $this->getFilter(self::UPDATED_AT_FIELD_ID, $startDateTime->format(DATE_ISO8601), 'gteq')
+                $this->getFilter(self::UPDATED_AT_FIELD_ID, $fromDate->format(DATE_ISO8601), 'gteq'),
+                $this->getFilter(self::UPDATED_AT_FIELD_ID, $toDate->format(DATE_ISO8601), 'lteq')
             ]
         );
     }
@@ -253,10 +248,8 @@ class Orders extends AbstractExport
                 ->setMethod(\Zend_Http_Client::POST)
                 ->setParameterPost(
                     [
-                        'siteKey' => $this->config
-                            ->getSiteKey($store->getCode()),
-                        'authKey' => $this->encryptor->decrypt($this->config
-                            ->getAuthorizationKey($store->getCode())),
+                        'siteKey' => $this->config->getSiteKey($store->getCode()),
+                        'authKey' => $this->config->getAuthorizationKey($store->getCode()),
                         'feedStyle' => self::FEED_STYLE
                     ]
                 )

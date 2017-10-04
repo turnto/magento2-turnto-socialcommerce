@@ -43,7 +43,6 @@ class Reviews extends AbstractExport
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
-     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
@@ -59,7 +58,6 @@ class Reviews extends AbstractExport
         \TurnTo\SocialCommerce\Helper\Config $config,
         \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
@@ -80,7 +78,6 @@ class Reviews extends AbstractExport
             $config,
             $productCollectionFactory,
             $logger,
-            $encryptor,
             $dateTimeFactory,
             $searchCriteriaBuilder,
             $filterBuilder,

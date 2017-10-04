@@ -41,7 +41,7 @@ class Ratings extends AbstractImport
     {
         return self::TURNTO_EXPORT_BASE_URI
             . $this->config->getSiteKey($store->getCode())
-            . '/' . $this->encryptor->decrypt($this->config->getAuthorizationKey($store->getCode()))
+            . '/' . $this->config->getAuthorizationKey($store->getCode())
             . '/' . self::TURNTO_AVERAGE_RATING_BY_SKU_NAME;
     }
 

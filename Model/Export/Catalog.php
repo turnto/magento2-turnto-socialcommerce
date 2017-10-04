@@ -49,7 +49,6 @@ class Catalog extends AbstractExport
      * @param Config $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
-     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
@@ -62,7 +61,6 @@ class Catalog extends AbstractExport
         \TurnTo\SocialCommerce\Helper\Config $config,
         \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
         \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
@@ -78,7 +76,6 @@ class Catalog extends AbstractExport
             $config,
             $productCollectionFactory,
             $logger,
-            $encryptor,
             $dateTimeFactory,
             $searchCriteriaBuilder,
             $filterBuilder,
@@ -122,10 +119,8 @@ class Catalog extends AbstractExport
                 ->setMethod(\Zend_Http_Client::POST)
                 ->setParameterPost(
                     [
-                        'siteKey' => $this->config
-                            ->getSiteKey($store->getCode()),
-                        'authKey' => $this->encryptor->decrypt($this->config
-                            ->getAuthorizationKey($store->getCode())),
+                        'siteKey' => $this->config->getSiteKey($store->getCode()),
+                        'authKey' => $this->config->getAuthorizationKey($store->getCode()),
                         'feedStyle' => self::FEED_STYLE
                     ]
                 )
@@ -401,9 +396,25 @@ class Catalog extends AbstractExport
         $entry->addChild('g:availability', $product->getQuantityAndStockStatus() == 1 ? 'in stock' : 'out of stock');
         $entry->addChild('g:price', $product->getPrice() . ' ' . $store->getBaseCurrencyCode());
         $entry->addChild('g:description', $this->sanitizeData($product->getDescription()));
+        $itemGroupId = $this->getItemGroupId($product, $parent);
         if ($parent) {
-            $entry->addChild('g:item_group_id', $parent->getSku());
+            $entry->addChild('g:item_group_id', $itemGroupId);
         }
+    }
+    
+    /**
+     * Get item group ID for a given product
+     *
+     * @param \Magento\Catalog\Model\Product $product
+     * @param \Magento\Catalog\Model\Product|bool $parent
+     * @return string|bool
+     */
+    public function getItemGroupId($product, $parent)
+    {
+        if ($parent) {
+            return $parent->getSku();
+        }
+        return false;
     }
 
     /**
