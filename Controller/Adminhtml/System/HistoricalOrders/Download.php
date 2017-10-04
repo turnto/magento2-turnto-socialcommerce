@@ -46,6 +46,11 @@ class Download extends \Magento\Backend\App\Action
     protected $logger = null;
 
     /**
+     * @var \Magento\Framework\Intl\DateTimeFactory|null
+     */
+    protected $dateTimeFactory = null;
+
+    /**
      * @var null|\TurnTo\SocialCommerce\Model\Export\Orders
      */
     protected $ordersModel = null;
@@ -58,6 +63,7 @@ class Download extends \Magento\Backend\App\Action
      * @param DirectoryList $directoryList
      * @param \TurnTo\SocialCommerce\Model\Export\Orders $ordersModel
      * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
+     * @param \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory
      */
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
@@ -65,7 +71,8 @@ class Download extends \Magento\Backend\App\Action
         \Magento\Framework\App\Response\Http\FileFactory $fileFactory,
         \Magento\Framework\App\Filesystem\DirectoryList $directoryList,
         \TurnTo\SocialCommerce\Model\Export\Orders $ordersModel,
-        \TurnTo\SocialCommerce\Logger\Monolog $logger
+        \TurnTo\SocialCommerce\Logger\Monolog $logger,
+        \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory
     ) {
         parent::__construct($context);
 
@@ -74,6 +81,7 @@ class Download extends \Magento\Backend\App\Action
         $this->directoryList = $directoryList;
         $this->ordersModel = $ordersModel;
         $this->logger = $logger;
+        $this->dateTimeFactory = $dateTimeFactory;
     }
 
     /**
@@ -82,9 +90,20 @@ class Download extends \Magento\Backend\App\Action
      */
     public function execute()
     {
-        $date = $this->getRequest()->getParam('from_date');
+        $fromDate = $this->getRequest()->getParam('from_date');
+        $toDate = $this->getRequest()->getParam('to_date');
         $storeId = $this->getRequest()->getParam('store_ids');
-        $feedData = $this->ordersModel->getOrdersFeed($storeId, $date);
+
+        $fromDate = $this->dateTimeFactory->create($fromDate, new \DateTimeZone('UTC'));
+        // A normal user would expect the "To" date to include orders on that date. However, by default the field will
+        // hold a value where the time is YYYY-MM-DD 00:00:00.000000. The below code will add one day the "To" date then
+        // subtract 1 second so that all orders placed before YYYY-MM-DD 23:59:59:000000 will be picked up.
+        $toDate = $this->dateTimeFactory
+            ->create($toDate, new \DateTimeZone('UTC'))
+            ->add(new \DateInterval('P1D'))
+            ->sub(new \DateInterval('PT1S'));
+
+        $feedData = $this->ordersModel->getOrdersFeed($storeId, $fromDate, $toDate);
 
         return $this->fileFactory->create(
             self::DOWNLOAD_FILENAME,

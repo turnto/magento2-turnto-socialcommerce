@@ -143,6 +143,7 @@ class Orders extends AbstractExport
                     $feedData = $this->getOrdersFeed(
                         $store->getId(),
                         $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P2D')),
+                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC')),
                         true
                     );
                     $this->transmitFeed($feedData, $store);
@@ -161,14 +162,15 @@ class Orders extends AbstractExport
 
     /**
      * @param $storeId
-     * @param $startDateTime
+     * @param \DateTime $fromDate
+     * @param \DateTime $toDate
      * @param bool $includeDeliveryDate
      * @return null|string
      */
-    public function getOrdersFeed($storeId, $startDateTime, $includeDeliveryDate = false)
+    public function getOrdersFeed($storeId, \DateTime $fromDate, \DateTime $toDate, $includeDeliveryDate = true)
     {
         $csvData = null;
-        $searchCriteria = $this->getOrdersSearchCriteria($storeId, $startDateTime);
+        $searchCriteria = $this->getOrdersSearchCriteria($storeId, $fromDate, $toDate);
 
         try {
             $outputHandle = fopen(self::TEMP_FILE_PATH, 'w');
@@ -213,22 +215,18 @@ class Orders extends AbstractExport
 
     /**
      * @param $storeId
-     * @param $startDateTime
+     * @param \DateTime $fromDate
+     * @param \DateTime $toDate
      * @return \Magento\Framework\Api\SearchCriteria
      */
-    public function getOrdersSearchCriteria($storeId, $startDateTime)
+    public function getOrdersSearchCriteria($storeId, \DateTime $fromDate, \DateTime $toDate)
     {
-        if (!isset($startDateTime)) {
-            $startDateTime = $this->dateTimeFactory->create('1900-1-1T00:00:00', new \DateTimeZone('UTC'));
-        } elseif (is_string($startDateTime)) {
-            $startDateTime = $this->dateTimeFactory->create($startDateTime, new \DateTimeZone('UTC'));
-        }
-
         return $this->getSearchCriteria(
             $this->getSortOrder(self::UPDATED_AT_FIELD_ID),
             [
                 $this->getFilter(self::STORE_ID_FIELD_ID, $storeId, 'eq'),
-                $this->getFilter(self::UPDATED_AT_FIELD_ID, $startDateTime->format(DATE_ISO8601), 'gteq')
+                $this->getFilter(self::UPDATED_AT_FIELD_ID, $fromDate->format(DATE_ISO8601), 'gteq'),
+                $this->getFilter(self::UPDATED_AT_FIELD_ID, $toDate->format(DATE_ISO8601), 'lteq')
             ]
         );
     }
