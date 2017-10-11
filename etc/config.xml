@@ -64,6 +64,7 @@
             </product_feed>
             <historical_orders_feed>
                 <enable_historical_feed>1</enable_historical_feed>
+                <exclude_items_without_delivery_date>0</exclude_items_without_delivery_date>
             </historical_orders_feed>
         </turnto_socialcommerce_configuration>
     </default>

@@ -143,8 +143,7 @@ class Orders extends AbstractExport
                     $feedData = $this->getOrdersFeed(
                         $store->getId(),
                         $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P2D')),
-                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC')),
-                        true
+                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))
                     );
                     $this->transmitFeed($feedData, $store);
                 } catch (\Exception $e) {
@@ -164,10 +163,10 @@ class Orders extends AbstractExport
      * @param $storeId
      * @param \DateTime $fromDate
      * @param \DateTime $toDate
-     * @param bool $includeDeliveryDate
+     * @param bool $forceIncludeAllItems
      * @return null|string
      */
-    public function getOrdersFeed($storeId, \DateTime $fromDate, \DateTime $toDate, $includeDeliveryDate = true)
+    public function getOrdersFeed($storeId, \DateTime $fromDate, \DateTime $toDate, $forceIncludeAllItems = false)
     {
         $csvData = null;
         $searchCriteria = $this->getOrdersSearchCriteria($storeId, $fromDate, $toDate);
@@ -193,7 +192,7 @@ class Orders extends AbstractExport
                 ],
                 "\t"
             );
-            $this->writeOrdersFeed($searchCriteria, $outputHandle, $includeDeliveryDate);
+            $this->writeOrdersFeed($searchCriteria, $outputHandle, $forceIncludeAllItems);
             rewind($outputHandle);
             $csvData = stream_get_contents($outputHandle);
         } catch (\Exception $e) {
@@ -282,9 +281,9 @@ class Orders extends AbstractExport
     /**
      * @param \Magento\Framework\Api\SearchCriteria $searchCriteria
      * @param $outputHandle
-     * @param bool $includeDeliveryDate
+     * @param bool $forceIncludeAllItems
      */
-    public function writeOrdersFeed(\Magento\Framework\Api\SearchCriteria $searchCriteria, $outputHandle, $includeDeliveryDate)
+    public function writeOrdersFeed(\Magento\Framework\Api\SearchCriteria $searchCriteria, $outputHandle, $forceIncludeAllItems)
     {
         $orderList = $this->orderService->getList($searchCriteria);
         $pageLimit = $orderList->getLastPageNumber();
@@ -296,7 +295,7 @@ class Orders extends AbstractExport
             $paginatedCollection->load();
             
             if ($paginatedCollection->count() > 0) {
-                $this->writeOrdersToFeed($outputHandle, $paginatedCollection, $includeDeliveryDate);
+                $this->writeOrdersToFeed($outputHandle, $paginatedCollection, $forceIncludeAllItems);
             }
         }
     }
@@ -304,10 +303,10 @@ class Orders extends AbstractExport
     /**
      * @param $outputHandle
      * @param $orders
-     * @param bool $includeDeliveryDate
+     * @param bool $forceIncludeAllItems
      * @return int
      */
-    protected function writeOrdersToFeed($outputHandle, $orders, $includeDeliveryDate)
+    protected function writeOrdersToFeed($outputHandle, $orders, $forceIncludeAllItems)
     {
         if (!isset($orders) || empty($orders)) {
             return 0;
@@ -316,7 +315,7 @@ class Orders extends AbstractExport
         $numberOfRecordsWritten = 0;
         foreach ($orders as $order) {
             try {
-                $this->writeOrderToFeed($outputHandle, $order, $includeDeliveryDate);
+                $this->writeOrderToFeed($outputHandle, $order, $forceIncludeAllItems);
             } catch (\Exception $e) {
                 $this->logger->error(
                     'An error occurred while writing the historical orders feed',
@@ -335,11 +334,11 @@ class Orders extends AbstractExport
     /**
      * @param $outputHandle
      * @param \Magento\Sales\Api\Data\OrderInterface $order
-     * @param bool $includeDeliveryDate
+     * @param bool $forceIncludeAllItems
      */
-    protected function writeOrderToFeed($outputHandle, \Magento\Sales\Api\Data\OrderInterface $order, $includeDeliveryDate)
+    protected function writeOrderToFeed($outputHandle, \Magento\Sales\Api\Data\OrderInterface $order, $forceIncludeAllItems)
     {
-        $items = $this->getItemData($order, $includeDeliveryDate);
+        $items = $this->getItemData($order, $forceIncludeAllItems);
         if (empty($items)) {
             return;
         }
@@ -359,10 +358,10 @@ class Orders extends AbstractExport
 
     /**
      * @param \Magento\Sales\Api\Data\OrderInterface $order
-     * @param bool $includeDeliveryDate
+     * @param bool $forceIncludeAllItems
      * @return array|mixed
      */
-    public function getItemData(\Magento\Sales\Api\Data\OrderInterface $order, $includeDeliveryDate)
+    public function getItemData(\Magento\Sales\Api\Data\OrderInterface $order, $forceIncludeAllItems)
     {
         $items = [];
         $orderId = $order->getEntityId();
@@ -382,8 +381,17 @@ class Orders extends AbstractExport
                 // Do nothing
             }
         }
-        if ($includeDeliveryDate) {
-            $items = $this->addShipDateToItemData($items, $orderId, $order->getStoreId());
+
+        $items = $this->addShipDateToItemData($items, $orderId, $order->getStoreId());
+        if (
+            !$forceIncludeAllItems
+            && $this->config->getExcludeItemsWithoutDeliveryDate($order->getStore()->getCode())
+        ) {
+            foreach ($items as $key => $item) {
+                if (empty($item['shipDate'])) {
+                    unset($items[$key]);
+                }
+            }
         }
 
         return $items;
