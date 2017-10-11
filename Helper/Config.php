@@ -118,6 +118,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_PATH_SOCIALCOMMERCE_FEED_SUBMISSION_URL = 'turnto_socialcommerce_configuration/product_feed/feed_submission_url';
 
     const XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_ENABLED = 'turnto_socialcommerce_configuration/historical_orders_feed/enable_historical_feed';
+
+    const XML_PATH_SOCIALCOMMERCE_EXCLUDE_ITEMS_WITHOUT_DELIVERY_DATE = 'turnto_socialcommerce_configuration/historical_orders_feed/exclude_items_without_delivery_date';
     
     const XML_PATH_EXPORT_FEED_URL = 'turnto_socialcommerce_configuration/product_feed/product_feed_url';
 
@@ -599,6 +601,19 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
             self::XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_ENABLED,
             ScopeInterface::SCOPE_STORE,
             $store ? $store : $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param $store
+     * @return mixed
+     */
+    public function getExcludeItemsWithoutDeliveryDate($store)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_EXCLUDE_ITEMS_WITHOUT_DELIVERY_DATE,
+            ScopeInterface::SCOPE_STORE,
+            $store
         );
     }
 }
