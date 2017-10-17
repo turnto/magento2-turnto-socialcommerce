@@ -91,6 +91,10 @@ When you add values to this configuration field, it is critical that you enter a
 
 If you experience issues with the extension, review the errors in the `var/log/turnto.log` file, as that is where all TurnTo errors are logged.
 
+### Troubleshooting issue when "Minify JavaScript Files" is enabled
+
+If you're using Magento's "Minify JavaScript Files" feature, see [this page](https://github.com/turnto/magento2-turnto-socialcommerce/issues/22#issuecomment-337093756) for details on how to get it working with this extension.
+
 # About TurnTo Social Commerce
 
 TurnTo is the fastest-growing provider of customer content solutions to top merchants and brands. With a unique suite of 4 innovative products that work beautifully together - Ratings & Reviews, Community Q&A, Visual Reviews, and Checkout Comments - TurnTo produces more content of more different types, delivering greater conversion lift, better SEO, and deeper merchandising insights. 
