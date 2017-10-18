@@ -103,7 +103,7 @@ class Download extends \Magento\Backend\App\Action
             ->add(new \DateInterval('P1D'))
             ->sub(new \DateInterval('PT1S'));
 
-        $feedData = $this->ordersModel->getOrdersFeed($storeId, $fromDate, $toDate);
+        $feedData = $this->ordersModel->getOrdersFeed($storeId, $fromDate, $toDate, true);
 
         return $this->fileFactory->create(
             self::DOWNLOAD_FILENAME,

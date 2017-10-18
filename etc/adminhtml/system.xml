@@ -316,6 +316,15 @@
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
+                <field id="exclude_items_without_delivery_date" type="select" translate="label" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Exclude Items Without a Delivery Date</label>
+                    <comment>Default is "No". If set to "No", all order items whose orders have been modified in the previous two days will be sent during each nightly CRON job (which means many order items will have a blank value for "DELIVERYDATE"). If set to "Yes", only the order items who have been shipped will get sent (which means all order items will have a "DELIVERYDATE" value).</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/historical_orders_feed/enable_historical_feed">1</field>
+                    </depends>
+                </field>
             </group>
         </section>
     </system>
