@@ -1,3 +1,7 @@
+## 1.1.2 (2017-10-18)
+* Add option to include/exclude order items from historical feed based on whether they've been shipped ([#20](https://github.com/turnto/magento2-turnto-socialcommerce/issues/20))
+* Misc bug fix ([#21(https://github.com/turnto/magento2-turnto-socialcommerce/issues/21)])
+
 ## 1.1.1 (2017-10-04)
 * Add option have a "from" date when exporting historical orders ([#18](https://github.com/turnto/magento2-turnto-socialcommerce/issues/18))
 * Make it possible for a developer to group reviews for similar products by modifying g:item_group_id value in the catalog feed ([#17](https://github.com/turnto/magento2-turnto-socialcommerce/pull/17)) 
