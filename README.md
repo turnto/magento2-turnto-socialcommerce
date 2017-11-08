@@ -91,8 +91,7 @@ When you add values to this configuration field, it is critical that you enter a
 
 The TurnTo extension implements a custom widget that allows an admin to insert "Visual Content" pinboards or "Checkout Comment" pinboards. To insert this widget, edit a CMS page or CMS block and click the "Insert Widget…" button and select "Social Commerce Pinboards". You'll then be able to configure and insert the widget using these options:
 
-[<img alt="Pinboard widget" src="README/
-pinboard_widget.png" width="550"/>](https://raw.githubusercontent.com/turnto/magento2-turnto-socialcommerce/master/README/pinboard_widget.png)
+[<img alt="Pinboard widget" src="README/pinboard_widget.png" width="550"/>](https://raw.githubusercontent.com/turnto/magento2-turnto-socialcommerce/master/README/pinboard_widget.png)
 
 ## Troubleshooting
 
