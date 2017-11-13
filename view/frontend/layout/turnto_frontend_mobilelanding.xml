@@ -15,13 +15,19 @@
  */
 -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="empty_blank" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+        <meta name="apple-mobile-web-app-capable" content="yes"/>
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+    </head>
     <body>
         <referenceContainer name="root">
-            <block template="TurnTo_SocialCommerce::mobilelanding.phtml"
-               class="Magento\Framework\View\Element\Template"
-               name="turnto_frontend_mobilelanding"/>
-            <!-- Remove extraneous HTML/JS that is being output above the <html> tag -->
-            <referenceBlock name="after.body.start" remove="true"/>
+            <block class="Magento\Framework\View\Element\Template" name="turnto_frontend_mobilelanding" template="TurnTo_SocialCommerce::mobilelanding.phtml"/>
         </referenceContainer>
+        <referenceBlock name="head.additional">
+            <block class="Magento\Framework\View\Element\Template" name="turnto.config.js.mobile.sso" template="TurnTo_SocialCommerce::config/sso.phtml"/>
+            <block class="TurnTo\SocialCommerce\Block\Config" name="turnto.config.js.mobile.config" template="TurnTo_SocialCommerce::mobilelanding/config.phtml"/>
+            <block class="Magento\Framework\View\Element\Template" name="turnto.config.js.mobile" template="TurnTo_SocialCommerce::mobilelanding/init.phtml"/>
+        </referenceBlock>
     </body>
 </page>

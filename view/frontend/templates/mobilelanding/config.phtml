@@ -14,4 +14,7 @@
  */
 ?>
 
-<div id="mobileTT-content"></div>
+<script type="text/javascript">
+    var turnToConfig = <?= $block->getConfigJson(false, false, false, false) ?>;
+    turnToConfig['setupType'] = "mobileTT";
+</script>
