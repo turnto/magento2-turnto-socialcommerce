@@ -111,7 +111,7 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
             ];
         }
 
-        if ($this->config->getCustomConfigurationJs()) {
+        if (is_array($this->config->getCustomConfigurationJs())) {
             $config = array_merge($config, $this->config->getCustomConfigurationJs());
         }
 
