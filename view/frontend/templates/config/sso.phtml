@@ -22,6 +22,7 @@ if ($singleSignOn): ?>
     <script type="text/javascript">
         function localLogoutFunction(callbackFn) {
             require(['jquery', 'mage/url'], function ($, urlBuilder) {
+                urlBuilder.setBaseUrl('<?= $block->getBaseUrl() ?>');
                 $.ajax({
                     type: "POST",
                     url: urlBuilder.build('customer/account/logout')
@@ -37,6 +38,7 @@ if ($singleSignOn): ?>
 
         function localGetUserInfoFunction(callbackFn) {
             require(['jquery', 'mage/url'], function ($, urlBuilder) {
+                urlBuilder.setBaseUrl('<?= $block->getBaseUrl() ?>');
                 $.ajax({
                     type: "POST",
                     url: urlBuilder.build('turnto/sso/getUserStatus')
