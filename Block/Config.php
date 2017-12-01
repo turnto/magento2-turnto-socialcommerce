@@ -105,7 +105,7 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
         if ($this->config->getSingleSignOn() && $loadSSO) {
             $config['registration'] = [
                 'localGetLoginStatusFunction' => new \Zend_Json_Expr('localGetLoginStatusFunction'),
-                'localRegistrationUrl' => 'turnto/sso/login',
+                'localRegistrationUrl' => $this->getBaseUrl() . 'turnto/sso/login',
                 'localGetUserInfoFunction' => new \Zend_Json_Expr('localGetUserInfoFunction'),
                 'localLogoutFunction' => new \Zend_Json_Expr('localLogoutFunction')
             ];
