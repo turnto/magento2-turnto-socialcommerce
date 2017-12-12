@@ -1,3 +1,6 @@
+## 1.2.0 (2017-12-12)
+* Add Single Sign On functionality to the mobile landing page ([#24](https://github.com/turnto/magento2-turnto-socialcommerce/pull/24))
+
 ## 1.1.2 (2017-10-18)
 * Add option to include/exclude order items from historical feed based on whether they've been shipped ([#20](https://github.com/turnto/magento2-turnto-socialcommerce/issues/20))
 * Misc bug fix ([#21](https://github.com/turnto/magento2-turnto-socialcommerce/issues/21))
