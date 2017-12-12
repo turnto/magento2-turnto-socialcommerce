@@ -257,18 +257,18 @@ class Orders extends AbstractExport
             $response = $zendClient->request();
 
             if (!$response || !$response->isSuccessful()) {
-                throw new \Exception('TurnTo catalog feed submission failed silently');
+                throw new \Exception('TurnTo order feed submission failed silently');
             }
 
             $body = $response->getBody();
 
             //It is possible to get a status 200 message who's body is an error message from TurnTo
             if (empty($body) || $body != Catalog::TURNTO_SUCCESS_RESPONSE) {
-                throw new \Exception("TurnTo catalog feed submission failed with message: $body");
+                throw new \Exception("TurnTo order feed submission failed with message: $body");
             }
         } catch (\Exception $e) {
             $this->logger->error(
-                'An error occurred while transmitting the catalog feed to TurnTo',
+                'An error occurred while transmitting the order feed to TurnTo',
                 [
                     'exception' => $e,
                     'response' => $response ? 'null' : $response->getBody()
