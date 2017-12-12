@@ -17,7 +17,11 @@
 <page layout="1column" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="content">
-            <block class="TurnTo\SocialCommerce\Block\Config" name="turnto.config.js" template="TurnTo_SocialCommerce::product/view/config.phtml" after="-" ifconfig="turnto_socialcommerce_configuration/general/enabled"/>
+            <block class="TurnTo\SocialCommerce\Block\Config" name="turnto.config.js" template="TurnTo_SocialCommerce::product/view/config.phtml" after="-" ifconfig="turnto_socialcommerce_configuration/general/enabled">
+                <block class="Magento\Framework\View\Element\Template" name="turnto.config.js.reviews" template="TurnTo_SocialCommerce::config/reviews.phtml" />
+                <block class="Magento\Framework\View\Element\Template" name="turnto.config.js.qa" template="TurnTo_SocialCommerce::config/qa.phtml" />
+                <block class="Magento\Framework\View\Element\Template" name="turnto.config.js.sso" template="TurnTo_SocialCommerce::config/sso.phtml" />
+            </block>
         </referenceContainer>
 
         <referenceBlock name="product.info.review">

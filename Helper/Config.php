@@ -432,7 +432,10 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         return $gtinMap;
     }
 
-
+    /**
+     * @param null $store
+     * @return mixed
+     */
     public function getCheckoutCommentsEnabledCheckoutSuccess($store = null)
     {
         return $this->scopeConfig->getValue(

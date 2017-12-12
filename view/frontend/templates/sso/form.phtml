@@ -53,6 +53,7 @@ $setupType = $configHelper->getSetupType();
         form.on('submit', function (event) {
             event.preventDefault();
             if (form.validation() && form.validation('isValid')) {
+                urlBuilder.setBaseUrl('<?= $block->getBaseUrl() ?>');
                 $.ajax({
                     url: urlBuilder.build('<?= $block->getPostUrl() ?>'),
                     method: "POST",

@@ -58,32 +58,42 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
     /**
      * Build config json to be assigned to the turnToConfig variable
      *
+     * @param bool $skipCssLoad
+     * @param bool $loadQA
+     * @param bool $loadReviews
+     * @param bool $loadCC
+     * @param bool $loadSSO
      * @return string
      */
-    public function getConfigJson()
-    {
+    public function getConfigJson(
+        $skipCssLoad = true,
+        $loadQA = true,
+        $loadReviews = true,
+        $loadCC = true,
+        $loadSSO = true
+    ){
         $config = [
             'siteKey' => $this->config->getSiteKey(),
             'host' => $this->config->getUrlWithoutProtocol(),
             'staticHost' => $this->config->getStaticUrlWithoutProtocol(),
-            'skipCssLoad' => true,
+            'skipCssLoad' => $skipCssLoad,
         ];
 
-        if ($this->config->getQaEnabled()) {
+        if ($this->config->getQaEnabled() && $loadQA) {
             $config['setupType'] = $this->config->getSetupType();
             if ($this->config->getQaTeaserEnabled()) {
                 $config['iTeaserFunc'] = new \Zend_Json_Expr('qaTeaser');
             }
         }
 
-        if ($this->config->getReviewsEnabled()) {
+        if ($this->config->getReviewsEnabled() && $loadReviews) {
             $config['reviewsSetupType'] = $this->config->getReviewsSetupType();
             if ($this->config->getReviewsTeaserEnabled()) {
                 $config['reviewsTeaserFunc'] = new \Zend_Json_Expr('reviewsTeaser');
             }
         }
 
-        if ($this->config->getCheckoutCommentsEnabledProductDetail()) {
+        if ($this->config->getCheckoutCommentsEnabledProductDetail() && $loadCC) {
             $config['chatter'] = [
                 'minimumCommentCount' => 1,
                 'minimumCommentCharacterCount' => 1,
@@ -92,13 +102,17 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
             ];
         }
 
-        if ($this->config->getSingleSignOn()) {
+        if ($this->config->getSingleSignOn() && $loadSSO) {
             $config['registration'] = [
                 'localGetLoginStatusFunction' => new \Zend_Json_Expr('localGetLoginStatusFunction'),
-                'localRegistrationUrl' => 'turnto/sso/login',
+                'localRegistrationUrl' => $this->getBaseUrl() . 'turnto/sso/login',
                 'localGetUserInfoFunction' => new \Zend_Json_Expr('localGetUserInfoFunction'),
                 'localLogoutFunction' => new \Zend_Json_Expr('localLogoutFunction')
             ];
+        }
+
+        if (is_array($this->config->getCustomConfigurationJs())) {
+            $config = array_merge($config, $this->config->getCustomConfigurationJs());
         }
 
         /*
@@ -130,7 +144,10 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
 
         return $product->getSku();
     }
-    
+
+    /**
+     * @return string
+     */
     public function getGallerySkus()
     {
         $product = $this->_product;
@@ -149,5 +166,4 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
 
         return json_encode($gallerySkus);
     }
-
 }
