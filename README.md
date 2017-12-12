@@ -87,9 +87,19 @@ These are the following locations where the `turnToConfig` object gets output on
 
 When you add values to this configuration field, it is critical that you enter a valid JS object and that you test to ensure you didn't cause any JS errors. 
 
+## Visual Content and Checkout Comment Pinboards
+
+The TurnTo extension implements a custom widget that allows an admin to insert "Visual Content" pinboards or "Checkout Comment" pinboards. To insert this widget, edit a CMS page or CMS block and click the "Insert Widget…" button and select "Social Commerce Pinboards". You'll then be able to configure and insert the widget using these options:
+
+[<img alt="Pinboard widget" src="README/pinboard_widget.png" width="550"/>](https://raw.githubusercontent.com/turnto/magento2-turnto-socialcommerce/master/README/pinboard_widget.png)
+
 ## Troubleshooting
 
 If you experience issues with the extension, review the errors in the `var/log/turnto.log` file, as that is where all TurnTo errors are logged.
+
+### Troubleshooting issue when "Minify JavaScript Files" is enabled
+
+If you're using Magento's "Minify JavaScript Files" feature, see [this page](https://github.com/turnto/magento2-turnto-socialcommerce/issues/22#issuecomment-337093756) for details on how to get it working with this extension.
 
 # About TurnTo Social Commerce
 
