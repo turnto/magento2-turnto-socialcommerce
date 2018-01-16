@@ -74,19 +74,29 @@ class Ratings extends AbstractImport
                 ]
             );
 
-        if ($product) {
-            $productId = (int)$product->getId();
-            $product->setData(InstallData::REVIEW_COUNT_ATTRIBUTE_CODE, $reviewCount);
-            $product->getResource()->saveAttribute($product, InstallData::REVIEW_COUNT_ATTRIBUTE_CODE);
-            $product->setData(InstallData::RATING_ATTRIBUTE_CODE, $averageRating);
-            $product->getResource()->saveAttribute($product, InstallData::RATING_ATTRIBUTE_CODE);
-            $filterValues = [];
-            foreach ($this->getRatingFilterAttributeValuesFromAverage($averageRating) as $optionText) {
-                $filterValues[] = $product->getResource()->getAttribute(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE)->getSource()->getOptionId($optionText);
-            }
-            $product->setData(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE, implode(',', $filterValues));
-            $product->getResource()->saveAttribute($product, InstallData::AVERAGE_RATING_ATTRIBUTE_CODE);
+        if (!$product) {
+            return $productId;
         }
+
+        // Only proceed if product needs to be updated
+        if (
+            $product->getData(InstallData::REVIEW_COUNT_ATTRIBUTE_CODE) == $reviewCount
+            && $product->getData(InstallData::RATING_ATTRIBUTE_CODE) == $averageRating
+        ) {
+            return $productId;
+        }
+
+        $productId = (int)$product->getId();
+        $product->setData(InstallData::REVIEW_COUNT_ATTRIBUTE_CODE, $reviewCount);
+        $product->getResource()->saveAttribute($product, InstallData::REVIEW_COUNT_ATTRIBUTE_CODE);
+        $product->setData(InstallData::RATING_ATTRIBUTE_CODE, $averageRating);
+        $product->getResource()->saveAttribute($product, InstallData::RATING_ATTRIBUTE_CODE);
+        $filterValues = [];
+        foreach ($this->getRatingFilterAttributeValuesFromAverage($averageRating) as $optionText) {
+            $filterValues[] = $product->getResource()->getAttribute(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE)->getSource()->getOptionId($optionText);
+        }
+        $product->setData(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE, implode(',', $filterValues));
+        $product->getResource()->saveAttribute($product, InstallData::AVERAGE_RATING_ATTRIBUTE_CODE);
 
         return $productId;
     }
