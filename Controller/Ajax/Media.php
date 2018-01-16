@@ -45,9 +45,9 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
         \Magento\Framework\App\ProductMetadataInterface $productMetadata
     ) {
         $this->config = $config;
-        $version = explode('.', $productMetadata->getVersion());
-        if (isset($version[1]) && $version[1] > 1) {
         $this->swatchHelper = $swatchHelper;
+        $version = $productMetadata->getVersion();
+        if (version_compare($version, '2.2.0', '>=')) {
             $this->loadParentConstructor($context, $productModelFactory, $swatchHelper);
         } else {
             $this->loadLegacyParentConstructor($context, $swatchHelper, $productModelFactory);
