@@ -25,6 +25,11 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
     protected $config;
 
     /**
+     * @var \Magento\Swatches\Helper\Data
+     */
+    protected $swatchHelper;
+
+    /**
      * Media constructor.
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Magento\Swatches\Helper\Data $swatchHelper
@@ -42,6 +47,7 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
         $this->config = $config;
         $version = explode('.', $productMetadata->getVersion());
         if (isset($version[1]) && $version[1] > 1) {
+        $this->swatchHelper = $swatchHelper;
             $this->loadParentConstructor($context, $productModelFactory, $swatchHelper);
         } else {
             $this->loadLegacyParentConstructor($context, $swatchHelper, $productModelFactory);
