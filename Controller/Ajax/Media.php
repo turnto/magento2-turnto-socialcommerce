@@ -30,14 +30,38 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
      * @param \Magento\Swatches\Helper\Data $swatchHelper
      * @param \Magento\Catalog\Model\ProductFactory $productModelFactory
      * @param \TurnTo\SocialCommerce\Helper\Config $config
+     * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Swatches\Helper\Data $swatchHelper,
         \Magento\Catalog\Model\ProductFactory $productModelFactory,
-        \TurnTo\SocialCommerce\Helper\Config $config
-    ){
+        \TurnTo\SocialCommerce\Helper\Config $config,
+        \Magento\Framework\App\ProductMetadataInterface $productMetadata
+    ) {
         $this->config = $config;
+        $version = explode('.', $productMetadata->getVersion());
+        if (isset($version[1]) && $version[1] > 1) {
+            $this->loadParentConstructor($context, $productModelFactory, $swatchHelper);
+        } else {
+            $this->loadLegacyParentConstructor($context, $swatchHelper, $productModelFactory);
+        }
+    }
+
+    public function loadParentConstructor(
+        \Magento\Framework\App\Action\Context $context,
+        \Magento\Catalog\Model\ProductFactory $productModelFactory,
+        \Magento\Swatches\Helper\Data $swatchHelper
+    ) {
+        parent::__construct($context, $productModelFactory, $swatchHelper);
+    }
+
+
+    public function loadLegacyParentConstructor(
+        \Magento\Framework\App\Action\Context $context,
+        \Magento\Swatches\Helper\Data $swatchHelper,
+        \Magento\Catalog\Model\ProductFactory $productModelFactory
+    ) {
         parent::__construct($context, $swatchHelper, $productModelFactory);
     }
 
