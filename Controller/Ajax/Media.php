@@ -54,6 +54,13 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
         }
     }
 
+    /**
+     * Call through to parent constructor with new order of arguments; Magento 2.2.x+
+     *
+     * @param \Magento\Framework\App\Action\Context $context
+     * @param \Magento\Catalog\Model\ProductFactory $productModelFactory
+     * @param \Magento\Swatches\Helper\Data $swatchHelper
+     */
     public function loadParentConstructor(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Catalog\Model\ProductFactory $productModelFactory,
@@ -62,7 +69,13 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
         parent::__construct($context, $productModelFactory, $swatchHelper);
     }
 
-
+    /**
+     * Call through to parent constructor with old order of arguments; Magento 2.1.x
+     *
+     * @param \Magento\Framework\App\Action\Context $context
+     * @param \Magento\Swatches\Helper\Data $swatchHelper
+     * @param \Magento\Catalog\Model\ProductFactory $productModelFactory
+     */
     public function loadLegacyParentConstructor(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Swatches\Helper\Data $swatchHelper,
