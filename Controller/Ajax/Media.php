@@ -25,19 +25,62 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
     protected $config;
 
     /**
+     * @var \Magento\Swatches\Helper\Data
+     */
+    protected $swatchHelper;
+
+    /**
      * Media constructor.
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Magento\Swatches\Helper\Data $swatchHelper
      * @param \Magento\Catalog\Model\ProductFactory $productModelFactory
      * @param \TurnTo\SocialCommerce\Helper\Config $config
+     * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Swatches\Helper\Data $swatchHelper,
         \Magento\Catalog\Model\ProductFactory $productModelFactory,
-        \TurnTo\SocialCommerce\Helper\Config $config
-    ){
+        \TurnTo\SocialCommerce\Helper\Config $config,
+        \Magento\Framework\App\ProductMetadataInterface $productMetadata
+    ) {
         $this->config = $config;
+        $this->swatchHelper = $swatchHelper;
+        $version = $productMetadata->getVersion();
+        if (version_compare($version, '2.2.0', '>=')) {
+            $this->loadParentConstructor($context, $productModelFactory, $swatchHelper);
+        } else {
+            $this->loadLegacyParentConstructor($context, $swatchHelper, $productModelFactory);
+        }
+    }
+
+    /**
+     * Call through to parent constructor with new order of arguments; Magento 2.2.x+
+     *
+     * @param \Magento\Framework\App\Action\Context $context
+     * @param \Magento\Catalog\Model\ProductFactory $productModelFactory
+     * @param \Magento\Swatches\Helper\Data $swatchHelper
+     */
+    public function loadParentConstructor(
+        \Magento\Framework\App\Action\Context $context,
+        \Magento\Catalog\Model\ProductFactory $productModelFactory,
+        \Magento\Swatches\Helper\Data $swatchHelper
+    ) {
+        parent::__construct($context, $productModelFactory, $swatchHelper);
+    }
+
+    /**
+     * Call through to parent constructor with old order of arguments; Magento 2.1.x
+     *
+     * @param \Magento\Framework\App\Action\Context $context
+     * @param \Magento\Swatches\Helper\Data $swatchHelper
+     * @param \Magento\Catalog\Model\ProductFactory $productModelFactory
+     */
+    public function loadLegacyParentConstructor(
+        \Magento\Framework\App\Action\Context $context,
+        \Magento\Swatches\Helper\Data $swatchHelper,
+        \Magento\Catalog\Model\ProductFactory $productModelFactory
+    ) {
         parent::__construct($context, $swatchHelper, $productModelFactory);
     }
 
