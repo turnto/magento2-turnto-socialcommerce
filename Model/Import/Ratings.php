@@ -52,7 +52,7 @@ class Ratings extends AbstractImport
      * @param $sku
      * @param $reviewCount
      * @param $averageRating
-     * @return int
+     * @return bool
      */
     public function updateProduct(
         \Magento\Store\Api\Data\StoreInterface $store,
@@ -60,7 +60,6 @@ class Ratings extends AbstractImport
         $reviewCount,
         $averageRating
     ) {
-        $productId = -1;
 
         $product = $this->productFactory->create()
             ->setStoreId($store->getId())
@@ -74,21 +73,33 @@ class Ratings extends AbstractImport
                 ]
             );
 
-        if ($product) {
-            $productId = (int)$product->getId();
-            $product->setData(InstallData::REVIEW_COUNT_ATTRIBUTE_CODE, $reviewCount);
-            $product->getResource()->saveAttribute($product, InstallData::REVIEW_COUNT_ATTRIBUTE_CODE);
-            $product->setData(InstallData::RATING_ATTRIBUTE_CODE, $averageRating);
-            $product->getResource()->saveAttribute($product, InstallData::RATING_ATTRIBUTE_CODE);
-            $filterValues = [];
-            foreach ($this->getRatingFilterAttributeValuesFromAverage($averageRating) as $optionText) {
-                $filterValues[] = $product->getResource()->getAttribute(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE)->getSource()->getOptionId($optionText);
-            }
-            $product->setData(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE, implode(',', $filterValues));
-            $product->getResource()->saveAttribute($product, InstallData::AVERAGE_RATING_ATTRIBUTE_CODE);
+        if (!$product) {
+            return false;
         }
 
-        return $productId;
+        // Only proceed if product needs to be updated
+        if (
+            $product->getData(InstallData::REVIEW_COUNT_ATTRIBUTE_CODE) == $reviewCount
+            && $product->getData(InstallData::RATING_ATTRIBUTE_CODE) == $averageRating
+        ) {
+            return false;
+        }
+
+        $product->setData(InstallData::REVIEW_COUNT_ATTRIBUTE_CODE, $reviewCount);
+        $product->getResource()->saveAttribute($product, InstallData::REVIEW_COUNT_ATTRIBUTE_CODE);
+        $product->setData(InstallData::RATING_ATTRIBUTE_CODE, $averageRating);
+        $product->getResource()->saveAttribute($product, InstallData::RATING_ATTRIBUTE_CODE);
+        $filterValues = [];
+        foreach ($this->getRatingFilterAttributeValuesFromAverage($averageRating) as $optionText) {
+            $filterValues[] = $product->getResource()->getAttribute(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE)->getSource()->getOptionId($optionText);
+        }
+        $product->setData(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE, implode(',', $filterValues));
+        $product->getResource()->saveAttribute($product, InstallData::AVERAGE_RATING_ATTRIBUTE_CODE);
+
+        // Ensure product gets reindexed
+        $product->afterSave();
+
+        return true;
     }
 
     /**
@@ -109,11 +120,10 @@ class Ratings extends AbstractImport
     }
 
     /**
-     * Downloads the Aggregated Ratings Feed from TurnTo and applies that data to the related Products
+     * Downloads the Aggregated Ratings Feed from TurnTo and applies that data to the corresponding Products
      */
     public function cronDownloadFeed()
     {
-        $productIdsToReindex = [];
         try {
             foreach ($this->storeManager->getStores() as $store) {
                 $feedAddress = 'UNK';
@@ -143,10 +153,7 @@ class Ratings extends AbstractImport
                             if ($reviewCount > 0) {
                                 $averageRating = (float)$turnToProduct;
                                 if ($averageRating > 0.0) {
-                                    $productId = $this->updateProduct($store, $sku, $reviewCount, $averageRating);
-                                    if ($productId > 0) {
-                                        $productIdsToReindex[] = $productId;
-                                    }
+                                    $this->updateProduct($store, $sku, $reviewCount, $averageRating);
                                 } else {
                                     throw new \UnexpectedValueException('Average rating is a non-positive '
                                         . 'number despite product having reviews');
@@ -181,10 +188,6 @@ class Ratings extends AbstractImport
                     'exception' => $exception
                 ]
             );
-        } finally {
-            if (!empty($productIdsToReindex) && !$this->productEavIndexProcessor->getIndexer()->isScheduled()) {
-                $this->productEavIndexProcessor->reindexList(array_unique($productIdsToReindex));
-            }
         }
     }
 }
