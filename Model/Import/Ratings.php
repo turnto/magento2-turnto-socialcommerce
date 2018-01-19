@@ -52,7 +52,7 @@ class Ratings extends AbstractImport
      * @param $sku
      * @param $reviewCount
      * @param $averageRating
-     * @return int
+     * @return bool
      */
     public function updateProduct(
         \Magento\Store\Api\Data\StoreInterface $store,
@@ -60,7 +60,6 @@ class Ratings extends AbstractImport
         $reviewCount,
         $averageRating
     ) {
-        $productId = -1;
 
         $product = $this->productFactory->create()
             ->setStoreId($store->getId())
@@ -75,7 +74,7 @@ class Ratings extends AbstractImport
             );
 
         if (!$product) {
-            return $productId;
+            return false;
         }
 
         // Only proceed if product needs to be updated
@@ -83,10 +82,9 @@ class Ratings extends AbstractImport
             $product->getData(InstallData::REVIEW_COUNT_ATTRIBUTE_CODE) == $reviewCount
             && $product->getData(InstallData::RATING_ATTRIBUTE_CODE) == $averageRating
         ) {
-            return $productId;
+            return false;
         }
 
-        $productId = (int)$product->getId();
         $product->setData(InstallData::REVIEW_COUNT_ATTRIBUTE_CODE, $reviewCount);
         $product->getResource()->saveAttribute($product, InstallData::REVIEW_COUNT_ATTRIBUTE_CODE);
         $product->setData(InstallData::RATING_ATTRIBUTE_CODE, $averageRating);
@@ -98,7 +96,10 @@ class Ratings extends AbstractImport
         $product->setData(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE, implode(',', $filterValues));
         $product->getResource()->saveAttribute($product, InstallData::AVERAGE_RATING_ATTRIBUTE_CODE);
 
-        return $productId;
+        // Ensure product gets reindexed
+        $product->afterSave();
+
+        return true;
     }
 
     /**
@@ -119,11 +120,10 @@ class Ratings extends AbstractImport
     }
 
     /**
-     * Downloads the Aggregated Ratings Feed from TurnTo and applies that data to the related Products
+     * Downloads the Aggregated Ratings Feed from TurnTo and applies that data to the corresponding Products
      */
     public function cronDownloadFeed()
     {
-        $productIdsToReindex = [];
         try {
             foreach ($this->storeManager->getStores() as $store) {
                 $feedAddress = 'UNK';
@@ -153,10 +153,7 @@ class Ratings extends AbstractImport
                             if ($reviewCount > 0) {
                                 $averageRating = (float)$turnToProduct;
                                 if ($averageRating > 0.0) {
-                                    $productId = $this->updateProduct($store, $sku, $reviewCount, $averageRating);
-                                    if ($productId > 0) {
-                                        $productIdsToReindex[] = $productId;
-                                    }
+                                    $this->updateProduct($store, $sku, $reviewCount, $averageRating);
                                 } else {
                                     throw new \UnexpectedValueException('Average rating is a non-positive '
                                         . 'number despite product having reviews');
@@ -191,10 +188,6 @@ class Ratings extends AbstractImport
                     'exception' => $exception
                 ]
             );
-        } finally {
-            if (!empty($productIdsToReindex) && !$this->productEavIndexProcessor->getIndexer()->isScheduled()) {
-                $this->productEavIndexProcessor->reindexList(array_unique($productIdsToReindex));
-            }
         }
     }
 }
