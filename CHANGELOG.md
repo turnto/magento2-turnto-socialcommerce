@@ -1,3 +1,9 @@
+## 1.3.0 (2018-01-19)
+* Added [documentation](https://github.com/turnto/magento2-turnto-socialcommerce#rating-import-from-turnto) explaining how reviews are pulled from TurnTo
+* Fixed issue where category pages don't display proper review count/rating until manual reindex is performed ([#31](https://github.com/turnto/magento2-turnto-socialcommerce/issues/31)) and ([#23](https://github.com/turnto/magento2-turnto-socialcommerce/issues/23))
+* Increase frequency of importing reviews from TurnTo ([#30](https://github.com/turnto/magento2-turnto-socialcommerce/issues/30))
+* Fixed DI compilation error on Magento 2.2.x ([#30](https://github.com/turnto/magento2-turnto-socialcommerce/issues/26))
+
 ## 1.2.0 (2017-12-12)
 * Add Single Sign On functionality to the mobile landing page ([#24](https://github.com/turnto/magento2-turnto-socialcommerce/pull/24))
 
