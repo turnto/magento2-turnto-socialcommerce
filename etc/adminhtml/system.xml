@@ -161,7 +161,7 @@
                     <label>Enable Reviews</label>
                     <comment><![CDATA[
                         Enable the TurnTo SocialCommerce reviews feature and disable the native reviews functionality.<br>
-                        Refer to <a href="https://github.com/turnto/magento2-turnto-socialcommerce#rating-import-from-turnto">the documentation</a> for technical details on how the reviews are displayed.
+                        Refer to <a href="https://github.com/turnto/magento2-turnto-socialcommerce#rating-import-from-turnto">the documentation</a> for technical details on how reviews are imported from TurnTo and displayed in Magento.
                     ]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
