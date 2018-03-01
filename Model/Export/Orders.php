@@ -22,10 +22,8 @@ class Orders extends AbstractExport
      */
     const UPDATED_AT_FIELD_ID = 'updated_at';
 
-    const ITEM_ID_FIELD_ID = 'item_id';
-    
     const STORE_ID_FIELD_ID = 'store_id';
-    
+
     const ORDER_ID_FIELD_ID = 'order_id';
 
     const PRODUCT_FIELD_ID = 'product';
@@ -293,7 +291,7 @@ class Orders extends AbstractExport
             $paginatedCollection->clear();
             $paginatedCollection->setPageSize($pageSize)->setCurPage($i);
             $paginatedCollection->load();
-            
+
             if ($paginatedCollection->count() > 0) {
                 $this->writeOrdersToFeed($outputHandle, $paginatedCollection, $forceIncludeAllItems);
             }
@@ -440,7 +438,7 @@ class Orders extends AbstractExport
     public function getShipmentSearchCriteriaForOrder($orderId, $storeId)
     {
         return $this->getSearchCriteria(
-            $this->getSortOrder(self::ITEM_ID_FIELD_ID),
+            $this->getSortOrder(self::ORDER_ID_FIELD_ID),
             [
                 $this->getFilter(self::STORE_ID_FIELD_ID, $storeId, 'eq'),
                 $this->getFilter(self::ORDER_ID_FIELD_ID, $orderId, 'eq')
@@ -479,7 +477,7 @@ class Orders extends AbstractExport
         $row[] = $lineItem->getOriginalPrice();
         $row[] = $this->productHelper->getImageUrl($product);
         $row[] = $shipmentDate;
-        
+
         fputcsv($outputHandle, $row, "\t");
     }
 
