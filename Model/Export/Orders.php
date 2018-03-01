@@ -222,8 +222,8 @@ class Orders extends AbstractExport
             $this->getSortOrder(self::UPDATED_AT_FIELD_ID),
             [
                 $this->getFilter(self::STORE_ID_FIELD_ID, $storeId, 'eq'),
-                $this->getFilter(self::UPDATED_AT_FIELD_ID, $fromDate->format(DATE_ISO8601), 'gteq'),
-                $this->getFilter(self::UPDATED_AT_FIELD_ID, $toDate->format(DATE_ISO8601), 'lteq')
+                $this->getFilter(self::UPDATED_AT_FIELD_ID, $fromDate->format(DATE_ATOM), 'gteq'),
+                $this->getFilter(self::UPDATED_AT_FIELD_ID, $toDate->format(DATE_ATOM), 'lteq')
             ]
         );
     }
