@@ -415,7 +415,7 @@ class Orders extends AbstractExport
             $paginatedCollection->load();
 
             if ($paginatedCollection->count() > 0) {
-                foreach ($paginatedCollection as $shipment) {
+                foreach ($paginatedCollection->getItems() as $shipment) {
                     foreach ($shipment->getItems() as $shipmentItem) {
                         $itemId = $shipmentItem->getOrderItemId();
                         $key = "$orderId.$itemId";
