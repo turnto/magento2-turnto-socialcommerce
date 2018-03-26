@@ -77,7 +77,8 @@ class Configurable extends \Magento\ConfigurableProduct\Block\Product\View\Type\
     {
         $result = $this->serializer->unserialize($result);
         foreach ($this->getAllowProducts() as $product) {
-            if (array_key_exists(0, $result['images'][$product->getId()])) {
+            if (isset($result['images'][$product->getId()][0])
+                && array_key_exists(0, $result['images'][$product->getId()])) {
                 $result['images'][$product->getId()][0]['sku'] = $product->getSku();
             }
         }
