@@ -8,7 +8,7 @@
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
  *
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
+ * @copyright  Copyright (c) 2017 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 define([
@@ -30,32 +30,13 @@ define([
                 this._super($this, response);
 
                 if (window.turnToUseChildSku) {
-                    this.turntoProductReset(response.sku)
-                }
-            },
+                    if (typeof TurnTo != "undefined" && typeof response.sku != "undefined") {
+                        TurnTo.reset({"sku": response.sku});
+                    }
 
-            /**
-             * @param images
-             * @param context
-             * @param isInProductView
-             */
-            updateBaseImage: function (images, context, isInProductView) {
-                if (!this.options.useAjax && 0 in images && images[0].sku !== undefined) {
-                    this.turntoProductReset(images[0].sku);
-                }
-                this._super(images, context, isInProductView);
-            },
-
-            /**
-             * @param sku
-             */
-            turntoProductReset: function(sku) {
-                if (typeof TurnTo != "undefined" && typeof sku != "undefined") {
-                    TurnTo.reset({"sku": sku});
-                }
-
-                if (typeof TurnToChatter != "undefined" && typeof sku != "undefined") {
-                    TurnToChatter.reset({"sku": sku});
+                    if (typeof TurnToChatter != "undefined" && typeof response.sku != "undefined") {
+                        TurnToChatter.reset({"sku": response.sku});
+                    }
                 }
             }
         });
