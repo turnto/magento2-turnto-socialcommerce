@@ -1,14 +1,11 @@
 <?php
 /**
  * TurnTo_SocialCommerce
- *
  * NOTICE OF LICENSE
- *
  * This source file is subject to the Open Software License (OSL 3.0)
  * that is bundled with this package in the file LICENSE.txt.
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
- *
  * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
@@ -97,25 +94,11 @@ class Catalog extends AbstractExport
     }
 
     /**
-     * Creates the product feed and pushes it to TurnTo
-     */
-    public function cronUploadFeed()
-    {
-        foreach ($this->storeManager->getStores() as $store) {
-            if ($this->config->getIsEnabled($store->getCode())
-                && $this->config->getIsProductFeedSubmissionEnabled($store->getCode())
-            ) {
-                $feed = $this->generateProductFeed($store);
-                $this->transmitFeed($feed, $store);
-            }
-        }
-    }
-
-    /**
      * Transmits an XML feed to the TurnTo Product Feed endpoint set in the TurnTo configuration
      *
-     * @param \SimpleXMLElement $feed
+     * @param \SimpleXMLElement                      $feed
      * @param \Magento\Store\Api\Data\StoreInterface $store
+     *
      * @throws \Exception
      */
     protected function transmitFeed(\SimpleXMLElement $feed, \Magento\Store\Api\Data\StoreInterface $store)
@@ -124,18 +107,15 @@ class Catalog extends AbstractExport
 
         try {
             $zendClient = new \Magento\Framework\HTTP\ZendClient;
-            $zendClient
-                ->setUri($this->config
-                    ->getFeedUploadAddress($store->getCode()))
-                ->setMethod(\Zend_Http_Client::POST)
-                ->setParameterPost(
+            $zendClient->setUri(
+                    $this->config->getFeedUploadAddress($store->getCode())
+                )->setMethod(\Zend_Http_Client::POST)->setParameterPost(
                     [
                         'siteKey' => $this->config->getSiteKey($store->getCode()),
                         'authKey' => $this->config->getAuthorizationKey($store->getCode()),
                         'feedStyle' => self::FEED_STYLE
                     ]
-                )
-                ->setFileUpload(self::FEED_STYLE, 'file', $feed->asXML(), self::FEED_MIME);
+                )->setFileUpload(self::FEED_STYLE, 'file', $feed->asXML(), self::FEED_MIME);
 
             $response = $zendClient->request();
 
@@ -163,7 +143,9 @@ class Catalog extends AbstractExport
 
     /**
      * Escapes special characters for xml use
+     *
      * @param string $dirtyString
+     *
      * @return string
      */
     protected function sanitizeData($dirtyString)
@@ -183,6 +165,7 @@ class Catalog extends AbstractExport
      * Writes all individually visible products to an ATOM 1.0 feed which is returned in a SimpleXMLElement Object
      *
      * @param \Magento\Store\Api\Data\StoreInterface $store
+     *
      * @return null|\SimpleXMLElement
      * @throws \Exception If feed could not be generated
      */
@@ -196,9 +179,7 @@ class Catalog extends AbstractExport
             $products = $this->getProducts($store);
 
             $feed = new \SimpleXMLElement(
-                '<?xml version="1.0" encoding="UTF-8"?>'
-                    . '<feed xmlns="http://www.w3.org/2005/Atom"'
-                    . ' xmlns:g="http://base.google.com/ns/1.0" xml:lang="en-US" />'
+                '<?xml version="1.0" encoding="UTF-8"?>' . '<feed xmlns="http://www.w3.org/2005/Atom"' . ' xmlns:g="http://base.google.com/ns/1.0" xml:lang="en-US" />'
             );
 
             $feed->addChild('title', $this->sanitizeData($store->getName() . ' - Google Product Atom 1.0 Feed'));
@@ -257,8 +238,7 @@ class Catalog extends AbstractExport
             }
         } catch (\Exception $feedException) {
             if ($feed) {
-                $this->logger
-                    ->error(
+                $this->logger->error(
                         'An exception occurred while creating the catalog feed',
                         [
                             'exception' => $feedException,
@@ -266,9 +246,8 @@ class Catalog extends AbstractExport
                             'productsProcessed' => $progressCounter
                         ]
                     );
-            } elseif ($products) {
-                $this->logger
-                    ->error(
+            } else if ($products) {
+                $this->logger->error(
                         'An exception occurred that prevented the creation of the catalog feed',
                         [
                             'exception' => $feedException,
@@ -277,8 +256,7 @@ class Catalog extends AbstractExport
                         ]
                     );
             } else {
-                $this->logger
-                    ->error(
+                $this->logger->error(
                         'An exception occured while retrieving the products for the catalog feed',
                         [
                             'exception' => $feedException,
@@ -333,39 +311,41 @@ class Catalog extends AbstractExport
 
         if (!empty($gtinMap)) {
             if (isset($gtinMap[Config::MPN_ATTRIBUTE])) {
-                $mpn = $product->getResource()
-                    ->getAttribute($gtinMap[Config::MPN_ATTRIBUTE])
-                    ->getFrontend()->getValue($product);
+                $mpn = $product->getResource()->getAttribute($gtinMap[Config::MPN_ATTRIBUTE])->getFrontend()->getValue(
+                        $product
+                    );
             }
             if (isset($gtinMap[Config::BRAND_ATTRIBUTE])) {
-                $brand = $product->getResource()
-                    ->getAttribute($gtinMap[\TurnTo\SocialCommerce\Helper\Config::BRAND_ATTRIBUTE])
-                    ->getFrontend()->getValue($product);
+                $brand = $product->getResource()->getAttribute(
+                        $gtinMap[\TurnTo\SocialCommerce\Helper\Config::BRAND_ATTRIBUTE]
+                    )->getFrontend()->getValue($product);
             }
             if (empty($gtin) && isset($gtinMap[Config::UPC_ATTRIBUTE])) {
-                $gtin = $product->getResource()
-                    ->getAttribute($gtinMap[Config::UPC_ATTRIBUTE])
-                    ->getFrontend()->getValue($product);
+                $gtin = $product->getResource()->getAttribute($gtinMap[Config::UPC_ATTRIBUTE])->getFrontend()->getValue(
+                        $product
+                    );
             }
             if (empty($gtin) && isset($gtinMap[Config::ISBN_ATTRIBUTE])) {
                 $gtin = $product->getResource()
                     ->getAttribute($gtinMap[Config::ISBN_ATTRIBUTE])
-                    ->getFrontend()->getValue($product);
+                    ->getFrontend()
+                    ->getValue($product);
             }
             if (empty($gtin) && isset($gtinMap[Config::EAN_ATTRIBUTE])) {
-                $gtin = $product->getResource()
-                    ->getAttribute($gtinMap[Config::EAN_ATTRIBUTE])
-                    ->getFrontend()->getValue($product);
+                $gtin = $product->getResource()->getAttribute($gtinMap[Config::EAN_ATTRIBUTE])->getFrontend()->getValue(
+                        $product
+                    );
             }
             if (empty($gtin) && isset($gtinMap[Config::JAN_ATTRIBUTE])) {
-                $gtin = $product->getResource()
-                    ->getAttribute($gtinMap[Config::JAN_ATTRIBUTE])
-                    ->getFrontend()->getValue($product);
+                $gtin = $product->getResource()->getAttribute($gtinMap[Config::JAN_ATTRIBUTE])->getFrontend()->getValue(
+                        $product
+                    );
             }
             if (empty($gtin) && isset($gtinMap[Config::ASIN_ATTRIBUTE])) {
                 $gtin = $product->getResource()
                     ->getAttribute($gtinMap[Config::ASIN_ATTRIBUTE])
-                    ->getFrontend()->getValue($product);
+                    ->getFrontend()
+                    ->getValue($product);
             }
             if (!empty($gtin)) {
                 $entry->addChild('g:gtin', $this->sanitizeData($gtin));
@@ -396,9 +376,9 @@ class Catalog extends AbstractExport
         $currentStore = $this->storeManager->getStore();
         $this->storeManager->setCurrentStore($store->getStoreId());
 
-        $productImageUrl = $this->imageHelper->init($product, 'product_page_main_image')
-            ->setImageFile($product->getImage())
-            ->getUrl();
+        $productImageUrl = $this->imageHelper->init($product, 'product_page_main_image')->setImageFile(
+                $product->getImage()
+            )->getUrl();
 
         // Restore the "current store"
         $this->storeManager->setCurrentStore($currentStore);
@@ -417,24 +397,10 @@ class Catalog extends AbstractExport
     }
 
     /**
-     * Get item group ID for a given product
-     *
-     * @param \Magento\Catalog\Model\Product $product
-     * @param \Magento\Catalog\Model\Product|bool $parent
-     * @return string|bool
-     */
-    public function getItemGroupId($product, $parent)
-    {
-        if ($parent) {
-            return $parent->getSku();
-        }
-        return false;
-    }
-
-    /**
      * Gets the deepest tree for given product and returns as "rootNodeName > branchNodeName > leafNodeName"
      *
      * @param \Magento\Catalog\Model\Product $product
+     *
      * @return string
      */
     protected function getCategoryTreeString(\Magento\Catalog\Model\Product $product)
@@ -470,7 +436,8 @@ class Catalog extends AbstractExport
      * Recursively walks category chain from leaf to root while writing the traversed branch to an array
      *
      * @param \Magento\Catalog\Model\Category $category
-     * @param array $categoryBranch
+     * @param array                           $categoryBranch
+     *
      * @return array
      */
     protected function getCategoryBranch(\Magento\Catalog\Model\Category $category, array $categoryBranch = [])
@@ -487,5 +454,37 @@ class Catalog extends AbstractExport
                 return $categoryBranch;
             }
         }
+    }
+
+    /**
+     * Creates the product feed and pushes it to TurnTo
+     */
+    public function cronUploadFeed()
+    {
+        foreach ($this->storeManager->getStores() as $store) {
+            if ($this->config->getIsEnabled($store->getCode()) && $this->config->getIsProductFeedSubmissionEnabled(
+                    $store->getCode()
+                )) {
+                $feed = $this->generateProductFeed($store);
+                $this->transmitFeed($feed, $store);
+            }
+        }
+    }
+
+    /**
+     * Get item group ID for a given product
+     *
+     * @param \Magento\Catalog\Model\Product      $product
+     * @param \Magento\Catalog\Model\Product|bool $parent
+     *
+     * @return string|bool
+     */
+    public function getItemGroupId($product, $parent)
+    {
+        if ($parent) {
+            return $parent->getSku();
+        }
+
+        return false;
     }
 }
