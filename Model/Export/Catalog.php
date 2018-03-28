@@ -15,8 +15,9 @@
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
-use TurnTo\SocialCommerce\Helper\Config;
+use Magento\CatalogInventory\Api\StockItemRepositoryInterface;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+use TurnTo\SocialCommerce\Helper\Config;
 
 /**
  * Class Catalog
@@ -45,17 +46,24 @@ class Catalog extends AbstractExport
     protected $imageHelper = null;
 
     /**
+     * @var StockItemRepositoryInterface
+     */
+    protected $stockItemRepository;
+
+    /**
      * Catalog constructor.
-     * @param Config $config
+     *
+     * @param Config                                                         $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
-     * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
-     * @param \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory
-     * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
-     * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
-     * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
-     * @param \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Catalog\Helper\Image $imageHelper
+     * @param \TurnTo\SocialCommerce\Logger\Monolog                          $logger
+     * @param \Magento\Framework\Intl\DateTimeFactory                        $dateTimeFactory
+     * @param \Magento\Framework\Api\SearchCriteriaBuilder                   $searchCriteriaBuilder
+     * @param \Magento\Framework\Api\FilterBuilder                           $filterBuilder
+     * @param \Magento\Framework\Api\SortOrderBuilder                        $sortOrderBuilder
+     * @param \Magento\UrlRewrite\Model\UrlFinderInterface                   $urlFinder
+     * @param \Magento\Store\Model\StoreManagerInterface                     $storeManager
+     * @param \Magento\Catalog\Helper\Image                                  $imageHelper
+     * @param StockItemRepositoryInterface                                   $stockItemRepository
      */
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
@@ -67,11 +75,10 @@ class Catalog extends AbstractExport
         \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
         \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Catalog\Helper\Image $imageHelper
-    ) {
-        $this->imageHelper = $imageHelper;
-        $this->storeManager = $storeManager;
-
+        \Magento\Catalog\Helper\Image $imageHelper,
+        StockItemRepositoryInterface $stockItemRepository
+    )
+    {
         parent::__construct(
             $config,
             $productCollectionFactory,
@@ -83,6 +90,10 @@ class Catalog extends AbstractExport
             $urlFinder,
             $storeManager
         );
+
+        $this->stockItemRepository = $stockItemRepository;
+        $this->imageHelper = $imageHelper;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -284,10 +295,11 @@ class Catalog extends AbstractExport
     /**
      * Adds a Magento catalog product to a Google Products ATOM 1.0 xml feed
      *
-     * @param $entry
-     * @param $product
-     * @param $store
-     * @param $parent bool|\Magento\Catalog\Model\Product
+     * @param \SimpleXMLElement              $entry
+     * @param \Magento\Catalog\Model\Product $product
+     * @param                                $store
+     * @param                                $parent bool|\Magento\Catalog\Model\Product
+     *
      * @throws \Exception
      */
     protected function addProductToAtomFeed($entry, $product, $store, $parent)
@@ -391,9 +403,11 @@ class Catalog extends AbstractExport
         // Restore the "current store"
         $this->storeManager->setCurrentStore($currentStore);
 
+        $stockItem = $this->stockItemRepository->get($product->getId());
+
+        $entry->addChild('g:availability', $stockItem->getIsInStock() ? 'in stock' : 'out of stock');
         $entry->addChild('g:image_link', $this->sanitizeData($productImageUrl));
         $entry->addChild('g:condition', 'new');
-        $entry->addChild('g:availability', $product->getQuantityAndStockStatus() == 1 ? 'in stock' : 'out of stock');
         $entry->addChild('g:price', $product->getPrice() . ' ' . $store->getBaseCurrencyCode());
         $entry->addChild('g:description', $this->sanitizeData($product->getDescription()));
         $itemGroupId = $this->getItemGroupId($product, $parent);
@@ -401,7 +415,7 @@ class Catalog extends AbstractExport
             $entry->addChild('g:item_group_id', $itemGroupId);
         }
     }
-    
+
     /**
      * Get item group ID for a given product
      *
