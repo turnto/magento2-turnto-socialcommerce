@@ -9,7 +9,7 @@
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
  *
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
+ * @copyright  Copyright (c) 2017 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
@@ -22,8 +22,10 @@ class Orders extends AbstractExport
      */
     const UPDATED_AT_FIELD_ID = 'updated_at';
 
+    const ITEM_ID_FIELD_ID = 'item_id';
+    
     const STORE_ID_FIELD_ID = 'store_id';
-
+    
     const ORDER_ID_FIELD_ID = 'order_id';
 
     const PRODUCT_FIELD_ID = 'product';
@@ -222,8 +224,8 @@ class Orders extends AbstractExport
             $this->getSortOrder(self::UPDATED_AT_FIELD_ID),
             [
                 $this->getFilter(self::STORE_ID_FIELD_ID, $storeId, 'eq'),
-                $this->getFilter(self::UPDATED_AT_FIELD_ID, $fromDate->format(DATE_ATOM), 'gteq'),
-                $this->getFilter(self::UPDATED_AT_FIELD_ID, $toDate->format(DATE_ATOM), 'lteq')
+                $this->getFilter(self::UPDATED_AT_FIELD_ID, $fromDate->format(DATE_ISO8601), 'gteq'),
+                $this->getFilter(self::UPDATED_AT_FIELD_ID, $toDate->format(DATE_ISO8601), 'lteq')
             ]
         );
     }
@@ -291,7 +293,7 @@ class Orders extends AbstractExport
             $paginatedCollection->clear();
             $paginatedCollection->setPageSize($pageSize)->setCurPage($i);
             $paginatedCollection->load();
-
+            
             if ($paginatedCollection->count() > 0) {
                 $this->writeOrdersToFeed($outputHandle, $paginatedCollection, $forceIncludeAllItems);
             }
@@ -415,7 +417,7 @@ class Orders extends AbstractExport
             $paginatedCollection->load();
 
             if ($paginatedCollection->count() > 0) {
-                foreach ($paginatedCollection->getItems() as $shipment) {
+                foreach ($paginatedCollection as $shipment) {
                     foreach ($shipment->getItems() as $shipmentItem) {
                         $itemId = $shipmentItem->getOrderItemId();
                         $key = "$orderId.$itemId";
@@ -438,7 +440,7 @@ class Orders extends AbstractExport
     public function getShipmentSearchCriteriaForOrder($orderId, $storeId)
     {
         return $this->getSearchCriteria(
-            $this->getSortOrder(self::ORDER_ID_FIELD_ID),
+            $this->getSortOrder(self::ITEM_ID_FIELD_ID),
             [
                 $this->getFilter(self::STORE_ID_FIELD_ID, $storeId, 'eq'),
                 $this->getFilter(self::ORDER_ID_FIELD_ID, $orderId, 'eq')
@@ -477,7 +479,7 @@ class Orders extends AbstractExport
         $row[] = $lineItem->getOriginalPrice();
         $row[] = $this->productHelper->getImageUrl($product);
         $row[] = $shipmentDate;
-
+        
         fputcsv($outputHandle, $row, "\t");
     }
 
