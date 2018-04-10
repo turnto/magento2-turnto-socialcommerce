@@ -10,7 +10,7 @@
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
  *
- * @copyright  Copyright (c) 2017 TurnTo Networks, Inc.
+ * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 -->
@@ -161,7 +161,7 @@
                     <label>Enable Reviews</label>
                     <comment><![CDATA[
                         Enable the TurnTo SocialCommerce reviews feature and disable the native reviews functionality.<br>
-                        Refer to <a href="https://github.com/turnto/magento2-turnto-socialcommerce#rating-import-from-turnto">the documentation</a> for technical details on how the reviews are displayed.
+                        Refer to <a href="https://github.com/turnto/magento2-turnto-socialcommerce#rating-import-from-turnto">the documentation</a> for technical details on how reviews are imported from TurnTo and displayed in Magento.
                     ]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
@@ -311,7 +311,7 @@
             </group>
             <group id="historical_orders_feed" translate="label" sortOrder="90" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Historical Orders Feed</label>
-                <comment>If enabled, Magento submits a feed of recently updated orders to TurnTo on a nightly basis. TurnTo uses this order feed data to populate owner pools for Q&amp;A and to schedule review solicitation emails based optionally on ship date instead of order date. In the file that is sent to TurnTo, the ship date (DELIVERYDATE) column is the creation date of the shipment that contains that specific order item.</comment>
+                <comment>If enabled, Magento submits a feed of recently updated orders (any order that has been modified in the previous two days) to TurnTo on a nightly basis. TurnTo uses this order feed data to populate owner pools for Q&amp;A and to schedule review solicitation emails based optionally on ship date instead of order date. In the file that is sent to TurnTo, the ship date (DELIVERYDATE) column is the creation date of the shipment that contains that specific order item.</comment>
                 <field id="enable_historical_feed" type="select" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Enable Automated Feed Submission</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
