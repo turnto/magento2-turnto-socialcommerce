@@ -7,8 +7,8 @@
 
 namespace TurnTo\SocialCommerce\Model\Data;
 
-use TurnTo\SocialCommerce\Api\TurnToConfigDataProviderInterface;
 use Magento\Framework\View\Element\Block\ArgumentInterface as BlockArgumentInterface;
+use TurnTo\SocialCommerce\Api\TurnToConfigDataProviderInterface;
 
 class OnepageCommentsConfig implements TurnToConfigDataProviderInterface, BlockArgumentInterface
 {
@@ -17,6 +17,9 @@ class OnepageCommentsConfig implements TurnToConfigDataProviderInterface, BlockA
      */
     protected $turnToConfigHelper;
 
+    /**
+     * @param \TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper
+     */
     public function __construct(\TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper)
     {
         $this->turnToConfigHelper = $turnToConfigHelper;
@@ -25,7 +28,7 @@ class OnepageCommentsConfig implements TurnToConfigDataProviderInterface, BlockA
     /**
      * {@inheritdoc}
      */
-    public function getData(): array
+    public function getData()
     {
         $config = [
             'siteKey' => $this->turnToConfigHelper->getSiteKey(),

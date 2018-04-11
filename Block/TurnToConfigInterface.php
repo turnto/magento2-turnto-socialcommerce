@@ -13,11 +13,11 @@ interface TurnToConfigInterface
      * JavaScript config for TurnTo global variable
      * @return string
      */
-    public function getJavaScriptConfig(): string;
+    public function getJavaScriptConfig();
 
     /**
      * Returns custom configuration from admin that will be merged into the standard config
      * @return string
      */
-    public function getCustomJavaScriptConfiguration(): string;
+    public function getCustomJavaScriptConfiguration();
 }

@@ -82,7 +82,7 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
      * Creates a TurnTo config block and outputs its html content
      * @return string
      */
-    public function getTurnToConfigHtml(): string
+    public function getTurnToConfigHtml()
     {
         /** @var \TurnTo\SocialCommerce\Block\TurnToConfig $pinboardBlock */
         try {

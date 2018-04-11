@@ -22,6 +22,11 @@ class TurnToConfig extends Template implements TurnToConfigInterface
      */
     protected $configHelper;
 
+    /**
+     * @param Template\Context   $context
+     * @param TurnToConfigHelper $configHelper
+     * @param array              $data
+     */
     public function __construct(
         Template\Context $context,
         TurnToConfigHelper $configHelper,
@@ -41,7 +46,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
      * Takes an array and converts it to JavasScript output with support for \Zend_Json_Expr
      * @return string
      */
-    final public function getJavaScriptConfig(): string
+    final public function getJavaScriptConfig()
     {
         /*
          * Zend_Json::encode is used instead of json_encode because the values of iTeaserFunc and reviewsTeaserFunc
@@ -54,7 +59,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
     /**
      * {@inheritdoc}
      */
-    final public function getCustomJavaScriptConfiguration(): string
+    final public function getCustomJavaScriptConfiguration()
     {
         return $this->configHelper->getCustomConfigurationJs();
     }

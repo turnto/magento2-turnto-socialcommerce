@@ -30,8 +30,6 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
     protected $imageHelper;
 
     /**
-     * CheckoutComments constructor.
-     *
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \TurnTo\SocialCommerce\Helper\Config             $config
      * @param \Magento\Checkout\Model\Session                  $checkoutSession

@@ -37,7 +37,7 @@ class ProductDetailConfig implements TurnToConfigDataProviderInterface, BlockArg
     /**
      * {@inheritdoc}
      */
-    public function getData(): array
+    public function getData()
     {
         $config = [
             'siteKey' => $this->configHelper->getSiteKey(),

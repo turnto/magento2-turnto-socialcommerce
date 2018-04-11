@@ -15,5 +15,5 @@ interface TurnToConfigDataProviderInterface
      * @api
      * @return array
      */
-    public function getData(): array;
+    public function getData();
 }

@@ -24,6 +24,10 @@ class PinboardConfig implements TurnToConfigDataProviderInterface
      */
     protected $pinboardBlock;
 
+    /**
+     * @param TurnToConfigHelper $configHelper
+     * @param PinboardBlock      $pinboardBlock
+     */
     public function __construct(
         TurnToConfigHelper $configHelper,
         PinboardBlock $pinboardBlock
@@ -36,7 +40,7 @@ class PinboardConfig implements TurnToConfigDataProviderInterface
     /**
      * {@inheritdoc}
      */
-    public function getData(): array
+    public function getData()
     {
         try {
             $config = [
