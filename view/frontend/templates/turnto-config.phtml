@@ -6,6 +6,8 @@
         var customConfiguration = <?= $block->getCustomJavaScriptConfiguration() ?>;
 
         // Add the keys from the user-supplied object to the existing turnToConfig object
+        // Doing this merging in JS since it's not possible to handle this merge in PHP since 
+        // there are JS _functions_ that need to get merged, not just JSON data
         for (var key in customConfiguration) {
             if(!customConfiguration.hasOwnProperty(key)) {
                 continue;
