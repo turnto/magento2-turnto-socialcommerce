@@ -1,14 +1,11 @@
 <?php
 /**
  * TurnTo_SocialCommerce
- *
  * NOTICE OF LICENSE
- *
  * This source file is subject to the Open Software License (OSL 3.0)
  * that is bundled with this package in the file LICENSE.txt.
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
- *
  * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
@@ -26,8 +23,6 @@ $reviewsEnabled = $configHelper->getReviewsEnabled();
 $qaEnabled = $configHelper->getQaEnabled();
 $commentsEnabled = $configHelper->getCheckoutCommentsEnabledProductDetail();
 $galleryEnabled = $configHelper->getGalleryEnabled();
-$reviewsSetupType = $configHelper->getSetupType();
-$qaSetupType = $configHelper->getSetupType();
 $useSimpleProduct = $configHelper->getUseChildSku();
 $singleSignOn = $configHelper->getSingleSignOn();
 
@@ -35,63 +30,64 @@ $productSku = $this->getProductSku();
 $gallerySkus = $this->getGallerySkus();
 
 if ($reviewsEnabled || $qaEnabled || $commentsEnabled || $galleryEnabled):
-?>
+    ?>
 
-    <link rel="stylesheet" href="<?= sprintf('%s/tra%s/tra.css', $staticUrl, $version) ?>" />
+    <link rel="stylesheet" href="<?= sprintf('%s/tra%s/tra.css', $staticUrl, $version) ?>"/>
 
-    <?php if($galleryEnabled): ?>
-        <link rel="stylesheet" href="<?= sprintf('%s/tra%s/turnto-gallery-%s.css', $staticUrl, $version, $locale ) ?>" />
-    <?php endif; ?>
+    <?php if ($galleryEnabled): ?>
+    <link rel="stylesheet" href="<?= sprintf('%s/tra%s/turnto-gallery-%s.css', $staticUrl, $version, $locale) ?>"/>
+<?php endif; ?>
 
     <?= $this->getChildHtml('turnto.config.js.qa') ?>
     <?= $this->getChildHtml('turnto.config.js.reviews') ?>
     <?= $this->getChildHtml('turnto.config.js.sso') ?>
+    <?= $this->getChildHtml('turnto.config.product-detail') ?>
 
     <script type="text/javascript">
-        function scrollToTab(teaserContainer, clickElement, container, tab) {
-            teaserContainer.find(clickElement).click(function (e) {
-                e.preventDefault();
-                if (!jQuery(tab).parent().hasClass('active')) {
-                    jQuery(tab).click();
-                }
-                jQuery("html, body").animate({scrollTop: jQuery(container).offset().top - 20}, 500);
-            });
-        }
+        (function (window) {
+            window.scrollToTab = function scrollToTab(teaserContainer, clickElement, container, tab) {
+                teaserContainer.find(clickElement).click(function (event) {
+                    event.preventDefault();
+                    if (!jQuery(tab).parent().hasClass('active')) {
+                        jQuery(tab).click();
+                    }
+                    jQuery("html, body").animate({scrollTop: jQuery(container).offset().top - 20}, 500);
+                });
+            };
 
-        var turnToConfig = <?= $block->getConfigJson() ?>;
+            window.TurnToItemSku = <?php if ($commentsEnabled): ?>window.TurnToChatterSku = <?php endif; ?>"<?=$productSku ?>";
 
-        var TurnToItemSku = "<?= $productSku ?>";
+            <?php if ($galleryEnabled): ?>
+            window.TurnToGallerySkus = <?= $gallerySkus ?>;
+            <?php endif; ?>
 
-        <?php if ($commentsEnabled): ?>
-            var TurnToChatterSku = TurnToItemSku;
-        <?php endif; ?>
-
-        <?php if ($galleryEnabled): ?>
-            var TurnToGallerySkus = <?= $gallerySkus ?>;
-        <?php endif; ?>
-
-        window.turnToUseChildSku = <?= $useSimpleProduct ?>;
+            window.turnToUseChildSku = <?= $useSimpleProduct ?>;
+        })(window);
     </script>
 <?php endif; ?>
 
 <script type="text/javascript">
-    require([
-        'jquery',
-    ], function($) {
-        $.getScript('<?= sprintf('%s/sitedata/%s/v%s/%s/d/itemjs', $staticUrl, $siteKey, $version, $productSku) ?>');
-        $.getScript('<?= sprintf('%s/traServer%s/trajs/%s/tra.js', $staticUrl, $version, $siteKey) ?>', function() {
-            <?php
-            /**
-             * This logic is necessary to ensure that the Reviews and Q&A content is up to date with the TurnTo servers.
-             * Without this logic, the full page cache may be missing content and only display content loaded the last time the
-             * cache was refreshed. This solution will refresh the content upon page load if either the Reviews or Q&A sections
-             * are loaded statically.
-             */
-            if ($reviewsSetupType == 'staticEmbed' || $qaSetupType == 'staticEmbed'): ?>
-            TurnTo.reset({"sku": "<?= $productSku ?>"});
-            <?php endif; ?>
-        });
-        <?= $commentsEnabled ? sprintf('$.getScript("%s/traServer%s/chatterjs/%s/turnto-chatter.js");', $staticUrl, $version, $siteKey) : '' ?>
-        <?= $galleryEnabled ? sprintf('$.getScript("%s/traServer%s/galleryjs/%s/turnto-gallery.js/%s");', $staticUrl, $version, $siteKey, $locale) : '' ?>
+    require(['jquery'], function ($) {
+        $.getScript('<?= "{$staticUrl}/sitedata/{$siteKey}/v{$version}/{$productSku}/d/itemjs" ?>');
+        $.getScript('<?= "{$staticUrl}/traServer{$version}/trajs/{$siteKey}/tra.js" ?>',
+            function () {
+                <?php
+                /**
+                 * This logic is necessary to ensure that the Reviews and Q&A content is up to date with the TurnTo
+                 * servers.
+                 * Without this logic, the full page cache may be missing content and only display content loaded the
+                 * last time the cache was refreshed. This solution will refresh the content upon page load if either
+                 * the Reviews or Q&A sections are loaded statically.
+                 */
+                if ($configHelper->getSetupType() === \TurnTo\SocialCommerce\Helper\Config::SETUP_TYPE_STATIC_EMBED): ?>
+                TurnTo.reset({"sku": "<?= $productSku ?>"});
+                <?php endif; ?>
+            });
+        <?php if($commentsEnabled): ?>
+        $.getScript('<?= "{$staticUrl}/traServer{$version}/chatterjs/{$siteKey}/turnto-chatter.js" ?>');
+        <?php endif; ?>
+        <?php if($galleryEnabled): ?>
+        $.getScript('<?= "{$staticUrl}/traServer{$version}/galleryjs/{$siteKey}/turnto-gallery.js/{$locale}" ?>');
+        <?php endif; ?>
     });
 </script>

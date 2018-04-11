@@ -7,10 +7,10 @@
 
 namespace TurnTo\SocialCommerce\Model\Data;
 
-use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\Block\ArgumentInterface as BlockArgumentInterface;
 use TurnTo\SocialCommerce\Api\TurnToConfigDataProviderInterface;
 use TurnTo\SocialCommerce\Helper\Config as TurnToConfigHelper;
+use TurnTo\SocialCommerce\Helper\ConfigProviderHelper;
 
 class MobileLandingConfig implements TurnToConfigDataProviderInterface, BlockArgumentInterface
 {
@@ -20,18 +20,18 @@ class MobileLandingConfig implements TurnToConfigDataProviderInterface, BlockArg
     protected $configHelper;
 
     /**
-     * @var UrlInterface
+     * @var ConfigProviderHelper
      */
-    protected $urlBuilder;
+    protected $configProviderHelper;
 
     /**
-     * @param TurnToConfigHelper $configHelper
-     * @param UrlInterface       $urlBuilder
+     * @param TurnToConfigHelper   $configHelper
+     * @param ConfigProviderHelper $configProviderHelper
      */
-    public function __construct(TurnToConfigHelper $configHelper, UrlInterface $urlBuilder)
+    public function __construct(TurnToConfigHelper $configHelper, ConfigProviderHelper $configProviderHelper)
     {
         $this->configHelper = $configHelper;
-        $this->urlBuilder = $urlBuilder;
+        $this->configProviderHelper = $configProviderHelper;
     }
 
     /**
@@ -47,14 +47,7 @@ class MobileLandingConfig implements TurnToConfigDataProviderInterface, BlockArg
             'setupType' => 'mobileTT'
         ];
 
-        if ($this->configHelper->getSingleSignOn()) {
-            $config['registration'] = [
-                'localGetLoginStatusFunction' => new \Zend_Json_Expr('localGetLoginStatusFunction'),
-                'localRegistrationUrl' => $this->urlBuilder->getBaseUrl() . 'turnto/sso/login',
-                'localGetUserInfoFunction' => new \Zend_Json_Expr('localGetUserInfoFunction'),
-                'localLogoutFunction' => new \Zend_Json_Expr('localLogoutFunction')
-            ];
-        }
+        $config = array_merge($config, $this->configProviderHelper->getSingleSignOnConfig());
 
         return $config;
     }
