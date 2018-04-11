@@ -21,6 +21,11 @@
                 <block class="Magento\Framework\View\Element\Template" name="turnto.config.js.reviews" template="TurnTo_SocialCommerce::config/reviews.phtml" />
                 <block class="Magento\Framework\View\Element\Template" name="turnto.config.js.qa" template="TurnTo_SocialCommerce::config/qa.phtml" />
                 <block class="Magento\Framework\View\Element\Template" name="turnto.config.js.sso" template="TurnTo_SocialCommerce::config/sso.phtml" />
+                <block class="TurnTo\SocialCommerce\Block\TurnToConfig" name="turnto.config.product-detail">
+                    <arguments>
+                        <argument name="config_data" xsi:type="object">\TurnTo\SocialCommerce\Model\Data\ProductDetailConfig</argument>
+                    </arguments>
+                </block>
             </block>
         </referenceContainer>
 

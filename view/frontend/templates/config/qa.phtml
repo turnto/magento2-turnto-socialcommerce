@@ -30,14 +30,7 @@ if ($qaEnabled && $qaTeaserEnabled): ?>
                 var answerCount = TurnToItemData.counts.a;
                 var questionCount = TurnToItemData.counts.q;
                 var teaserContainer = TurnTojQuery(".TurnToItemTeaser");
-                var teaserHtml = '';
-                <?php
-                if ($reviewsEnabled && $reviewsTeaserEnabled):
-                ?>
-                var teaserHtml = '&nbsp;|&nbsp;';
-                <?php
-                endif;
-                ?>
+                var teaserHtml = '<?= $reviewsEnabled && $reviewsTeaserEnabled ? '&nbsp;|&nbsp;' : '' ?>';
 
                 if (questionCount == 0) {
                     teaserHtml = teaserHtml + '<a id="askQuestion" href="javascript:void(0)"><?= __('Ask a Question') ?></a>';

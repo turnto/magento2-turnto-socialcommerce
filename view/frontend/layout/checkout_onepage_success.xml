@@ -17,7 +17,13 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="order.success.additional.info">
-            <block class="TurnTo\SocialCommerce\Block\CheckoutComments" name="checkout.comments" template="TurnTo_SocialCommerce::onepage/comments.phtml" cacheable="false" ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_checkout_success"/>
+            <block class="TurnTo\SocialCommerce\Block\CheckoutComments" name="checkout.comments" template="TurnTo_SocialCommerce::onepage/comments.phtml" cacheable="false" ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_checkout_success">
+                <block class="TurnTo\SocialCommerce\Block\TurnToConfig" name="turnto.config.checkout.comments" as="turnto.config" >
+                    <arguments>
+                        <argument name="config_data" xsi:type="object">\TurnTo\SocialCommerce\Model\Data\OnepageCommentsConfig</argument>
+                    </arguments>
+                </block>
+            </block>
         </referenceContainer>
     </body>
 </page>
