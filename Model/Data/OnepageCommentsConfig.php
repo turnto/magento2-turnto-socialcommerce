@@ -7,7 +7,38 @@
 
 namespace TurnTo\SocialCommerce\Model\Data;
 
-class OnepageCommentsConfig
-{
+use TurnTo\SocialCommerce\Api\TurnToConfigDataProviderInterface;
 
+class OnepageCommentsConfig implements TurnToConfigDataProviderInterface
+{
+    /**
+     * @var \TurnTo\SocialCommerce\Helper\Config
+     */
+    protected $turnToConfigHelper;
+
+    public function __construct(\TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper)
+    {
+        $this->turnToConfigHelper = $turnToConfigHelper;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getData(): array
+    {
+        $config = [
+            'siteKey' => $this->turnToConfigHelper->getSiteKey(),
+            'orderConfFlowPauseSeconds' => 0,
+            'postPurchaseFlow' => true
+        ];
+
+        $checkoutCommentsSuccessEnabled = (bool)$this->turnToConfigHelper->getCheckoutCommentsEnabledCheckoutSuccess();
+
+        if ($checkoutCommentsSuccessEnabled) {
+            $config['commentCaptureShowUsername'] = true;
+            $config['embedCommentCapture'] = true;
+        }
+
+        return $config;
+    }
 }

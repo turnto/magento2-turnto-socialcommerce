@@ -1,64 +1,48 @@
 <?php
 /**
  * TurnTo_SocialCommerce
- *
  * NOTICE OF LICENSE
- *
  * This source file is subject to the Open Software License (OSL 3.0)
  * that is bundled with this package in the file LICENSE.txt.
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
- *
  * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
+/** @var \TurnTo\SocialCommerce\Block\CheckoutComments $block */
 /** @var TurnTo\SocialCommerce\Helper\Config $configHelper */
 $configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
 
-$siteKey = $configHelper->getSiteKey();
-$url = $configHelper->getUrl();
 $staticUrl = preg_replace("(^https?://)", "//", $configHelper->getStaticUrl());
 $version = $configHelper->getTurnToVersion();
-$checkoutCommentsSuccessEnabled = (bool)$configHelper->getCheckoutCommentsEnabledCheckoutSuccess();
-$customConfiguration = $configHelper->getCustomConfigurationJs();
+
+echo $block->getTurnToConfigHtml();
 
 ?>
-<script type="text/javascript">
-    var turnToConfig = {
-        siteKey: "<?= $siteKey ?>",
-        orderConfFlowPauseSeconds:0,
-        <?php if ($checkoutCommentsSuccessEnabled): ?>
-            commentCaptureShowUsername: true,
-            embedCommentCapture: <?= var_export($checkoutCommentsSuccessEnabled, true) ?>,
-        <?php endif; ?>
-        postPurchaseFlow: true
-    };
 
-    <?php if ($customConfiguration): ?>
-        var customConfiguration = <?= $customConfiguration ?>;
-        // Add the keys from the user-supplied object to the existing turnToConfig object
-        for (var k in customConfiguration) {
-            turnToConfig[k]=customConfiguration[k];
-        }
-    <?php endif; ?>
-    
+<script type="text/javascript">
     require(['jquery'], function ($) {
-        $.getScript("<?= sprintf("%s/tra%s/turntoFeed.js", $staticUrl, $version) ?>", function () {
-            $.getScript("<?= sprintf("%s/traServer%s/trajs/%s/tra.js", $staticUrl, $version, $siteKey)?>", function () {
+        $.getScript("<?= sprintf('%s/tra%s/turntoFeed.js', $staticUrl, $version) ?>", function () {
+            $.getScript("<?= sprintf(
+                '%s/traServer%s/trajs/%s/tra.js',
+                $staticUrl,
+                $version,
+                $configHelper->getSiteKey()
+            )?>", function () {
                 TurnToFeed.addFeedPurchaseOrder(<?= $block->getFeedPurchaseOrderData() ?>);
 
                 <?php foreach($block->getOrderItemData() as $item): ?>
-                    TurnToFeed.addFeedLineItem(<?= $item ?>);
+                TurnToFeed.addFeedLineItem(<?= $item ?>);
                 <?php endforeach; ?>
 
                 TurnToFeed.sendFeed();
             });
         });
     });
-    
+
 </script>
 
-<?php if ($checkoutCommentsSuccessEnabled): ?>
+<?php if ((bool)$configHelper->getCheckoutCommentsEnabledCheckoutSuccess()): ?>
     <div id="TTcommentCapture"></div>
 <?php endif; ?>

@@ -1,19 +1,18 @@
 <?php
 /**
  * TurnTo_SocialCommerce
- *
  * NOTICE OF LICENSE
- *
  * This source file is subject to the Open Software License (OSL 3.0)
  * that is bundled with this package in the file LICENSE.txt.
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
- *
  * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
 namespace TurnTo\SocialCommerce\Block;
+
+use TurnTo\SocialCommerce\Model\Data\OnepageCommentsConfigFactory;
 
 class CheckoutComments extends \Magento\Framework\View\Element\Template
 {
@@ -33,24 +32,36 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
     protected $imageHelper;
 
     /**
+     * @var OnepageCommentsConfigFactory
+     */
+    protected $onepageCommentsConfigFactory;
+
+    /**
      * CheckoutComments constructor.
+     *
      * @param \Magento\Framework\View\Element\Template\Context $context
-     * @param \TurnTo\SocialCommerce\Helper\Config $config
-     * @param \Magento\Checkout\Model\Session $checkoutSession
-     * @param array $data
+     * @param \TurnTo\SocialCommerce\Helper\Config             $config
+     * @param \Magento\Checkout\Model\Session                  $checkoutSession
+     * @param \Magento\Catalog\Helper\Image                    $imageHelper
+     * @param OnepageCommentsConfigFactory                     $onepageCommentsConfigFactory
+     * @param array                                            $data
      */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \TurnTo\SocialCommerce\Helper\Config $config,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Catalog\Helper\Image $imageHelper,
+        OnepageCommentsConfigFactory $onepageCommentsConfigFactory,
         array $data = []
-    ) {
-    
+    )
+    {
+
+        parent::__construct($context, $data);
+
         $this->config = $config;
         $this->checkoutSession = $checkoutSession;
         $this->imageHelper = $imageHelper;
-        parent::__construct($context, $data);
+        $this->onepageCommentsConfigFactory = $onepageCommentsConfigFactory;
     }
 
     /**
@@ -62,21 +73,26 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
         $firstName = $order->getCustomerFirstname();
         $lastName = $order->getCustomerLastname();
 
-        if (is_null($order->getCustomer())) {
+        if (null === $order->getCustomer()) {
             $address = $order->getShippingAddress();
-            if (is_null($address)) {
+
+            if (null === $address) {
                 $address = $order->getBillingAddress();
             }
+
             $firstName = $address->getFirstname();
             $lastName = $address->getLastname();
         }
 
-        return json_encode([
-            'orderId' => $order->getRealOrderId(),
-            'email' => $order->getCustomerEmail(),
-            'firstName' => $firstName,
-            'lastName' => $lastName
-        ], JSON_PRETTY_PRINT);
+        return json_encode(
+            [
+                'orderId' => $order->getRealOrderId(),
+                'email' => $order->getCustomerEmail(),
+                'firstName' => $firstName,
+                'lastName' => $lastName
+            ],
+            JSON_PRETTY_PRINT
+        );
     }
 
     /**
@@ -87,17 +103,44 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
         $order = $this->checkoutSession->getLastRealOrder();
         $orderItems = [];
 
+        /** @var \Magento\Sales\Model\Order\Item $item */
         foreach ($order->getAllVisibleItems() as $item) {
             $product = $item->getProduct();
-            $orderItems[] = json_encode([
-                'title' => $product->getName(),
-                'url' => $product->getProductUrl(),
-                'sku' => $this->config->getUseChildSku() ? $item->getSku() : $product->getSku(),
-                'getPrice' => $product->getFinalPrice(),
-                'itemImageUrl' => $this->imageHelper->init($product, 'product_small_image')->getUrl()
-            ], JSON_PRETTY_PRINT);
+
+            if($product === null) {
+                continue;
+            }
+
+            $orderItems[] = json_encode(
+                [
+                    'title' => $product->getName(),
+                    'url' => $product->getProductUrl(),
+                    'sku' => $this->config->getUseChildSku() ? $item->getSku() : $product->getSku(),
+                    'getPrice' => $product->getFinalPrice(),
+                    'itemImageUrl' => $this->imageHelper->init($product, 'product_small_image')->getUrl()
+                ],
+                JSON_PRETTY_PRINT
+            );
         }
 
         return $orderItems;
+    }
+
+    /**
+     * Grabs the child config block, sets the MobileLandingConfig data on it, and returns the generated html
+     * @return string
+     */
+    public function getTurnToConfigHtml(): string
+    {
+        /** @var TurnToConfig $turnToConfig */
+        $turnToConfig = $this->getChildBlock('turnto.config');
+
+        if ($turnToConfig === false) {
+            return '';
+        }
+
+        $turnToConfig->setConfigData($this->onepageCommentsConfigFactory->create());
+
+        return $turnToConfig->toHtml();
     }
 }
