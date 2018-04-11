@@ -17,7 +17,7 @@ $configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
 $staticUrl = preg_replace("(^https?://)", "//", $configHelper->getStaticUrl());
 $version = $configHelper->getTurnToVersion();
 
-echo $block->getTurnToConfigHtml();
+echo $block->getChildHtml('turnto.config');
 
 ?>
 

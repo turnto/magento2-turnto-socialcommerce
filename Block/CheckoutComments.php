@@ -12,8 +12,6 @@
 
 namespace TurnTo\SocialCommerce\Block;
 
-use TurnTo\SocialCommerce\Model\Data\OnepageCommentsConfigFactory;
-
 class CheckoutComments extends \Magento\Framework\View\Element\Template
 {
     /**
@@ -32,18 +30,12 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
     protected $imageHelper;
 
     /**
-     * @var OnepageCommentsConfigFactory
-     */
-    protected $onepageCommentsConfigFactory;
-
-    /**
      * CheckoutComments constructor.
      *
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \TurnTo\SocialCommerce\Helper\Config             $config
      * @param \Magento\Checkout\Model\Session                  $checkoutSession
      * @param \Magento\Catalog\Helper\Image                    $imageHelper
-     * @param OnepageCommentsConfigFactory                     $onepageCommentsConfigFactory
      * @param array                                            $data
      */
     public function __construct(
@@ -51,7 +43,6 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
         \TurnTo\SocialCommerce\Helper\Config $config,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Catalog\Helper\Image $imageHelper,
-        OnepageCommentsConfigFactory $onepageCommentsConfigFactory,
         array $data = []
     )
     {
@@ -61,7 +52,6 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
         $this->config = $config;
         $this->checkoutSession = $checkoutSession;
         $this->imageHelper = $imageHelper;
-        $this->onepageCommentsConfigFactory = $onepageCommentsConfigFactory;
     }
 
     /**
@@ -124,23 +114,5 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
         }
 
         return $orderItems;
-    }
-
-    /**
-     * Grabs the child config block, sets the MobileLandingConfig data on it, and returns the generated html
-     * @return string
-     */
-    public function getTurnToConfigHtml(): string
-    {
-        /** @var TurnToConfig $turnToConfig */
-        $turnToConfig = $this->getChildBlock('turnto.config');
-
-        if ($turnToConfig === false) {
-            return '';
-        }
-
-        $turnToConfig->setConfigData($this->onepageCommentsConfigFactory->create());
-
-        return $turnToConfig->toHtml();
     }
 }
