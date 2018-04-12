@@ -61,7 +61,8 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
             array_slice(
                 func_get_args(),
                 0,
-                class_exists('Magento\Framework\Serialize\Serializer\Json') ? count(func_get_args()) : -1
+                // -1 excludes our custom class, -2 excludes both our class and the JSON class that doesn't exist
+                class_exists('Magento\Framework\Serialize\Serializer\Json') ? -1 : -2
             )
         );
 
