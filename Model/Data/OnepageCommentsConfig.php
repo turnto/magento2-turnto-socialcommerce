@@ -7,10 +7,9 @@
 
 namespace TurnTo\SocialCommerce\Model\Data;
 
-use Magento\Framework\View\Element\Block\ArgumentInterface as BlockArgumentInterface;
 use TurnTo\SocialCommerce\Api\TurnToConfigDataProviderInterface;
 
-class OnepageCommentsConfig implements TurnToConfigDataProviderInterface, BlockArgumentInterface
+class OnepageCommentsConfig implements TurnToConfigDataProviderInterface
 {
     /**
      * @var \TurnTo\SocialCommerce\Helper\Config

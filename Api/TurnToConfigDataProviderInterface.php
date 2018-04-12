@@ -17,7 +17,9 @@ namespace Magento\Framework\View\Element\Block {
 
 namespace TurnTo\SocialCommerce\Api {
 
-    interface TurnToConfigDataProviderInterface
+    use Magento\Framework\View\Element\Block\ArgumentInterface;
+
+    interface TurnToConfigDataProviderInterface extends ArgumentInterface
     {
         /**
          * Returns TurnTo configuration data used in the JavaScript snippet

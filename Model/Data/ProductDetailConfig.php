@@ -7,12 +7,11 @@
 
 namespace TurnTo\SocialCommerce\Model\Data;
 
-use Magento\Framework\View\Element\Block\ArgumentInterface as BlockArgumentInterface;
 use TurnTo\SocialCommerce\Api\TurnToConfigDataProviderInterface;
 use TurnTo\SocialCommerce\Helper\Config as TurnToConfigHelper;
 use TurnTo\SocialCommerce\Helper\ConfigProviderHelper;
 
-class ProductDetailConfig implements TurnToConfigDataProviderInterface, BlockArgumentInterface
+class ProductDetailConfig implements TurnToConfigDataProviderInterface
 {
     /**
      * @var TurnToConfigHelper
