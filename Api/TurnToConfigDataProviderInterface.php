@@ -6,26 +6,26 @@
  */
 
 // In Magento 2.2.x, Magento introduced a required interface for block arguments, add this for backwards compatibility
-namespace Magento\Framework\View\Element\Block {
 
-    if (!interface_exists('\Magento\Framework\View\Element\Block\ArgumentInterface')) {
-        interface ArgumentInterface
-        {
-        }
+namespace TurnTo\SocialCommerce\Api;
+
+if (!interface_exists('Magento\Framework\View\Element\Block\ArgumentInterface')) {
+    interface ArgumentInterface
+    {
     }
+} else {
+    class_alias(
+        'Magento\Framework\View\Element\Block\ArgumentInterface',
+        'TurnTo\SocialCommerce\Api\ArgumentInterface'
+    );
 }
 
-namespace TurnTo\SocialCommerce\Api {
-
-    use Magento\Framework\View\Element\Block\ArgumentInterface;
-
-    interface TurnToConfigDataProviderInterface extends ArgumentInterface
-    {
-        /**
-         * Returns TurnTo configuration data used in the JavaScript snippet
-         * @api
-         * @return array
-         */
-        public function getData();
-    }
+interface TurnToConfigDataProviderInterface extends ArgumentInterface
+{
+    /**
+     * Returns TurnTo configuration data used in the JavaScript snippet
+     * @api
+     * @return array
+     */
+    public function getData();
 }
