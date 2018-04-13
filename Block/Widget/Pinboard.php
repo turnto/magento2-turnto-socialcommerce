@@ -15,18 +15,6 @@ namespace TurnTo\SocialCommerce\Block\Widget;
 use Magento\Framework\Exception\LocalizedException;
 use TurnTo\SocialCommerce\Model\Data\PinboardConfigFactory;
 
-// Provide backwards compatibility with Magento < 2.2.x
-if (!class_exists('Magento\Framework\Serialize\Serializer\Json')) {
-    class Json
-    {
-    }
-} else {
-    class_alias(
-        'Magento\Framework\Serialize\Serializer\Json',
-        'TurnTo\SocialCommerce\Block\Widget\Json'
-    );
-}
-
 /**
  * @method getContentType(): string
  * @method getTitle(): string
