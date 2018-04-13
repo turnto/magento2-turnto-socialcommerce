@@ -1,3 +1,13 @@
+## 2.0.0 (2018-04-13)
+
+* Improve HttpClient logging for debugging errors during retrieval of embedded content ([#38](https://github.com/turnto/magento2-turnto-socialcommerce/issues/38))
+* Add support for using child SKU instead of parent SKU option in 2.2.x ([#29](https://github.com/turnto/magento2-turnto-socialcommerce/issues/29))
+* Fix order export failing due to sorting on incorrect order column ([#33](https://github.com/turnto/magento2-turnto-socialcommerce/issues/33))
+* Fix stock availability status not being set for catalog export ([#39](https://github.com/turnto/magento2-turnto-socialcommerce/issues/39))
+* Fix issue where admin configured "Custom Configuration" was not getting output on product detail pages ([#41](https://github.com/turnto/magento2-turnto-socialcommerce/issues/41))
+    * Refactored TurnTo javascript config generation to centralized Block
+	* Developers can now intercept config generation through Magento plugins to customize functionality
+
 ## 1.3.0 (2018-01-19)
 * Added [documentation](https://github.com/turnto/magento2-turnto-socialcommerce#rating-import-from-turnto) explaining how reviews are pulled from TurnTo
 * Fixed issue where category pages don't display proper review count/rating until manual reindex is performed ([#31](https://github.com/turnto/magento2-turnto-socialcommerce/issues/31)) and ([#23](https://github.com/turnto/magento2-turnto-socialcommerce/issues/23))
