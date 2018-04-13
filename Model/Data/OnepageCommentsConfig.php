@@ -7,9 +7,9 @@
 
 namespace TurnTo\SocialCommerce\Model\Data;
 
-use TurnTo\SocialCommerce\Api\TurnToConfigDataProviderInterface;
+use TurnTo\SocialCommerce\Api\TurnToConfigDataSourceInterface;
 
-class OnepageCommentsConfig implements TurnToConfigDataProviderInterface
+class OnepageCommentsConfig implements TurnToConfigDataSourceInterface
 {
     /**
      * @var \TurnTo\SocialCommerce\Helper\Config

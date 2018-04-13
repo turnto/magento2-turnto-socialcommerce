@@ -9,18 +9,9 @@
 
 namespace TurnTo\SocialCommerce\Api;
 
-if (!interface_exists('Magento\Framework\View\Element\Block\ArgumentInterface')) {
-    interface ArgumentInterface
-    {
-    }
-} else {
-    class_alias(
-        'Magento\Framework\View\Element\Block\ArgumentInterface',
-        'TurnTo\SocialCommerce\Api\ArgumentInterface'
-    );
-}
+use Magento\Framework\Data\CollectionDataSourceInterface;
 
-interface TurnToConfigDataProviderInterface extends ArgumentInterface
+interface TurnToConfigDataSourceInterface extends CollectionDataSourceInterface
 {
     /**
      * Returns TurnTo configuration data used in the JavaScript snippet

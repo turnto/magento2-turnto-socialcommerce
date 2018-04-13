@@ -7,11 +7,11 @@
 
 namespace TurnTo\SocialCommerce\Model\Data;
 
-use TurnTo\SocialCommerce\Api\TurnToConfigDataProviderInterface;
+use TurnTo\SocialCommerce\Api\TurnToConfigDataSourceInterface;
 use TurnTo\SocialCommerce\Helper\Config as TurnToConfigHelper;
 use TurnTo\SocialCommerce\Helper\ConfigProviderHelper;
 
-class ProductDetailConfig implements TurnToConfigDataProviderInterface
+class ProductDetailConfig implements TurnToConfigDataSourceInterface
 {
     /**
      * @var TurnToConfigHelper
