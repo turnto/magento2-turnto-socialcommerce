@@ -1,14 +1,11 @@
 <?php
 /**
  * TurnTo_SocialCommerce
- *
  * NOTICE OF LICENSE
- *
  * This source file is subject to the Open Software License (OSL 3.0)
  * that is bundled with this package in the file LICENSE.txt.
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
- *
  * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
@@ -16,7 +13,6 @@
 namespace TurnTo\SocialCommerce\Block\Widget;
 
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Serialize\Serializer\Json;
 use TurnTo\SocialCommerce\Model\Data\PinboardConfigFactory;
 
 /**
@@ -42,21 +38,20 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
         \Magento\Rule\Model\Condition\Sql\Builder $sqlBuilder,
         \Magento\CatalogWidget\Model\Rule $rule,
         \Magento\Widget\Helper\Conditions $conditionsHelper,
-        PinboardConfigFactory $pinboardConfigFactory,
         array $data = [],
-        Json $json = null
+        Json $json = null,
+        PinboardConfigFactory $pinboardConfigFactory
     )
     {
-        parent::__construct(
-            $context,
-            $productCollectionFactory,
-            $catalogProductVisibility,
-            $httpContext,
-            $sqlBuilder,
-            $rule,
-            $conditionsHelper,
-            $data,
-            $json
+        // Call the parent class with the proper arguments based on the availability of a Magento 2.2.x class
+        call_user_func_array(
+            [__CLASS__, 'parent::__construct'],
+            array_slice(
+                func_get_args(),
+                0,
+                // -1 excludes our custom class, -2 excludes both our class and the JSON class that doesn't exist
+                class_exists('Magento\Framework\Serialize\Serializer\Json') ? -1 : -2
+            )
         );
 
         $this->pinboardConfigFactory = $pinboardConfigFactory;

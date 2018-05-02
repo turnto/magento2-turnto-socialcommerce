@@ -8,11 +8,11 @@
 namespace TurnTo\SocialCommerce\Model\Data;
 
 use Magento\Framework\Exception\LocalizedException;
-use TurnTo\SocialCommerce\Api\TurnToConfigDataProviderInterface;
+use TurnTo\SocialCommerce\Api\TurnToConfigDataSourceInterface;
 use TurnTo\SocialCommerce\Block\Widget\Pinboard as PinboardBlock;
 use TurnTo\SocialCommerce\Helper\Config as TurnToConfigHelper;
 
-class PinboardConfig implements TurnToConfigDataProviderInterface
+class PinboardConfig implements TurnToConfigDataSourceInterface
 {
     /**
      * @var TurnToConfigHelper

@@ -8,12 +8,12 @@
 namespace TurnTo\SocialCommerce\Block;
 
 use Magento\Framework\View\Element\Template;
-use TurnTo\SocialCommerce\Api\TurnToConfigDataProviderInterface;
+use TurnTo\SocialCommerce\Api\TurnToConfigDataSourceInterface;
 use TurnTo\SocialCommerce\Helper\Config as TurnToConfigHelper;
 
 /**
- * @method void setConfigData(TurnToConfigDataProviderInterface $config)
- * @method TurnToConfigDataProviderInterface getConfigData()
+ * @method void setConfigData(TurnToConfigDataSourceInterface $config)
+ * @method TurnToConfigDataSourceInterface getConfigData()
  */
 class TurnToConfig extends Template implements TurnToConfigInterface
 {
