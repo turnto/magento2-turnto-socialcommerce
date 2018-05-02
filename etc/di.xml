@@ -10,7 +10,7 @@
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
  *
- * @copyright  Copyright (c) 2017 TurnTo Networks, Inc.
+ * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 -->
@@ -36,6 +36,9 @@
     </type>
     <type name="Magento\Catalog\Model\Layer\Filter\Item\DataBuilder">
         <plugin name="turnto_socialcommerce_plugin_catalog_model_layer_filter_item_databuilder" type="TurnTo\SocialCommerce\Plugin\Catalog\Model\Layer\Filter\Item\DataBuilder" sortOrder="1" />
+    </type>
+    <type name="\Magento\ConfigurableProduct\Block\Product\View\Type\Configurable">
+        <plugin name="turnto_socialcommerce_plugin_add_sku_to_product_images" type="TurnTo\SocialCommerce\Plugin\Product\View\Type\Configurable" />
     </type>
     <preference for="Magento\Swatches\Controller\Ajax\Media" type="TurnTo\SocialCommerce\Controller\Ajax\Media"/>
 </config>

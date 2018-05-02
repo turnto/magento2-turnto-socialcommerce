@@ -1,15 +1,12 @@
 <?php
 /**
  * TurnTo_SocialCommerce
- *
  * NOTICE OF LICENSE
- *
  * This source file is subject to the Open Software License (OSL 3.0)
  * that is bundled with this package in the file LICENSE.txt.
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
- *
- * @copyright  Copyright (c) 2017 TurnTo Networks, Inc.
+ * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
@@ -19,7 +16,6 @@ use Magento\Store\Model\ScopeInterface;
 
 /**
  * Class Config - Assists with retrieval of TurnTo configuration settings
- *
  * @package TurnTo\SocialCommerce\Helper
  */
 class Config extends \Magento\Framework\App\Helper\AbstractHelper
@@ -82,7 +78,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_PATH_ENABLE_CHECKOUT_COMMENTS_SUCCESS = 'turnto_socialcommerce_configuration/checkout_comments/enable_checkout_success';
 
     const XML_PATH_ENABLE_CHECKOUT_COMMENTS_PRODUCT_DETAIL = 'turnto_socialcommerce_configuration/checkout_comments/enable_product_detail';
-    
+
     const XML_PATH_COLUMNS = 'turnto_socialcommerce_configuration/checkout_comments/columns';
 
     /**
@@ -120,7 +116,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_ENABLED = 'turnto_socialcommerce_configuration/historical_orders_feed/enable_historical_feed';
 
     const XML_PATH_SOCIALCOMMERCE_EXCLUDE_ITEMS_WITHOUT_DELIVERY_DATE = 'turnto_socialcommerce_configuration/historical_orders_feed/exclude_items_without_delivery_date';
-    
+
     const XML_PATH_EXPORT_FEED_URL = 'turnto_socialcommerce_configuration/product_feed/product_feed_url';
 
     const XML_PATH_PRODUCT_GROUP = 'turnto_socialcommerce_configuration/product_attribute_mappings/';
@@ -156,17 +152,19 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     /**
      * Config constructor.
-     * @param \Magento\Framework\App\Helper\Context $context
+     *
+     * @param \Magento\Framework\App\Helper\Context      $context
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Config\Model\ResourceModel\Config $resourceModel
-     * @param \Magento\Framework\Encryption\Encryptor $encryptor
+     * @param \Magento\Framework\Encryption\Encryptor    $encryptor
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Config\Model\ResourceModel\Config $resourceModel,
         \Magento\Framework\Encryption\Encryptor $encryptor
-    ) {
+    )
+    {
         $this->storeManager = $storeManager;
         $this->resourceModel = $resourceModel;
         $this->encryptor = $encryptor;
@@ -186,6 +184,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the value of the setting that determines if TurnTo's configuration is enabled
      *
      * @param null $scopeCode
+     *
      * @return mixed
      */
     public function getIsEnabled($scopeCode = null)
@@ -201,6 +200,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the value of the setting that determines if automated Product Feed Submission is enabled
      *
      * @param $store = null
+     *
      * @return mixed
      */
     public function getIsProductFeedSubmissionEnabled($store = null)
@@ -208,7 +208,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_PRODUCT_FEED_SUBMISSION,
             ScopeInterface::SCOPE_STORE,
-            $store ? $store : $this->getCurrentStoreCode()
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -216,6 +216,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the TurnTo Site Key
      *
      * @param $scopeCode = null
+     *
      * @return mixed
      */
     public function getSiteKey($scopeCode = null)
@@ -231,6 +232,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the TurnTo API Version
      *
      * @param null $scopeCode
+     *
      * @return mixed
      */
     public function getTurnToVersion($scopeCode = null)
@@ -250,6 +252,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the Static URL configuration value
      *
      * @param null $store
+     *
      * @return mixed
      */
     public function getStaticUrl($store = null)
@@ -257,7 +260,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_STATIC_URL,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -265,6 +268,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the URL configuration value
      *
      * @param null $store
+     *
      * @return mixed
      */
     public function getUrl($store = null)
@@ -272,7 +276,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_URL,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -280,6 +284,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the Use Child SKU configuration value
      *
      * @param null $store
+     *
      * @return mixed
      */
     public function getUseChildSku($store = null)
@@ -287,7 +292,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_USE_CHILD_SKU,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -295,14 +300,15 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the Enable Single Sign On configuration value
      *
      * @param null $store
-     * @return mixed
+     *
+     * @return bool
      */
     public function getSingleSignOn($store = null)
     {
-        return $this->scopeConfig->getValue(
+        return (bool)$this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_SINGLE_SIGN_ON,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -310,15 +316,19 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Get custom configuration entered by user via admin
      *
      * @param null $store
+     *
      * @return string|bool
      */
     public function getCustomConfigurationJs($store = null)
     {
-        $configValue = trim($this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_CUSTOM_CONFIGURATION,
-            ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
-        ));
+        $configValue = trim(
+            $this->scopeConfig->getValue(
+                self::XML_PATH_SOCIALCOMMERCE_CUSTOM_CONFIGURATION,
+                ScopeInterface::SCOPE_STORE,
+                $store ?: $this->getCurrentStoreCode()
+            )
+        );
+
         return strlen($configValue) > 0 ? $configValue : false;
     }
 
@@ -326,6 +336,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the Static URL configuration value with the protocol removed
      *
      * @param null $store
+     *
      * @return mixed
      */
     public function getStaticUrlWithoutProtocol($store = null)
@@ -337,6 +348,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the URL configuration value with the protocol removed
      *
      * @param null $store
+     *
      * @return mixed
      */
     public function getUrlWithoutProtocol($store = null)
@@ -348,6 +360,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the TurnTo API Authorization Key
      *
      * @param $store = null
+     *
      * @return mixed
      */
     public function getAuthorizationKey($store = null)
@@ -369,6 +382,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the TurnTo URL to send a feed to
      *
      * @param $store = null
+     *
      * @return mixed
      */
     public function getFeedUploadAddress($store = null)
@@ -376,12 +390,13 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_FEED_SUBMISSION_URL,
             ScopeInterface::SCOPE_STORE,
-            $store ? $store : $this->getCurrentStoreCode()
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
     /**
      * @param null $store
+     *
      * @return mixed
      */
     public function getExportFeedAddress($store = null)
@@ -389,7 +404,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         return $this->scopeConfig->getValue(
             self::XML_PATH_EXPORT_FEED_URL,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -397,16 +412,16 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the Product Attribute Code that corresponds to the mapping key (see constants on this class)
      *
      * @param $mappingKey
-     * @param $scopeType
-     * @param $scopeCode
+     * @param $store
+     *
      * @return mixed
      */
-    public function getProductAttributeMapping($mappingKey, $scopeCode = null)
+    public function getProductAttributeMapping($mappingKey, $store = null)
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_PRODUCT_GROUP . $mappingKey,
             ScopeInterface::SCOPE_STORE,
-            $scopeCode
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -414,26 +429,28 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets an associative array of any set product attributes related to GTIN, key => mappingKey, value => attr_code
      *
      * @param $store = null
+     *
      * @return array
      */
     public function getGtinAttributesMap($store = null)
     {
         $gtinMap = [];
         foreach (self::PRODUCT_ATTRIBUTE_MAPPING_KEYS as $mappingKey) {
-            $tempResult = null;
             $tempResult = $this->getProductAttributeMapping(
                 $mappingKey,
-                isset($store) ? $store : $this->getCurrentStoreCode()
+                $store ?: $this->getCurrentStoreCode()
             );
             if (!empty($tempResult)) {
                 $gtinMap[$mappingKey] = $tempResult;
             }
         }
+
         return $gtinMap;
     }
 
     /**
      * @param null $store
+     *
      * @return mixed
      */
     public function getCheckoutCommentsEnabledCheckoutSuccess($store = null)
@@ -441,7 +458,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         return $this->scopeConfig->getValue(
             self::XML_PATH_ENABLE_CHECKOUT_COMMENTS_SUCCESS,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -449,14 +466,15 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the Checkout Comments Enabled Product Detail configuration value
      *
      * @param null $store
-     * @return mixed
+     *
+     * @return bool
      */
     public function getCheckoutCommentsEnabledProductDetail($store = null)
     {
-        return $this->scopeConfig->getValue(
+        return (bool)$this->scopeConfig->getValue(
             self::XML_PATH_ENABLE_CHECKOUT_COMMENTS_PRODUCT_DETAIL,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -464,6 +482,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the Checkout Comments Columns configuration value
      *
      * @param null $store
+     *
      * @return mixed
      */
     public function getColumns($store = null)
@@ -471,7 +490,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         return $this->scopeConfig->getValue(
             self::XML_PATH_COLUMNS,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -479,14 +498,15 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the Question and Answer Enabled configuration value
      *
      * @param null $store
-     * @return mixed
+     *
+     * @return bool
      */
     public function getQaEnabled($store = null)
     {
-        return $this->scopeConfig->getValue(
+        return (bool)$this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_QA,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -494,6 +514,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the Gallery Enabled configuration value
      *
      * @param null $store
+     *
      * @return mixed
      */
     public function getGalleryEnabled($store = null)
@@ -501,7 +522,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_GALLERY,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -509,6 +530,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the Question and Answer Teaser Enabled configuration value
      *
      * @param null $store
+     *
      * @return mixed
      */
     public function getQaTeaserEnabled($store = null)
@@ -516,21 +538,20 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_QA_TEASER,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
     /**
      * Gets the Question and Answer Setup Type configuration value
-     *
-     * @return mixed
+     * @return string
      */
     public function getSetupType($store = null)
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_SETUP_TYPE,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -538,14 +559,15 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the Reviews Enabled configuration value
      *
      * @param null $store
-     * @return mixed
+     *
+     * @return bool
      */
     public function getReviewsEnabled($store = null)
     {
-        return $this->scopeConfig->getValue(
+        return (bool)$this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -553,6 +575,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the Reviews Teaser Enabled configuration value
      *
      * @param null $store
+     *
      * @return mixed
      */
     public function getReviewsTeaserEnabled($store = null)
@@ -560,7 +583,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS_TEASER,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -568,6 +591,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the Reviews Setup Type configuration value
      *
      * @param null $store
+     *
      * @return mixed
      */
     public function getReviewsSetupType($store = null)
@@ -575,7 +599,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_REVIEWS_SETUP_TYPE,
             ScopeInterface::SCOPE_STORE,
-            isset($store) ? $store : $this->getCurrentStoreCode()
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
@@ -583,6 +607,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the Reviews Setup Type configuration value
      *
      * @param null $store
+     *
      * @return mixed
      */
     public function getMobilePageTitle($store = null)
@@ -596,6 +621,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     /**
      * @param null $store
+     *
      * @return mixed
      */
     public function getIsHistoricalOrdersFeedEnabled($store = null)
@@ -603,12 +629,13 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_ENABLED,
             ScopeInterface::SCOPE_STORE,
-            $store ? $store : $this->getCurrentStoreCode()
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 
     /**
      * @param $store
+     *
      * @return mixed
      */
     public function getExcludeItemsWithoutDeliveryDate($store)
@@ -616,7 +643,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_EXCLUDE_ITEMS_WITHOUT_DELIVERY_DATE,
             ScopeInterface::SCOPE_STORE,
-            $store
+            $store ?: $this->getCurrentStoreCode()
         );
     }
 }

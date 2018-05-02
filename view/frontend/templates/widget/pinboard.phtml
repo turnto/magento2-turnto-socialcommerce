@@ -9,35 +9,23 @@
  * It is also available through the world-wide-web at this URL:
  * http://opensource.org/licenses/osl-3.0.php
  *
- * @copyright  Copyright (c) 2017 TurnTo Networks, Inc.
+ * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
+/** @var \TurnTo\SocialCommerce\Block\Widget\Pinboard $block */
 /** @var TurnTo\SocialCommerce\Helper\Config $configHelper */
-$configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
+$configHelper = $this->helper(\TurnTo\SocialCommerce\Helper\Config::class);
 
-$siteKey = $configHelper->getSiteKey();
 $staticUrl = preg_replace("(^https?://)", "//", $configHelper->getStaticUrl());
-$version = $configHelper->getTurnToVersion();
+
+echo $block->getTurnToConfigHtml();
 
 ?>
 
 <script type="text/javascript">
-    var turnToConfig = {
-        siteKey: "<?= $siteKey ?>",
-        pinboard: <?= $block->getPinboardConfig() ?>
-    };
-
-    <?php if ($configHelper->getCustomConfigurationJs()): ?>
-        var customConfiguration = <?= $configHelper->getCustomConfigurationJs() ?>;
-        // Add the keys from the user-supplied object to the existing turnToConfig object
-        for (var k in customConfiguration) {
-            turnToConfig[k]=customConfiguration[k];
-        }
-    <?php endif; ?>
-
     require(['jquery'], function ($) {
-        $.getScript("<?= sprintf("%s/traServer%s/pinboardjs/%s/turnto-pinboard.js", $staticUrl, $version, $siteKey) ?>");
+        $.getScript("<?= sprintf('%s/traServer%s/pinboardjs/%s/turnto-pinboard.js', $staticUrl, $configHelper->getTurnToVersion(), $configHelper->getSiteKey()) ?>");
     });
 </script>
 

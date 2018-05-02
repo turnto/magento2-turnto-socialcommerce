@@ -32,9 +32,6 @@ This repository contains a Magento 2 extension that connects Magento 2 with Turn
 
 5. If you are deploying the extension to a production environment, follow the [devdocs.magento.com deployment instructions](http://devdocs.magento.com/guides/v2.1/config-guide/prod/prod_deploy.html#deploy-prod)
 
-# Known Issues
-* Magento 2.2.x doesn't support the "Use child SKU instead of parent SKU" option ([#29](https://github.com/turnto/magento2-turnto-socialcommerce/issues/29))
-
 # Documentation
 
 ## General Configuration
