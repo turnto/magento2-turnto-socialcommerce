@@ -15,6 +15,8 @@
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
+use TurnTo\SocialCommerce\Helper\Product as TurnToProductHelper;
+
 class Orders extends AbstractExport
 {
     /**#@+
@@ -72,24 +74,29 @@ class Orders extends AbstractExport
      * @var \Magento\Framework\Filesystem\DirectoryList|null
      */
     protected $directoryList = null;
+    /**
+     * @var Product
+     */
+    protected $turnToProductHelper;
 
     /**
      * Orders constructor.
      *
-     * @param \TurnTo\SocialCommerce\Helper\Config $config
+     * @param \TurnTo\SocialCommerce\Helper\Config                           $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
-     * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
-     * @param \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory
-     * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
-     * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
-     * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
-     * @param \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepositoryInterface
-     * @param \Magento\Sales\Api\ShipmentRepositoryInterface $shipmentsService
-     * @param \Magento\Catalog\Model\ProductRepository $productRepository
-     * @param \Magento\Catalog\Helper\Product $productHelper
-     * @param \Magento\Framework\Filesystem\DirectoryList $directoryList
+     * @param \TurnTo\SocialCommerce\Logger\Monolog                          $logger
+     * @param \Magento\Framework\Intl\DateTimeFactory                        $dateTimeFactory
+     * @param \Magento\Framework\Api\SearchCriteriaBuilder                   $searchCriteriaBuilder
+     * @param \Magento\Framework\Api\FilterBuilder                           $filterBuilder
+     * @param \Magento\Framework\Api\SortOrderBuilder                        $sortOrderBuilder
+     * @param \Magento\UrlRewrite\Model\UrlFinderInterface                   $urlFinder
+     * @param \Magento\Store\Model\StoreManagerInterface                     $storeManager
+     * @param \Magento\Sales\Api\OrderRepositoryInterface                    $orderRepositoryInterface
+     * @param \Magento\Sales\Api\ShipmentRepositoryInterface                 $shipmentsService
+     * @param \Magento\Catalog\Model\ProductRepository                       $productRepository
+     * @param \Magento\Catalog\Helper\Product                                $productHelper
+     * @param \Magento\Framework\Filesystem\DirectoryList                    $directoryList
+     * @param TurnToProductHelper                                            $turnToProductHelper
      */
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
@@ -105,16 +112,10 @@ class Orders extends AbstractExport
         \Magento\Sales\Api\ShipmentRepositoryInterface $shipmentsService,
         \Magento\Catalog\Model\ProductRepository $productRepository,
         \Magento\Catalog\Helper\Product $productHelper,
-        \Magento\Framework\Filesystem\DirectoryList $directoryList
-    ) {
-        $this->orderService = $orderRepositoryInterface;
-        $this->shipmentsService = $shipmentsService;
-
-        $this->productRepository = $productRepository;
-        $this->productHelper = $productHelper;
-        $this->storeManager = $storeManager;
-        $this->directoryList = $directoryList;
-
+        \Magento\Framework\Filesystem\DirectoryList $directoryList,
+        TurnToProductHelper $turnToProductHelper
+    )
+    {
         parent::__construct(
             $config,
             $productCollectionFactory,
@@ -126,6 +127,14 @@ class Orders extends AbstractExport
             $urlFinder,
             $storeManager
         );
+
+        $this->orderService = $orderRepositoryInterface;
+        $this->shipmentsService = $shipmentsService;
+        $this->productRepository = $productRepository;
+        $this->productHelper = $productHelper;
+        $this->storeManager = $storeManager;
+        $this->directoryList = $directoryList;
+        $this->turnToProductHelper = $turnToProductHelper;
     }
 
     /**
@@ -158,10 +167,11 @@ class Orders extends AbstractExport
     }
 
     /**
-     * @param $storeId
+     * @param           $storeId
      * @param \DateTime $fromDate
      * @param \DateTime $toDate
-     * @param bool $forceIncludeAllItems
+     * @param bool      $forceIncludeAllItems
+     *
      * @return null|string
      */
     public function getOrdersFeed($storeId, \DateTime $fromDate, \DateTime $toDate, $forceIncludeAllItems = false)
@@ -211,9 +221,10 @@ class Orders extends AbstractExport
     }
 
     /**
-     * @param $storeId
+     * @param           $storeId
      * @param \DateTime $fromDate
      * @param \DateTime $toDate
+     *
      * @return \Magento\Framework\Api\SearchCriteria
      */
     public function getOrdersSearchCriteria($storeId, \DateTime $fromDate, \DateTime $toDate)
@@ -229,8 +240,9 @@ class Orders extends AbstractExport
     }
 
     /**
-     * @param $feedData
+     * @param                                        $feedData
      * @param \Magento\Store\Api\Data\StoreInterface $store
+     *
      * @throws \Exception
      */
     protected function transmitFeed($feedData, \Magento\Store\Api\Data\StoreInterface $store)
@@ -278,8 +290,8 @@ class Orders extends AbstractExport
 
     /**
      * @param \Magento\Framework\Api\SearchCriteria $searchCriteria
-     * @param $outputHandle
-     * @param bool $forceIncludeAllItems
+     * @param                                       $outputHandle
+     * @param bool                                  $forceIncludeAllItems
      */
     public function writeOrdersFeed(\Magento\Framework\Api\SearchCriteria $searchCriteria, $outputHandle, $forceIncludeAllItems)
     {
@@ -299,9 +311,10 @@ class Orders extends AbstractExport
     }
 
     /**
-     * @param $outputHandle
-     * @param $orders
+     * @param      $outputHandle
+     * @param      $orders
      * @param bool $forceIncludeAllItems
+     *
      * @return int
      */
     protected function writeOrdersToFeed($outputHandle, $orders, $forceIncludeAllItems)
@@ -330,9 +343,9 @@ class Orders extends AbstractExport
     }
 
     /**
-     * @param $outputHandle
+     * @param                                        $outputHandle
      * @param \Magento\Sales\Api\Data\OrderInterface $order
-     * @param bool $forceIncludeAllItems
+     * @param bool                                   $forceIncludeAllItems
      */
     protected function writeOrderToFeed($outputHandle, \Magento\Sales\Api\Data\OrderInterface $order, $forceIncludeAllItems)
     {
@@ -356,7 +369,8 @@ class Orders extends AbstractExport
 
     /**
      * @param \Magento\Sales\Api\Data\OrderInterface $order
-     * @param bool $forceIncludeAllItems
+     * @param bool                                   $forceIncludeAllItems
+     *
      * @return array|mixed
      */
     public function getItemData(\Magento\Sales\Api\Data\OrderInterface $order, $forceIncludeAllItems)
@@ -399,6 +413,7 @@ class Orders extends AbstractExport
      * @param $itemData
      * @param $orderId
      * @param $storeId
+     *
      * @return mixed
      */
     protected function addShipDateToItemData($itemData, $orderId, $storeId)
@@ -433,6 +448,7 @@ class Orders extends AbstractExport
     /**
      * @param $orderId
      * @param $storeId
+     *
      * @return \Magento\Framework\Api\SearchCriteria
      */
     public function getShipmentSearchCriteriaForOrder($orderId, $storeId)
@@ -447,12 +463,12 @@ class Orders extends AbstractExport
     }
 
     /**
-     * @param $outputHandle
-     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @param                                            $outputHandle
+     * @param \Magento\Sales\Api\Data\OrderInterface     $order
      * @param \Magento\Sales\Api\Data\OrderItemInterface $lineItem
-     * @param \Magento\Catalog\Model\Product $product
-     * @param $lineItemNumber
-     * @param $shipmentDate
+     * @param \Magento\Catalog\Model\Product             $product
+     * @param                                            $lineItemNumber
+     * @param                                            $shipmentDate
      */
     protected function writeLineToFeed(
         $outputHandle,
@@ -461,7 +477,8 @@ class Orders extends AbstractExport
         \Magento\Catalog\Model\Product $product,
         $lineItemNumber,
         $shipmentDate
-    ) {
+    )
+    {
         $row = [];
 
         $row[] = $order->getIncrementId();
@@ -473,7 +490,10 @@ class Orders extends AbstractExport
         $row[] = $this->getOrderPostCode($order);
         $row[] = $order->getCustomerFirstname();
         $row[] = $order->getCustomerLastname();
-        $row[] = $this->config->getUseChildSku($order->getStoreId()) ? $lineItem->getSku() : $product->getSku();
+
+        $sku = $this->config->getUseChildSku($order->getStoreId()) ? $lineItem->getSku() : $product->getSku();
+        $row[] = $this->turnToProductHelper->turnToSafeEncoding($sku);
+
         $row[] = $lineItem->getOriginalPrice();
         $row[] = $this->productHelper->getImageUrl($product);
         $row[] = $shipmentDate;
@@ -483,6 +503,7 @@ class Orders extends AbstractExport
 
     /**
      * @param \Magento\Sales\Api\Data\OrderInterface $order
+     *
      * @return string
      */
     protected function getOrderPostCode(\Magento\Sales\Api\Data\OrderInterface $order)
