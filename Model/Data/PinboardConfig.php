@@ -58,7 +58,7 @@ class PinboardConfig implements TurnToConfigDataSourceInterface
             $skus = $this->pinboardBlock->getProductSkus();
 
             if (!empty($skus)) {
-                $config['pinboard']['skus'] = $skus;
+                $config['pinboard']['skus'] = array_values($skus);
             }
 
             return $config;

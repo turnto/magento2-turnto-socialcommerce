@@ -13,8 +13,10 @@
 namespace TurnTo\SocialCommerce\Block;
 
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+use Magento\Framework\View\Element\Template;
+use TurnTo\SocialCommerce\Helper\Product;
 
-class Config extends \Magento\Catalog\Block\Product\View\Description
+class Config extends Template
 {
     /**
      * @var \Magento\Catalog\Model\Product
@@ -30,27 +32,34 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
      * @var \Magento\Framework\Locale\Resolver
      */
     protected $localeResolver;
+    /**
+     * @var Product
+     */
+    protected $productHelper;
 
     /**
-     * @param \Magento\Framework\View\Element\Template\Context $context
-     * @param \Magento\Framework\Registry                      $registry
-     * @param \TurnTo\SocialCommerce\Helper\Config             $config
-     * @param \Magento\Framework\Locale\Resolver               $localeResolver
-     * @param array                                            $data
+     * @param Template\Context                                $context
+     * @param \TurnTo\SocialCommerce\Helper\Config            $config
+     * @param \Magento\Framework\Locale\Resolver              $localeResolver
+     * @param \Magento\Catalog\Block\Product\View\Description $descriptionBlock
+     * @param Product                                         $productHelper
+     * @param array                                           $data
      */
     public function __construct(
-        \Magento\Framework\View\Element\Template\Context $context,
-        \Magento\Framework\Registry $registry,
+        Template\Context $context,
         \TurnTo\SocialCommerce\Helper\Config $config,
         \Magento\Framework\Locale\Resolver $localeResolver,
-        array $data
+        \Magento\Catalog\Block\Product\View\Description $descriptionBlock,
+        Product $productHelper,
+        array $data = []
     )
     {
-        parent::__construct($context, $registry, $data);
+        parent::__construct($context, $data);
 
         $this->config = $config;
         $this->localeResolver = $localeResolver;
-        $this->_product = $this->getProduct();
+        $this->_product = $descriptionBlock->getProduct();
+        $this->productHelper = $productHelper;
     }
 
     /**
@@ -66,13 +75,17 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
      */
     public function getProductSku()
     {
-        $product = $this->_product;
+        $sku = $this->_product->getSku();
 
-        if ($this->config->getUseChildSku() && $product->getTypeId() == Configurable::TYPE_CODE) {
-            return array_values($product->getTypeInstance()->getUsedProducts($product))[0]->getSku();
+        if ($this->config->getUseChildSku() && $this->_product->getTypeId() == Configurable::TYPE_CODE) {
+            $firstChild = reset(array_values($this->_product->getTypeInstance()->getUsedProducts($this->_product)));
+
+            if ($firstChild) {
+                $sku = $firstChild->getSku();
+            }
         }
 
-        return $product->getSku();
+        return $this->productHelper->turnToSafeEncoding($sku);
     }
 
     /**
@@ -80,18 +93,19 @@ class Config extends \Magento\Catalog\Block\Product\View\Description
      */
     public function getGallerySkus()
     {
-        $product = $this->_product;
-        $gallerySkus = [];
+        $gallerySkus = [$this->productHelper->turnToSafeEncoding($this->_product->getSku())];
 
-        if ($this->config->getUseChildSku() && $product->getTypeId() == Configurable::TYPE_CODE) {
-            $children = $product->getTypeInstance()->getUsedProducts($product);
+        if ($this->config->getUseChildSku() && $this->_product->getTypeId() == Configurable::TYPE_CODE) {
+            $children = $this->_product->getTypeInstance()->getUsedProducts($this->_product);
+
             if (count($children) > 0) {
-                foreach ($children as $child) {
-                    $gallerySkus[] = $child->getSku();
-                }
+                $gallerySkus = array_map(
+                    function ($child) {
+                        return $this->productHelper->turnToSafeEncoding($child->getSku());
+                    },
+                    $children
+                );
             }
-        } else {
-            $gallerySkus[] = $product->getSku();
         }
 
         return json_encode($gallerySkus);

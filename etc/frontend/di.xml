@@ -1,4 +1,5 @@
-<?php
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
 /**
  * TurnTo_SocialCommerce
  *
@@ -12,5 +13,13 @@
  * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
-?>
-<?= $this->getContentHtml() ?>
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="TurnTo\SocialCommerce\Block\ReviewsContent">
+        <arguments>
+            <argument name="contentType" xsi:type="string">reviews</argument>
+        </arguments>
+    </type>
+</config>
+

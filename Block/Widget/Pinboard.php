@@ -12,7 +12,9 @@
 
 namespace TurnTo\SocialCommerce\Block\Widget;
 
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
+use TurnTo\SocialCommerce\Helper\Product;
 use TurnTo\SocialCommerce\Model\Data\PinboardConfigFactory;
 
 /**
@@ -29,6 +31,10 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
      * @var PinboardConfigFactory
      */
     protected $pinboardConfigFactory;
+    /**
+     * @var Product
+     */
+    protected $productHelper;
 
     public function __construct(
         \Magento\Catalog\Block\Product\Context $context,
@@ -40,7 +46,8 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
         \Magento\Widget\Helper\Conditions $conditionsHelper,
         array $data = [],
         Json $json = null,
-        PinboardConfigFactory $pinboardConfigFactory
+        PinboardConfigFactory $pinboardConfigFactory = null,
+        Product $productHelper = null
     )
     {
         // Call the parent class with the proper arguments based on the availability of a Magento 2.2.x class
@@ -49,12 +56,15 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
             array_slice(
                 func_get_args(),
                 0,
-                // -1 excludes our custom class, -2 excludes both our class and the JSON class that doesn't exist
-                class_exists('Magento\Framework\Serialize\Serializer\Json') ? -1 : -2
+                // 9 excludes our custom classes, 8 excludes both our classes and the JSON class that doesn't exist
+                class_exists('Magento\Framework\Serialize\Serializer\Json') ? 9 : 8
             )
         );
 
-        $this->pinboardConfigFactory = $pinboardConfigFactory;
+        $this->pinboardConfigFactory = $pinboardConfigFactory ?: ObjectManager::getInstance()->get(
+            PinboardConfigFactory::class
+        );
+        $this->productHelper = $productHelper ?: ObjectManager::getInstance()->get(Product::class);
     }
 
     /**
@@ -65,9 +75,13 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
     {
         $productSkus = [];
         if (!empty($this->getConditions()->getConditions())) {
-            foreach ($this->getProductCollection()->getItems() as $product) {
-                $productSkus[] = (string)$product->getSku();
-            }
+            $productSkus = array_map(
+                function ($product) {
+                    /** @var \Magento\Catalog\Model\Product $product */
+                    return $this->productHelper->turnToSafeEncoding((string)$product->getSku());
+                },
+                $this->getProductCollection()->getItems()
+            );
         }
 
         return $productSkus;

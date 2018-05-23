@@ -18,9 +18,9 @@
     <body>
         <referenceContainer name="content">
             <block class="TurnTo\SocialCommerce\Block\Config" name="turnto.config.js" template="TurnTo_SocialCommerce::product/view/config.phtml" after="-" ifconfig="turnto_socialcommerce_configuration/general/enabled">
-                <block class="Magento\Framework\View\Element\Template" name="turnto.config.js.reviews" template="TurnTo_SocialCommerce::config/reviews.phtml" />
-                <block class="Magento\Framework\View\Element\Template" name="turnto.config.js.qa" template="TurnTo_SocialCommerce::config/qa.phtml" />
-                <block class="Magento\Framework\View\Element\Template" name="turnto.config.js.sso" template="TurnTo_SocialCommerce::config/sso.phtml" />
+                <block class="Magento\Framework\View\Element\Template" name="turnto.config.js.reviews" template="TurnTo_SocialCommerce::config/reviews.phtml"/>
+                <block class="Magento\Framework\View\Element\Template" name="turnto.config.js.qa" template="TurnTo_SocialCommerce::config/qa.phtml"/>
+                <block class="Magento\Framework\View\Element\Template" name="turnto.config.js.sso" template="TurnTo_SocialCommerce::config/sso.phtml"/>
                 <block class="TurnTo\SocialCommerce\Block\TurnToConfig" name="turnto.config.product-detail">
                     <arguments>
                         <argument name="config_data" xsi:type="object">\TurnTo\SocialCommerce\Model\Data\ProductDetailConfig</argument>
@@ -35,22 +35,22 @@
             </action>
         </referenceBlock>
         <referenceBlock name="product.info.details">
-            <block class="TurnTo\SocialCommerce\Block\ReviewsContent" name="turnto.reviews.tab" as="turnto_reviews" template="TurnTo_SocialCommerce::product/view/reviews.phtml" group="detailed_info">
+            <block class="TurnTo\SocialCommerce\Block\ReviewsContent" name="turnto.reviews.tab" as="turnto_reviews" group="detailed_info">
                 <arguments>
                     <argument name="title" translate="true" xsi:type="string">Reviews</argument>
                 </arguments>
             </block>
         </referenceBlock>
         <referenceBlock name="product.info.details">
-            <block class="TurnTo\SocialCommerce\Block\QaContent" name="turnto.qa.tab" as="turnto_qa" template="TurnTo_SocialCommerce::product/view/qa.phtml" group="detailed_info">
+            <block class="TurnTo\SocialCommerce\Block\QaContent" name="turnto.qa.tab" as="turnto_qa" group="detailed_info">
                 <arguments>
                     <argument name="title" translate="true" xsi:type="string">Q&amp;A</argument>
                 </arguments>
             </block>
         </referenceBlock>
         <referenceContainer name="product.info.main">
-            <block class="Magento\Framework\View\Element\Template" name="turnto.gallery" template="TurnTo_SocialCommerce::product/view/gallery.phtml" />
-            <block class="Magento\Framework\View\Element\Template" name="turnto_checkout_comments" template="TurnTo_SocialCommerce::product/view/comments.phtml" after="product.info.details" ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_product_detail" />
+            <block class="Magento\Framework\View\Element\Template" name="turnto.gallery" template="TurnTo_SocialCommerce::product/view/gallery.phtml"/>
+            <block class="Magento\Framework\View\Element\Template" name="turnto_checkout_comments" template="TurnTo_SocialCommerce::product/view/comments.phtml" after="product.info.details" ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_product_detail"/>
         </referenceContainer>
     </body>
 </page>

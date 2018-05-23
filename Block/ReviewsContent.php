@@ -15,18 +15,10 @@
 
 namespace TurnTo\SocialCommerce\Block;
 
-/**
- * {@inheritdoc}
- */
-class ReviewsContent extends AbstractBlock
+class ReviewsContent extends AbstractEmbedBlock
 {
     /**
-     * {@inheritdoc}
-     */
-    protected static $contentType = 'reviews';
-
-    /**
-     * @return mixed
+     * {@inheritDoc}
      */
     public function getSetupType()
     {

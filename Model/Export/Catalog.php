@@ -16,6 +16,7 @@ namespace TurnTo\SocialCommerce\Model\Export;
 use Magento\CatalogInventory\Api\StockItemRepositoryInterface;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use TurnTo\SocialCommerce\Helper\Config;
+use TurnTo\SocialCommerce\Helper\Product;
 
 /**
  * Class Catalog
@@ -47,6 +48,10 @@ class Catalog extends AbstractExport
      * @var StockItemRepositoryInterface
      */
     protected $stockItemRepository;
+    /**
+     * @var Product
+     */
+    protected $productHelper;
 
     /**
      * Catalog constructor.
@@ -62,6 +67,7 @@ class Catalog extends AbstractExport
      * @param \Magento\Store\Model\StoreManagerInterface                     $storeManager
      * @param \Magento\Catalog\Helper\Image                                  $imageHelper
      * @param StockItemRepositoryInterface                                   $stockItemRepository
+     * @param Product                                                        $productHelper
      */
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
@@ -74,7 +80,8 @@ class Catalog extends AbstractExport
         \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Catalog\Helper\Image $imageHelper,
-        StockItemRepositoryInterface $stockItemRepository
+        StockItemRepositoryInterface $stockItemRepository,
+        Product $productHelper
     )
     {
         parent::__construct(
@@ -92,6 +99,7 @@ class Catalog extends AbstractExport
         $this->stockItemRepository = $stockItemRepository;
         $this->imageHelper = $imageHelper;
         $this->storeManager = $storeManager;
+        $this->productHelper = $productHelper;
     }
 
     /**
@@ -109,14 +117,14 @@ class Catalog extends AbstractExport
         try {
             $zendClient = new \Magento\Framework\HTTP\ZendClient;
             $zendClient->setUri(
-                    $this->config->getFeedUploadAddress($store->getCode())
-                )->setMethod(\Zend_Http_Client::POST)->setParameterPost(
-                    [
-                        'siteKey' => $this->config->getSiteKey($store->getCode()),
-                        'authKey' => $this->config->getAuthorizationKey($store->getCode()),
-                        'feedStyle' => self::FEED_STYLE
-                    ]
-                )->setFileUpload(self::FEED_STYLE, 'file', $feed->asXML(), self::FEED_MIME);
+                $this->config->getFeedUploadAddress($store->getCode())
+            )->setMethod(\Zend_Http_Client::POST)->setParameterPost(
+                [
+                    'siteKey' => $this->config->getSiteKey($store->getCode()),
+                    'authKey' => $this->config->getAuthorizationKey($store->getCode()),
+                    'feedStyle' => self::FEED_STYLE
+                ]
+            )->setFileUpload(self::FEED_STYLE, 'file', $feed->asXML(), self::FEED_MIME);
 
             $response = $zendClient->request();
 
@@ -240,30 +248,30 @@ class Catalog extends AbstractExport
         } catch (\Exception $feedException) {
             if ($feed) {
                 $this->logger->error(
-                        'An exception occurred while creating the catalog feed',
-                        [
-                            'exception' => $feedException,
-                            'productCount' => count($products),
-                            'productsProcessed' => $progressCounter
-                        ]
-                    );
+                    'An exception occurred while creating the catalog feed',
+                    [
+                        'exception' => $feedException,
+                        'productCount' => count($products),
+                        'productsProcessed' => $progressCounter
+                    ]
+                );
             } else if ($products) {
                 $this->logger->error(
-                        'An exception occurred that prevented the creation of the catalog feed',
-                        [
-                            'exception' => $feedException,
-                            'productCount' => count($products),
-                            'productsProcessed' => $progressCounter
-                        ]
-                    );
+                    'An exception occurred that prevented the creation of the catalog feed',
+                    [
+                        'exception' => $feedException,
+                        'productCount' => count($products),
+                        'productsProcessed' => $progressCounter
+                    ]
+                );
             } else {
                 $this->logger->error(
-                        'An exception occured while retrieving the products for the catalog feed',
-                        [
-                            'exception' => $feedException,
-                            'productsProcessed' => $progressCounter
-                        ]
-                    );
+                    'An exception occured while retrieving the products for the catalog feed',
+                    [
+                        'exception' => $feedException,
+                        'productsProcessed' => $progressCounter
+                    ]
+                );
             }
             throw $feedException;
         }
@@ -287,7 +295,7 @@ class Catalog extends AbstractExport
             throw new \Exception('Product can not be null or empty');
         }
 
-        $sku = $product->getSku();
+        $sku = $this->productHelper->turnToSafeEncoding($product->getSku());
         if (empty($sku)) {
             throw new \Exception('Product must have a valid sku');
         }
@@ -313,18 +321,18 @@ class Catalog extends AbstractExport
         if (!empty($gtinMap)) {
             if (isset($gtinMap[Config::MPN_ATTRIBUTE])) {
                 $mpn = $product->getResource()->getAttribute($gtinMap[Config::MPN_ATTRIBUTE])->getFrontend()->getValue(
-                        $product
-                    );
+                    $product
+                );
             }
             if (isset($gtinMap[Config::BRAND_ATTRIBUTE])) {
                 $brand = $product->getResource()->getAttribute(
-                        $gtinMap[\TurnTo\SocialCommerce\Helper\Config::BRAND_ATTRIBUTE]
-                    )->getFrontend()->getValue($product);
+                    $gtinMap[\TurnTo\SocialCommerce\Helper\Config::BRAND_ATTRIBUTE]
+                )->getFrontend()->getValue($product);
             }
             if (empty($gtin) && isset($gtinMap[Config::UPC_ATTRIBUTE])) {
                 $gtin = $product->getResource()->getAttribute($gtinMap[Config::UPC_ATTRIBUTE])->getFrontend()->getValue(
-                        $product
-                    );
+                    $product
+                );
             }
             if (empty($gtin) && isset($gtinMap[Config::ISBN_ATTRIBUTE])) {
                 $gtin = $product->getResource()
@@ -334,13 +342,13 @@ class Catalog extends AbstractExport
             }
             if (empty($gtin) && isset($gtinMap[Config::EAN_ATTRIBUTE])) {
                 $gtin = $product->getResource()->getAttribute($gtinMap[Config::EAN_ATTRIBUTE])->getFrontend()->getValue(
-                        $product
-                    );
+                    $product
+                );
             }
             if (empty($gtin) && isset($gtinMap[Config::JAN_ATTRIBUTE])) {
                 $gtin = $product->getResource()->getAttribute($gtinMap[Config::JAN_ATTRIBUTE])->getFrontend()->getValue(
-                        $product
-                    );
+                    $product
+                );
             }
             if (empty($gtin) && isset($gtinMap[Config::ASIN_ATTRIBUTE])) {
                 $gtin = $product->getResource()
@@ -378,8 +386,8 @@ class Catalog extends AbstractExport
         $this->storeManager->setCurrentStore($store->getStoreId());
 
         $productImageUrl = $this->imageHelper->init($product, 'product_page_main_image')->setImageFile(
-                $product->getImage()
-            )->getUrl();
+            $product->getImage()
+        )->getUrl();
 
         // Restore the "current store"
         $this->storeManager->setCurrentStore($currentStore);

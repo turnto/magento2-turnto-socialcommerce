@@ -15,6 +15,7 @@
 
 namespace TurnTo\SocialCommerce\Model\Import;
 
+use TurnTo\SocialCommerce\Helper\Product;
 use TurnTo\SocialCommerce\Setup\InstallData;
 
 class Ratings extends AbstractImport
@@ -27,14 +28,41 @@ class Ratings extends AbstractImport
     const TURNTO_AVERAGE_RATING_BY_SKU_NAME = 'turnto-skuaveragerating.xml';
 
     const TURNTO_FEED_KEY_SKU = 'sku';
-    
+
     const TURNTO_FEED_KEY_REVIEW_COUNT = 'review_count';
+    /**
+     * @var Product
+     */
+    protected $productHelper;
     /**#@-*/
-    
+
+    /**
+     * @param \TurnTo\SocialCommerce\Helper\Config                 $config
+     * @param \TurnTo\SocialCommerce\Logger\Monolog                $logger
+     * @param \Magento\Catalog\Model\ProductFactory                $productFactory
+     * @param \Magento\Store\Model\StoreManagerInterface           $storeManager
+     * @param \Magento\Catalog\Model\Indexer\Product\Eav\Processor $productEavIndexProcessor
+     * @param Product                                              $productHelper
+     */
+    public function __construct(
+        \TurnTo\SocialCommerce\Helper\Config $config,
+        \TurnTo\SocialCommerce\Logger\Monolog $logger,
+        \Magento\Catalog\Model\ProductFactory $productFactory,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Catalog\Model\Indexer\Product\Eav\Processor $productEavIndexProcessor,
+        Product $productHelper
+    )
+    {
+        parent::__construct($config, $logger, $productFactory, $storeManager, $productEavIndexProcessor);
+
+        $this->productHelper = $productHelper;
+    }
+
     /**
      * Builds the store specific address to obtain aggregated product ratings by sku
      *
      * @param \Magento\Store\Api\Data\StoreInterface $store
+     *
      * @return string
      */
     public function getAggregateRatingsFeedAddress(\Magento\Store\Api\Data\StoreInterface $store)
@@ -49,9 +77,10 @@ class Ratings extends AbstractImport
      * Updates the magento product's turnto ratings related values
      *
      * @param \Magento\Store\Api\Data\StoreInterface $store
-     * @param $sku
-     * @param $reviewCount
-     * @param $averageRating
+     * @param                                        $sku
+     * @param                                        $reviewCount
+     * @param                                        $averageRating
+     *
      * @return bool
      */
     public function updateProduct(
@@ -59,7 +88,8 @@ class Ratings extends AbstractImport
         $sku,
         $reviewCount,
         $averageRating
-    ) {
+    )
+    {
 
         $product = $this->productFactory->create()
             ->setStoreId($store->getId())
@@ -106,6 +136,7 @@ class Ratings extends AbstractImport
      * Gets an array of values equal to or less than the floor rounded average rating value.
      *
      * @param $averageRating
+     *
      * @return array
      */
     public function getRatingFilterAttributeValuesFromAverage($averageRating)
@@ -144,7 +175,9 @@ class Ratings extends AbstractImport
                             $averageRating = null;
                             $reviewCount = null;
 
-                            $sku = (string)$turnToProduct[self::TURNTO_FEED_KEY_SKU];
+                            $sku = $this->productHelper->turnToSafeDecoding(
+                                (string)$turnToProduct[self::TURNTO_FEED_KEY_SKU]
+                            );
                             if (empty($sku)) {
                                 continue;
                             }
