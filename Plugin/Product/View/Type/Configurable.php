@@ -13,9 +13,23 @@
 namespace TurnTo\SocialCommerce\Plugin\Product\View\Type;
 
 use Magento\ConfigurableProduct\Block\Product\View\Type\Configurable as ConfigurableProductTypeBlock;
+use TurnTo\SocialCommerce\Helper\Product;
 
 class Configurable
 {
+    /**
+     * @var Product
+     */
+    protected $productHelper;
+
+    /**
+     * @param Product $productHelper
+     */
+    public function __construct(Product $productHelper)
+    {
+        $this->productHelper = $productHelper;
+    }
+
     public function afterGetJsonConfig(ConfigurableProductTypeBlock $subject, $result)
     {
         try {
@@ -25,8 +39,10 @@ class Configurable
         }
 
         foreach ($subject->getAllowProducts() as $product) {
-            if (isset($data['images'][$product->getId()][0]['sku'])) {
-                $data['images'][$product->getId()][0]['sku'] = $product->getSku();
+            if (isset($data['images'][$product->getId()][0])) {
+                $data['images'][$product->getId()][0]['sku'] = $this->productHelper->turnToSafeEncoding(
+                    $product->getSku()
+                );
             }
         }
 

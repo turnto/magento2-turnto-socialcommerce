@@ -15,6 +15,8 @@
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
+use TurnTo\SocialCommerce\Helper\Product;
+
 class Reviews extends AbstractExport
 {
     /**
@@ -36,23 +38,28 @@ class Reviews extends AbstractExport
      * @var \Magento\Catalog\Model\ProductFactory|null
      */
     protected $productFactory = null;
+    /**
+     * @var Product
+     */
+    protected $productHelper;
 
     /**
      * Reviews constructor.
      *
-     * @param \TurnTo\SocialCommerce\Helper\Config $config
+     * @param \TurnTo\SocialCommerce\Helper\Config                           $config
      * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
-     * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
-     * @param \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory
-     * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
-     * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
-     * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
-     * @param \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Review\Model\ReviewFactory $reviewFactory
-     * @param \Magento\Review\Model\ResourceModel\Review\CollectionFactory $reviewCollectionFactory
-     * @param \Magento\Review\Model\Rating\Option\VoteFactory $voteFactory
-     * @param \Magento\Catalog\Model\ProductFactory $productFactory
+     * @param \TurnTo\SocialCommerce\Logger\Monolog                          $logger
+     * @param \Magento\Framework\Intl\DateTimeFactory                        $dateTimeFactory
+     * @param \Magento\Framework\Api\SearchCriteriaBuilder                   $searchCriteriaBuilder
+     * @param \Magento\Framework\Api\FilterBuilder                           $filterBuilder
+     * @param \Magento\Framework\Api\SortOrderBuilder                        $sortOrderBuilder
+     * @param \Magento\UrlRewrite\Model\UrlFinderInterface                   $urlFinder
+     * @param \Magento\Store\Model\StoreManagerInterface                     $storeManager
+     * @param \Magento\Review\Model\ReviewFactory                            $reviewFactory
+     * @param \Magento\Review\Model\ResourceModel\Review\CollectionFactory   $reviewCollectionFactory
+     * @param \Magento\Review\Model\Rating\Option\VoteFactory                $voteFactory
+     * @param \Magento\Catalog\Model\ProductFactory                          $productFactory
+     * @param Product                                                        $productHelper
      */
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
@@ -67,13 +74,15 @@ class Reviews extends AbstractExport
         \Magento\Review\Model\ReviewFactory $reviewFactory,
         \Magento\Review\Model\ResourceModel\Review\CollectionFactory $reviewCollectionFactory,
         \Magento\Review\Model\Rating\Option\VoteFactory $voteFactory,
-        \Magento\Catalog\Model\ProductFactory $productFactory
-    ) {
+        \Magento\Catalog\Model\ProductFactory $productFactory,
+        Product $productHelper
+    )
+    {
         $this->reviewFactory = $reviewFactory;
         $this->reviewCollectionFactory = $reviewCollectionFactory;
         $this->voteFactory = $voteFactory;
         $this->productFactory = $productFactory;
-        
+
         parent::__construct(
             $config,
             $productCollectionFactory,
@@ -85,6 +94,7 @@ class Reviews extends AbstractExport
             $urlFinder,
             $storeManager
         );
+        $this->productHelper = $productHelper;
     }
 
     /**
@@ -138,7 +148,10 @@ class Reviews extends AbstractExport
                 $averageRating = (int)round($ratingInformation['rating'] / $ratingInformation['count']);
 
                 $productEntityId = $review->getEntityPkValue();
-                $sku = $this->productFactory->create()->load($productEntityId)->getSku();
+                $sku = $this->productHelper->turnToSafeEncoding(
+                    $this->productFactory->create()->load($productEntityId)->getSku()
+                );
+
                 if (empty($sku)) {
                     continue;
                 }
@@ -156,7 +169,7 @@ class Reviews extends AbstractExport
                 );
             }
         } catch (\Exception $e) {
-            $this->logger->error('An error occurred while generating the review export for TurnTo', [ 'error' => $e]);
+            $this->logger->error('An error occurred while generating the review export for TurnTo', ['error' => $e]);
         } finally {
             fclose($handle);
         }
@@ -164,6 +177,7 @@ class Reviews extends AbstractExport
 
     /**
      * @param $reviewId
+     *
      * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
      */
@@ -184,6 +198,7 @@ class Reviews extends AbstractExport
 
     /**
      * @param $review
+     *
      * @return array
      */
     protected function getCustomerInformationFromReview($review)

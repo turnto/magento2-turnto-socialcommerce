@@ -15,18 +15,10 @@
 
 namespace TurnTo\SocialCommerce\Block;
 
-/**
- * {@inheritdoc}
- */
-class QaContent extends AbstractBlock
+class QaContent extends AbstractEmbedBlock
 {
     /**
-     * {@inheritdoc}
-     */
-    protected static $contentType = '';
-
-    /**
-     * @return mixed
+     * {@inheritDoc}
      */
     public function getSetupType()
     {

@@ -12,6 +12,8 @@
 
 namespace TurnTo\SocialCommerce\Block;
 
+use TurnTo\SocialCommerce\Helper\Product;
+
 class CheckoutComments extends \Magento\Framework\View\Element\Template
 {
     /**
@@ -28,12 +30,17 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
      * @var \Magento\Catalog\Helper\Image
      */
     protected $imageHelper;
+    /**
+     * @var Product
+     */
+    protected $productHelper;
 
     /**
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \TurnTo\SocialCommerce\Helper\Config             $config
      * @param \Magento\Checkout\Model\Session                  $checkoutSession
      * @param \Magento\Catalog\Helper\Image                    $imageHelper
+     * @param Product                                          $productHelper
      * @param array                                            $data
      */
     public function __construct(
@@ -41,6 +48,7 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
         \TurnTo\SocialCommerce\Helper\Config $config,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Catalog\Helper\Image $imageHelper,
+        Product $productHelper,
         array $data = []
     )
     {
@@ -50,6 +58,7 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
         $this->config = $config;
         $this->checkoutSession = $checkoutSession;
         $this->imageHelper = $imageHelper;
+        $this->productHelper = $productHelper;
     }
 
     /**
@@ -99,11 +108,13 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
                 continue;
             }
 
+            $sku = $this->config->getUseChildSku() ? $item->getSku() : $product->getSku();
+
             $orderItems[] = json_encode(
                 [
                     'title' => $product->getName(),
                     'url' => $product->getProductUrl(),
-                    'sku' => $this->config->getUseChildSku() ? $item->getSku() : $product->getSku(),
+                    'sku' => $this->productHelper->turnToSafeEncoding($sku),
                     'getPrice' => $product->getFinalPrice(),
                     'itemImageUrl' => $this->imageHelper->init($product, 'product_small_image')->getUrl()
                 ],

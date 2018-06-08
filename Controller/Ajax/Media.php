@@ -15,7 +15,8 @@
 
 namespace TurnTo\SocialCommerce\Controller\Ajax;
 
-use \Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Controller\ResultFactory;
+use TurnTo\SocialCommerce\Helper\Product;
 
 class Media extends \Magento\Swatches\Controller\Ajax\Media
 {
@@ -28,30 +29,41 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
      * @var \Magento\Swatches\Helper\Data
      */
     protected $swatchHelper;
+    /**
+     * @var Product
+     */
+    protected $productHelper;
 
     /**
      * Media constructor.
-     * @param \Magento\Framework\App\Action\Context $context
-     * @param \Magento\Swatches\Helper\Data $swatchHelper
-     * @param \Magento\Catalog\Model\ProductFactory $productModelFactory
-     * @param \TurnTo\SocialCommerce\Helper\Config $config
+     *
+     * @param \Magento\Framework\App\Action\Context           $context
+     * @param \Magento\Swatches\Helper\Data                   $swatchHelper
+     * @param \Magento\Catalog\Model\ProductFactory           $productModelFactory
+     * @param \TurnTo\SocialCommerce\Helper\Config            $config
      * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
+     * @param Product                                         $productHelper
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Swatches\Helper\Data $swatchHelper,
         \Magento\Catalog\Model\ProductFactory $productModelFactory,
         \TurnTo\SocialCommerce\Helper\Config $config,
-        \Magento\Framework\App\ProductMetadataInterface $productMetadata
-    ) {
-        $this->config = $config;
-        $this->swatchHelper = $swatchHelper;
+        \Magento\Framework\App\ProductMetadataInterface $productMetadata,
+        Product $productHelper
+    )
+    {
         $version = $productMetadata->getVersion();
+
         if (version_compare($version, '2.2.0', '>=')) {
             $this->loadParentConstructor($context, $productModelFactory, $swatchHelper);
         } else {
             $this->loadLegacyParentConstructor($context, $swatchHelper, $productModelFactory);
         }
+
+        $this->productHelper = $productHelper;
+        $this->config = $config;
+        $this->swatchHelper = $swatchHelper;
     }
 
     /**
@@ -59,13 +71,14 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
      *
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Magento\Catalog\Model\ProductFactory $productModelFactory
-     * @param \Magento\Swatches\Helper\Data $swatchHelper
+     * @param \Magento\Swatches\Helper\Data         $swatchHelper
      */
     public function loadParentConstructor(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Catalog\Model\ProductFactory $productModelFactory,
         \Magento\Swatches\Helper\Data $swatchHelper
-    ) {
+    )
+    {
         parent::__construct($context, $productModelFactory, $swatchHelper);
     }
 
@@ -73,14 +86,15 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
      * Call through to parent constructor with old order of arguments; Magento 2.1.x
      *
      * @param \Magento\Framework\App\Action\Context $context
-     * @param \Magento\Swatches\Helper\Data $swatchHelper
+     * @param \Magento\Swatches\Helper\Data         $swatchHelper
      * @param \Magento\Catalog\Model\ProductFactory $productModelFactory
      */
     public function loadLegacyParentConstructor(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Swatches\Helper\Data $swatchHelper,
         \Magento\Catalog\Model\ProductFactory $productModelFactory
-    ) {
+    )
+    {
         parent::__construct($context, $swatchHelper, $productModelFactory);
     }
 
@@ -115,11 +129,9 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
 
             // Begin Edit
             $childProduct = $this->swatchHelper->loadVariationByFallback($product, $attributes);
-            if ($childProduct) {
-                $productMedia['sku'] = $childProduct->getSku();
-            } else {
-                $productMedia['sku'] = $product->getSku();
-            }
+            $productMedia['sku'] = $this->productHelper->turnToSafeEncoding(
+                $childProduct ? $childProduct->getSku() : $product->getSku()
+            );
             // End Edit
         }
 
