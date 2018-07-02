@@ -1,3 +1,11 @@
+## 2.1.1 (2018-07-02)
+
+* Fix issue with custom configuration default value
+
+## 2.1.0 (2018-06-08)
+
+* Handle special characters not supported by turnto ([#44](https://github.com/turnto/magento2-turnto-socialcommerce/issues/44))
+
 ## 2.0.0 (2018-04-13)
 
 * Improve HttpClient logging for debugging errors during retrieval of embedded content ([#38](https://github.com/turnto/magento2-turnto-socialcommerce/issues/38))
