@@ -317,7 +317,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @param null $store
      *
-     * @return string|bool
+     * @return string
      */
     public function getCustomConfigurationJs($store = null)
     {
@@ -329,7 +329,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
             )
         );
 
-        return strlen($configValue) > 0 ? $configValue : false;
+        return strlen($configValue) > 0 ? $configValue : '{}';
     }
 
     /**
