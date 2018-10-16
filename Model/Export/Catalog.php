@@ -13,7 +13,6 @@
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
-use Magento\CatalogInventory\Api\StockItemRepositoryInterface;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use TurnTo\SocialCommerce\Helper\Config;
 use TurnTo\SocialCommerce\Helper\Product;
@@ -45,9 +44,10 @@ class Catalog extends AbstractExport
     protected $imageHelper = null;
 
     /**
-     * @var StockItemRepositoryInterface
+     * @var \Magento\CatalogInventory\Model\Spi\StockRegistryProviderInterface
      */
-    protected $stockItemRepository;
+    protected $stockRegistryProvider;
+
     /**
      * @var Product
      */
@@ -56,18 +56,18 @@ class Catalog extends AbstractExport
     /**
      * Catalog constructor.
      *
-     * @param Config                                                         $config
-     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
-     * @param \TurnTo\SocialCommerce\Logger\Monolog                          $logger
-     * @param \Magento\Framework\Intl\DateTimeFactory                        $dateTimeFactory
-     * @param \Magento\Framework\Api\SearchCriteriaBuilder                   $searchCriteriaBuilder
-     * @param \Magento\Framework\Api\FilterBuilder                           $filterBuilder
-     * @param \Magento\Framework\Api\SortOrderBuilder                        $sortOrderBuilder
-     * @param \Magento\UrlRewrite\Model\UrlFinderInterface                   $urlFinder
-     * @param \Magento\Store\Model\StoreManagerInterface                     $storeManager
-     * @param \Magento\Catalog\Helper\Image                                  $imageHelper
-     * @param StockItemRepositoryInterface                                   $stockItemRepository
-     * @param Product                                                        $productHelper
+     * @param Config                                                             $config
+     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory     $productCollectionFactory
+     * @param \TurnTo\SocialCommerce\Logger\Monolog                              $logger
+     * @param \Magento\Framework\Intl\DateTimeFactory                            $dateTimeFactory
+     * @param \Magento\Framework\Api\SearchCriteriaBuilder                       $searchCriteriaBuilder
+     * @param \Magento\Framework\Api\FilterBuilder                               $filterBuilder
+     * @param \Magento\Framework\Api\SortOrderBuilder                            $sortOrderBuilder
+     * @param \Magento\UrlRewrite\Model\UrlFinderInterface                       $urlFinder
+     * @param \Magento\Store\Model\StoreManagerInterface                         $storeManager
+     * @param \Magento\Catalog\Helper\Image                                      $imageHelper
+     * @param \Magento\CatalogInventory\Model\Spi\StockRegistryProviderInterface $stockRegistryProvider
+     * @param Product                                                            $productHelper
      */
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
@@ -80,7 +80,7 @@ class Catalog extends AbstractExport
         \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Catalog\Helper\Image $imageHelper,
-        StockItemRepositoryInterface $stockItemRepository,
+        \Magento\CatalogInventory\Model\Spi\StockRegistryProviderInterface $stockRegistryProvider,
         Product $productHelper
     )
     {
@@ -96,9 +96,9 @@ class Catalog extends AbstractExport
             $storeManager
         );
 
-        $this->stockItemRepository = $stockItemRepository;
         $this->imageHelper = $imageHelper;
         $this->storeManager = $storeManager;
+        $this->stockRegistryProvider = $stockRegistryProvider;
         $this->productHelper = $productHelper;
     }
 
@@ -392,7 +392,7 @@ class Catalog extends AbstractExport
         // Restore the "current store"
         $this->storeManager->setCurrentStore($currentStore);
 
-        $stockItem = $this->stockItemRepository->get($product->getId());
+        $stockItem = $this->stockRegistryProvider->getStockItem($product->getId(), $store->getId());
 
         $entry->addChild('g:availability', $stockItem->getIsInStock() ? 'in stock' : 'out of stock');
         $entry->addChild('g:image_link', $this->sanitizeData($productImageUrl));
