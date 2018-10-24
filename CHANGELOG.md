@@ -1,3 +1,7 @@
+## 2.1.2 (2018-10-24)
+
+* Fix issue with catalog export when stock item could not be found
+
 ## 2.1.1 (2018-07-02)
 
 * Fix issue with custom configuration default value
