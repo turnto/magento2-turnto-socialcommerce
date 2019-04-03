@@ -92,39 +92,6 @@
                         <field id="enabled">1</field>
                     </depends>
                 </field>
-                <field id="custom_configuration" translate="label comment" type="textarea" sortOrder="80" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Custom Configuration</label>
-                    <comment><![CDATA[Default is empty. Should not be changed, unless instructed by TurnTo. Anything entered here will be merged with the <code>turnToConfig</code> JS object that is output on the frontend. Refer to <a href="https://github.com/turnto/magento2-turnto-socialcommerce#custom-configuration">the documentation</a> for specifics of what can be entered into this field.]]></comment>
-                    <depends>
-                        <field id="enabled">1</field>
-                    </depends>
-                </field>
-            </group>
-            <group id="checkout_comments" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
-                <label>Checkout Comments</label>
-                <field id="enable_checkout_success" type="select" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Enable Capture on Checkout Success Page</label>
-                    <comment>Customers will be shown a list of products they purchased and will be given the opportunity to share why they decided to purchase each product.</comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
-                    </depends>
-                </field>
-                <field id="enable_product_detail" type="select" translate="label" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Enable Display Widget on Product Page</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
-                    </depends>
-                </field>
-                <field id="columns" type="text" translate="label comment" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Columns on Widget on Product Page</label>
-                    <comment>Can be 1, 2, 3, 4, or 'auto'. 'auto' detects the available width and chooses the best number of columns for you.</comment>
-                    <depends>
-                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
-                        <field id="turnto_socialcommerce_configuration/checkout_comments/enable_product_detail">1</field>
-                    </depends>
-                </field>
             </group>
             <group id="qa" translate="label" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Questions &amp; Answers</label>
@@ -136,24 +103,6 @@
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
-                <field id="enable_qa_teaser" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Enable Q&amp;A Teaser</label>
-                    <comment>Show the Q&amp;A teaser below the product name on the product details page.</comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
-                        <field id="turnto_socialcommerce_configuration/qa/enable_qa">1</field>
-                    </depends>
-                </field>
-                <field id="setup_type" translate="label comment" type="select" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Setup Type</label>
-                    <comment>Type of presentation used for TurnTo Q&amp;A functionality. Static Embed is the recommended type due to SEO benefits. You must flush cache after changing this setting.</comment>
-                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\SetupTypeSelect</source_model>
-                    <depends>
-                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
-                        <field id="turnto_socialcommerce_configuration/qa/enable_qa">1</field>
-                    </depends>
-                </field>
             </group>
             <group id="reviews" translate="label" sortOrder="40" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Reviews</label>
@@ -163,35 +112,6 @@
                         Enable the TurnTo SocialCommerce reviews feature and disable the native reviews functionality.<br>
                         Refer to <a href="https://github.com/turnto/magento2-turnto-socialcommerce#rating-import-from-turnto">the documentation</a> for technical details on how reviews are imported from TurnTo and displayed in Magento.
                     ]]></comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
-                    </depends>
-                </field>
-                <field id="enable_reviews_teaser" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Enable Reviews Teaser</label>
-                    <comment>Enable the reviews teaser below the product name on the product details page.</comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
-                        <field id="turnto_socialcommerce_configuration/reviews/enable_reviews">1</field>
-                    </depends>
-                </field>
-                <field id="reviews_setup_type" translate="label comment" type="select" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Setup Type</label>
-                    <comment>Type of presentation used for TurnTo Reviews functionality. Static Embed is the recommended type due to SEO benefits. You must flush cache after changing this setting.</comment>
-                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\SetupTypeSelect</source_model>
-                    <depends>
-                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
-                        <field id="turnto_socialcommerce_configuration/reviews/enable_reviews">1</field>
-                    </depends>
-                </field>
-            </group>
-            <group id="gallery" translate="label" sortOrder="50" showInStore="1" showInWebsite="1" showInDefault="1">
-                <label>Gallery</label>
-                <field id="enable_gallery" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Enable Gallery</label>
-                    <comment>Enable the gallery row on the product detail page.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>

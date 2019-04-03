@@ -15,41 +15,38 @@
  */
 -->
 <page layout="1column" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="turnto_config"/>
     <body>
+        <!-- Main TurnTo Config -->
         <referenceContainer name="content">
-            <block class="TurnTo\SocialCommerce\Block\Config" name="turnto.config.js" template="TurnTo_SocialCommerce::product/view/config.phtml" after="-" ifconfig="turnto_socialcommerce_configuration/general/enabled">
-                <block class="Magento\Framework\View\Element\Template" name="turnto.config.js.reviews" template="TurnTo_SocialCommerce::config/reviews.phtml"/>
-                <block class="Magento\Framework\View\Element\Template" name="turnto.config.js.qa" template="TurnTo_SocialCommerce::config/qa.phtml"/>
-                <block class="Magento\Framework\View\Element\Template" name="turnto.config.js.sso" template="TurnTo_SocialCommerce::config/sso.phtml"/>
-                <block class="TurnTo\SocialCommerce\Block\TurnToConfig" name="turnto.config.product-detail">
-                    <arguments>
-                        <argument name="config_data" xsi:type="object">\TurnTo\SocialCommerce\Model\Data\ProductDetailConfig</argument>
-                    </arguments>
-                </block>
+            <block class="TurnTo\SocialCommerce\Block\TurnToConfig" name="turnto.config" ifconfig="turnto_socialcommerce_configuration/general/enabled">
+                <arguments>
+                    <argument name="config_data" xsi:type="array">
+                        <item name="pageId" xsi:type="string">pdp-page</item>
+                        <item name="chatter" xsi:type="array"/>
+                    </argument>
+                </arguments>
+                <block class="TurnTo\SocialCommerce\Block\Config" ifconfig="turnto_socialcommerce_configuration/reviews/enable_reviews" name="turnto.pdp" template="TurnTo_SocialCommerce::product/view/config.phtml" />
             </block>
         </referenceContainer>
 
+        <!-- Review Teaser Content -->
         <referenceBlock name="product.info.review">
-            <action method="setTemplate" ifconfig="turnto_socialcommerce_configuration/general/enabled">
+            <action method="setTemplate">
                 <argument name="template" xsi:type="string">TurnTo_SocialCommerce::product/view/teaser.phtml</argument>
             </action>
         </referenceBlock>
+
+        <!-- QA Tab Content -->
         <referenceBlock name="product.info.details">
-            <block class="TurnTo\SocialCommerce\Block\ReviewsContent" name="turnto.reviews.tab" as="turnto_reviews" group="detailed_info">
-                <arguments>
-                    <argument name="title" translate="true" xsi:type="string">Reviews</argument>
-                </arguments>
-            </block>
-        </referenceBlock>
-        <referenceBlock name="product.info.details">
-            <block class="TurnTo\SocialCommerce\Block\QaContent" name="turnto.qa.tab" as="turnto_qa" group="detailed_info">
+            <block ifconfig="turnto_socialcommerce_configuration/qa/enable_qa" class="Magento\Framework\View\Element\Template" template="TurnTo_SocialCommerce::product/view/qa-tab.phtml" name="turnto.qa.tab" as="turnto_qa" group="detailed_info">
                 <arguments>
                     <argument name="title" translate="true" xsi:type="string">Q&amp;A</argument>
                 </arguments>
             </block>
         </referenceBlock>
+
         <referenceContainer name="product.info.main">
-            <block class="Magento\Framework\View\Element\Template" name="turnto.gallery" template="TurnTo_SocialCommerce::product/view/gallery.phtml"/>
             <block class="Magento\Framework\View\Element\Template" name="turnto_checkout_comments" template="TurnTo_SocialCommerce::product/view/comments.phtml" after="product.info.details" ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_product_detail"/>
         </referenceContainer>
     </body>

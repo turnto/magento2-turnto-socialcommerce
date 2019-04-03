@@ -13,17 +13,31 @@
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
+/** @var \Magento\Catalog\Block\Product\View $block */
 $configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
 
-$reviewsEnabled = $configHelper->getReviewsEnabled();
-$qaEnabled = $configHelper->getQaEnabled();
-$reviewsTeaserEnabled = $configHelper->getReviewsTeaserEnabled();
-$qaTeaserEnabled = $configHelper->getQaTeaserEnabled();
-
-if ($reviewsEnabled && $reviewsTeaserEnabled){
-    echo '<span class="TurnToReviewsTeaser"></span>';
+if(!$configHelper->getReviewsEnabled()) {
+    return;
 }
 
-if ($qaEnabled && $qaTeaserEnabled) {
-    echo '<span class="TurnToItemTeaser"></span>';
-}
+?>
+<div id="tt-teaser" class="TTteaser" data-bind="scope:'teaser'">
+    <!-- ko template: getTemplate() --><!-- /ko -->
+    <script type="text/x-magento-init">
+        {
+            "#tt-teaser": {
+                "Magento_Ui/js/core/app": {
+                   "components": {
+                        "teaser": {
+                            "component": "TurnTo_SocialCommerce/js/teaser",
+                            "config": {
+                                "siteKey": "<?= $configHelper->getSiteKey() ?>",
+                                "teaserSku": "<?= $block->getProduct()->getSku() ?>"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</div>

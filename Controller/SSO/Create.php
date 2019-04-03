@@ -40,6 +40,9 @@ class Create extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
+        // TODO: Prevent until implemented in V5
+        throw new \Magento\Framework\Exception\NotFoundException();
+
         return $this->resultPageFactory->create();
     }
 }

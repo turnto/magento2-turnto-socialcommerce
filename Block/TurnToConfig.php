@@ -7,13 +7,14 @@
 
 namespace TurnTo\SocialCommerce\Block;
 
+use Magento\Framework\Locale\Resolver;
 use Magento\Framework\View\Element\Template;
 use TurnTo\SocialCommerce\Api\TurnToConfigDataSourceInterface;
 use TurnTo\SocialCommerce\Helper\Config as TurnToConfigHelper;
 
 /**
- * @method void setConfigData(TurnToConfigDataSourceInterface $config)
- * @method TurnToConfigDataSourceInterface getConfigData()
+ * @method void setConfigData(TurnToConfigDataSourceInterface|array $config)
+ * @method TurnToConfigDataSourceInterface|array getConfigData()
  */
 class TurnToConfig extends Template implements TurnToConfigInterface
 {
@@ -23,13 +24,20 @@ class TurnToConfig extends Template implements TurnToConfigInterface
     protected $configHelper;
 
     /**
+     * @var Resolver
+     */
+    protected $localeResolver;
+
+    /**
      * @param Template\Context   $context
      * @param TurnToConfigHelper $configHelper
+     * @param Resolver           $localeResolver
      * @param array              $data
      */
     public function __construct(
         Template\Context $context,
         TurnToConfigHelper $configHelper,
+        Resolver $localeResolver,
         array $data = []
     )
     {
@@ -40,6 +48,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         parent::__construct($context, $data);
 
         $this->configHelper = $configHelper;
+        $this->localeResolver = $localeResolver;
     }
 
     /**
@@ -48,19 +57,20 @@ class TurnToConfig extends Template implements TurnToConfigInterface
      */
     public function getJavaScriptConfig()
     {
+        $configData = $this->getConfigData();
+
+        if ($configData instanceof TurnToConfigDataSourceInterface) {
+            $configData = $configData->getData();
+        }
+
+        $configData = array_merge(['locale' => $this->localeResolver->getLocale()], $configData);
+
         /*
          * Zend_Json::encode is used instead of json_encode because the values of iTeaserFunc and reviewsTeaserFunc
          * have to be a JavaScript object. json_encode has no way to accomplish this. See this stack overflow question
          * for more context http://stackoverflow.com/questions/6169640/php-json-encode-encode-a-function
          */
-        return \Zend_Json::encode($this->getConfigData()->getData(), false, ['enableJsonExprFinder' => true]);
-    }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getCustomJavaScriptConfiguration()
-    {
-        return $this->configHelper->getCustomConfigurationJs();
+        return \Zend_Json::encode($configData, false, ['enableJsonExprFinder' => true]);
     }
 }

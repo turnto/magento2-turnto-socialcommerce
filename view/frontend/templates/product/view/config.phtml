@@ -11,87 +11,28 @@
  */
 
 /** @var \TurnTo\SocialCommerce\Block\Config $block */
-
 /** @var TurnTo\SocialCommerce\Helper\Config $configHelper */
 $configHelper = $this->helper(\TurnTo\SocialCommerce\Helper\Config::class);
-/** @var TurnTo\SocialCommerce\Helper\Product $productHelper */
-$productHelper = $this->helper(\TurnTo\SocialCommerce\Helper\Product::class);
-
-$siteKey = $configHelper->getSiteKey();
-$staticUrl = preg_replace("(^https?://)", "//", $configHelper->getStaticUrl());
-$version = $configHelper->getTurnToVersion();
-$locale = $block->getLocale();
-
-// Config variables
-$reviewsEnabled = $configHelper->getReviewsEnabled();
-$qaEnabled = $configHelper->getQaEnabled();
-$commentsEnabled = $configHelper->getCheckoutCommentsEnabledProductDetail();
-$galleryEnabled = $configHelper->getGalleryEnabled();
-$useSimpleProduct = $configHelper->getUseChildSku();
-$singleSignOn = $configHelper->getSingleSignOn();
-
 $productSku = $block->getProductSku();
-$gallerySkus = $block->getGallerySkus();
 
-if ($reviewsEnabled || $qaEnabled || $commentsEnabled || $galleryEnabled):
-    ?>
-
-    <link rel="stylesheet" href="<?= sprintf('%s/tra%s/tra.css', $staticUrl, $version) ?>"/>
-
-    <?php if ($galleryEnabled): ?>
-    <link rel="stylesheet" href="<?= sprintf('%s/tra%s/turnto-gallery-%s.css', $staticUrl, $version, $locale) ?>"/>
-<?php endif; ?>
-
-    <?= $this->getChildHtml('turnto.config.js.qa') ?>
-    <?= $this->getChildHtml('turnto.config.js.reviews') ?>
-    <?= $this->getChildHtml('turnto.config.js.sso') ?>
-    <?= $this->getChildHtml('turnto.config.product-detail') ?>
-
-    <script type="text/javascript">
-        (function (window) {
-            window.scrollToTab = function scrollToTab(teaserContainer, clickElement, container, tab) {
-                teaserContainer.find(clickElement).click(function (event) {
-                    event.preventDefault();
-                    if (!jQuery(tab).parent().hasClass('active')) {
-                        jQuery(tab).click();
-                    }
-                    jQuery("html, body").animate({scrollTop: jQuery(container).offset().top - 20}, 500);
-                });
-            };
-
-            window.TurnToItemSku = <?php if ($commentsEnabled): ?>window.TurnToChatterSku = <?php endif; ?>"<?=$productSku ?>";
-
-            <?php if ($galleryEnabled): ?>
-            window.TurnToGallerySkus = <?= $gallerySkus ?>;
-            <?php endif; ?>
-
-            window.turnToUseChildSku = <?= $useSimpleProduct ?>;
-        })(window);
-    </script>
-<?php endif; ?>
+?>
 
 <script type="text/javascript">
-    require(['jquery'], function ($) {
-        $.getScript('<?= "{$staticUrl}/sitedata/{$siteKey}/v{$version}/{$productSku}/d/itemjs" ?>');
-        $.getScript('<?= "{$staticUrl}/traServer{$version}/trajs/{$siteKey}/tra.js" ?>',
-            function () {
-                <?php
-                /**
-                 * This logic is necessary to ensure that the Reviews and Q&A content is up to date with the TurnTo
-                 * servers.
-                 * Without this logic, the full page cache may be missing content and only display content loaded the
-                 * last time the cache was refreshed. This solution will refresh the content upon page load if either
-                 * the Reviews or Q&A sections are loaded statically.
-                 */
-                if ($configHelper->getSetupType() === \TurnTo\SocialCommerce\Helper\Config::SETUP_TYPE_STATIC_EMBED): ?>
-                TurnTo.reset({"sku": "<?= $productSku ?>"});
-                <?php endif; ?>
+    (function (window) {
+        window.scrollToTab = function scrollToTab(teaserContainer, clickElement, container, tab) {
+            teaserContainer.find(clickElement).click(function (event) {
+                event.preventDefault();
+
+                if (!jQuery(tab).parent().hasClass('active')) {
+                    jQuery(tab).click();
+                }
+
+                jQuery('html, body').animate({scrollTop: jQuery(container).offset().top - 20}, 500);
             });
-        <?php if($commentsEnabled): ?>
-        $.getScript('<?= "{$staticUrl}/traServer{$version}/chatterjs/{$siteKey}/turnto-chatter.js" ?>');
+        };
+
+        <?php if($productSku): ?>
+        window.TurnToCmd('set', {'sku': '<?= $productSku ?>'});
         <?php endif; ?>
-        <?php if($galleryEnabled): ?>
-        $.getScript('<?= "{$staticUrl}/traServer{$version}/galleryjs/{$siteKey}/turnto-gallery.js/{$locale}" ?>');
-        <?php endif; ?>
-    });
+    })(window);
 </script>

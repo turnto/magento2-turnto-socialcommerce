@@ -1,19 +1,21 @@
 <?php /** @var \TurnTo\SocialCommerce\Block\TurnToConfigInterface $block */ ?>
+<?php
+/** @var TurnTo\SocialCommerce\Helper\Config $configHelper */
+$configHelper = $this->helper(\TurnTo\SocialCommerce\Helper\Config::class);
+$siteKey = $configHelper->getSiteKey();
+$version = $configHelper->getTurnToVersion();
+?>
 <script type="text/javascript">
-    (function(window) {
+    (function (window) {
         window.turnToConfig = <?= $block->getJavaScriptConfig() ?>;
-
-        var customConfiguration = <?= $block->getCustomJavaScriptConfiguration() ?>;
-
-        // Add the keys from the user-supplied object to the existing turnToConfig object
-        // Doing this merging in JS since it's not possible to handle this merge in PHP since 
-        // there are JS _functions_ that need to get merged, not just JSON data
-        for (var key in customConfiguration) {
-            if(!customConfiguration.hasOwnProperty(key)) {
-                continue;
-            }
-
-            window.turnToConfig[key] = customConfiguration[key];
-        }
+        window.TurnToCmd = window.TurnToCmd || function () {
+            (TurnToCmd.q = TurnToCmd.q || []).push(arguments);
+        };
     })(window);
 </script>
+<?php if ($siteKey): ?>
+    <script src="https://widgets.turnto.com/v<?= $version ? $version : 'v5' ?>/widgets/<?= $siteKey ?>/js/turnto.js"
+            type="text/javascript" async></script>
+<?php endif; ?>
+
+<?= $block->getChildHtml() ?>
