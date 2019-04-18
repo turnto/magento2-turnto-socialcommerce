@@ -1,3 +1,5 @@
+## 2.1.3 (2019-04-18)
+* Updated README and made new version number for Magento Marketplace Release
 ## 2.1.2 (2018-10-24)
 
 * Fix issue with catalog export when stock item could not be found
