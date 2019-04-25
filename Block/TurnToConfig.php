@@ -63,7 +63,12 @@ class TurnToConfig extends Template implements TurnToConfigInterface
             $configData = $configData->getData();
         }
 
-        $configData = array_merge(['locale' => $this->localeResolver->getLocale()], $configData);
+        $additionalConfigData = ['locale' => $this->localeResolver->getLocale()];
+        if ($this->configHelper->getQaEnabled()) {
+            array_push($additionalConfigData, ['qa' => []]);
+        }
+
+        $configData = array_merge($additionalConfigData, $configData);
 
         /*
          * Zend_Json::encode is used instead of json_encode because the values of iTeaserFunc and reviewsTeaserFunc

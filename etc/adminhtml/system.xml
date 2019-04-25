@@ -46,29 +46,6 @@
                     </depends>
                     <can_be_empty>0</can_be_empty>
                 </field>
-                <field id="version" translate="label comment" type="text" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Version</label>
-                    <comment>TurnTo API version.  Uses (major).(minor) form, the default is 4.3. Should not be changed, unless instructed by TurnTo.</comment>
-                    <depends>
-                        <field id="enabled">1</field>
-                    </depends>
-                    <can_be_empty>0</can_be_empty>
-                </field>
-                <field id="static_url" translate="label comment" type="text" sortOrder="40" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Static URL</label>
-                    <comment>Default is http://static.www.turnto.com. Should not be changed, unless instructed by TurnTo.</comment>
-                    <depends>
-                        <field id="enabled">1</field>
-                    </depends>
-                    <can_be_empty>0</can_be_empty>
-                </field>
-                <field id="url" translate="label comment" type="text" sortOrder="50" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>URL</label>
-                    <comment>Default is http://www.turnto.com. Should not be changed, unless instructed by TurnTo.</comment>
-                    <depends>
-                        <field id="enabled">1</field>
-                    </depends>
-                </field>
                 <field id="image_store_base" translate="label comment" type="text" sortOrder="60" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Image Store Base</label>
                     <comment>Default is http://wac.edgecastcdn.net/001A39/prod. Should not be changed, unless instructed by TurnTo.</comment>
@@ -79,14 +56,6 @@
                 <field id="use_child_sku" translate="label comment" type="select" sortOrder="70" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Use child SKU instead of parent SKU</label>
                     <comment><![CDATA[Default is "No". If set to "No", the parent SKU of configurable products will be used. If set to "Yes", the child SKU will be used everywhere that this extension references SKUs.]]></comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="enabled">1</field>
-                    </depends>
-                </field>
-                <field id="single_sign_on" translate="label comment" type="select" sortOrder="75" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Enable Single Sign On</label>
-                    <comment><![CDATA[Default is "No". When enabled, users will login or signup for customer accounts directly via the Magento website before writing reviews or other actions that require the user to be signed in. When disabled, users will login or signup to a TurnTo account that is not linked to their Magento account. Guest users who have recently checked out are signed into a temporary TurnTo account that will allow them to submit reviews and questions when this option is disabled. Refer to <a href="https://github.com/turnto/magento2-turnto-socialcommerce#single-sign-on">the documentation</a> for additional information.]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="enabled">1</field>
@@ -113,17 +82,6 @@
                         Refer to <a href="https://github.com/turnto/magento2-turnto-socialcommerce#rating-import-from-turnto">the documentation</a> for technical details on how reviews are imported from TurnTo and displayed in Magento.
                     ]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
-                    </depends>
-                </field>
-            </group>
-            <group id="mobile" translate="label" sortOrder="60" showInStore="1" showInWebsite="1" showInDefault="1">
-                <label>Mobile</label>
-                <comment>The TurnTo Mobile Landing Page URL is [baseUrl]/turnto/frontend/mobilelanding which will need to be set in the "Landing Page URL" field in the turnto.com configuration</comment>
-                <field id="mobile_page_title" translate="label comment" type="text" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Mobile Landing Page Title</label>
-                    <comment>The title for the mobile landing page</comment>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>

@@ -14,7 +14,7 @@ $version = $configHelper->getTurnToVersion();
     })(window);
 </script>
 <?php if ($siteKey): ?>
-    <script src="https://widgets.turnto.com/v<?= $version ? $version : 'v5' ?>/widgets/<?= $siteKey ?>/js/turnto.js"
+    <script src="https://widgets.turnto.com/<?= $version ? $version : 'v5' ?>/widgets/<?= $siteKey ?>/js/turnto.js"
             type="text/javascript" async></script>
 <?php endif; ?>
 

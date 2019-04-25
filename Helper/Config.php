@@ -41,6 +41,15 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const XML_PATH_SOCIALCOMMERCE_SINGLE_SIGN_ON = 'turnto_socialcommerce_configuration/general/single_sign_on';
 
+    const SOCIALCOMMERCE_VERSION = 'v5';
+
+    const SOCIALCOMMERCE_URL = 'http://www.turnto.com';
+
+    const SOCIALCOMMERCE_STATIC_URL = 'http://static.www.turnto.com';
+
+    const SOCIALCOMMERCE_SINGLE_SIGN_ON = false;
+
+    const SOCIALCOMMERCE_MOBILE_TITLE_PAGE = 'TurnTo - Social Commerce';
     /**
      * Product Groups
      */
@@ -196,15 +205,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getTurnToVersion($scopeCode = null)
     {
-        return str_replace(
-            '.',
-            '_',
-            $this->scopeConfig->getValue(
-                self::XML_PATH_SOCIALCOMMERCE_VERSION,
-                ScopeInterface::SCOPE_STORE,
-                $scopeCode ?: $this->getCurrentStoreCode()
-            )
-        );
+        return self::SOCIALCOMMERCE_VERSION;
     }
 
     /**
@@ -216,11 +217,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getStaticUrl($store = null)
     {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_STATIC_URL,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
+        return self::SOCIALCOMMERCE_STATIC_URL;
     }
 
     /**
@@ -232,11 +229,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getUrl($store = null)
     {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_URL,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
+        return self::SOCIALCOMMERCE_URL;
     }
 
     /**
@@ -264,11 +257,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getSingleSignOn($store = null)
     {
-        return (bool)$this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_SINGLE_SIGN_ON,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
+        return self::SOCIALCOMMERCE_SINGLE_SIGN_ON;
     }
 
     /**
@@ -428,11 +417,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getMobilePageTitle($store = null)
     {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_MOBILE_PAGE_TITLE,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
+        return self::SOCIALCOMMERCE_MOBILE_TITLE_PAGE;
     }
 
     /**
