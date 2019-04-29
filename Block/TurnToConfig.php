@@ -64,8 +64,9 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         }
 
         $additionalConfigData = ['locale' => $this->localeResolver->getLocale()];
+
         if ($this->configHelper->getQaEnabled()) {
-            array_push($additionalConfigData, ['qa' => []]);
+            $additionalConfigData['qa'] = [];
         }
 
         $configData = array_merge($additionalConfigData, $configData);
