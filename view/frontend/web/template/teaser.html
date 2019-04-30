@@ -17,7 +17,7 @@
 </div>
 
 
-<!-- ko if: reviewsData().reviews > 0 -->
+<!-- ko if: reviewsData().reviews > 0 && reviewsTeaserEnabled() -->
 <div class="TTteaser__rating">
     <!-- ko foreach: new Array(getNumFullStars()) -->
     <span class="TTteaser__star">
@@ -44,21 +44,21 @@
     <!-- /ko -->
 </div>
 
-<a href="javascript:void(0)" class="TTteaser__read-reviews" data-bind="click: function() {openTab('#reviews')}, text: 'Read ' + reviewsData().reviews + ' Reviews'"></a>
-<!-- ko if: reviewsData().comments > 0 -->
-<span> | </span>
-<a href="javascript:void(0)" class="TTteaser__read-comments" data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().comments + ' Buyers Comments'"></a>
-<!-- /ko -->
-<!-- ko if: reviewsData().questions > 0 -->
-<a href="javascript:void(0)" class="TTteaser__read-comments" data-bind="click: function() {openTab('#turnto_qa')}, text: ' | '  + reviewsData().questions + ' questions, ' + reviewsData().answers + ' answers'"></a>
-<!-- /ko -->
-or <button data-bind="click: writeReview" class="TTteaser__write-review">Write a Review</button>
+    <a href="javascript:void(0)" class="TTteaser__read-reviews" data-bind="click: function() {openTab('#reviews')}, text: 'Read ' + reviewsData().reviews + ' Reviews'"></a>
+    <!-- ko if: reviewsData().comments > 0 -->
+    <span> | </span>
+    <a href="javascript:void(0)" class="TTteaser__read-comments" data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().comments + ' Buyers Comments'"></a>
+    <!-- /ko -->
+    <!-- ko if: reviewsData().questions > 0 -->
+    <a href="javascript:void(0)" class="TTteaser__read-comments" data-bind="click: function() {openTab('#turnto_qa')}, text: ' | '  + reviewsData().questions + ' questions, ' + reviewsData().answers + ' answers'"></a>
+    <!-- /ko -->
+    or <button data-bind="click: writeReview" class="TTteaser__write-review">Write a Review</button>
 <!-- /ko -->
 
 <!-- ko if: reviewsData().reviews === 0 -->
-<!-- ko if: reviewsData().comments > 0 -->
-<a href="javascript:void(0)" class="TTteaser__read-comments" data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().comments + ' Buyers Comments'"></a>
-<span> or </span>
-<!-- /ko -->
+    <!-- ko if: reviewsData().comments > 0 -->
+    <a href="javascript:void(0)" class="TTteaser__read-comments" data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().comments + ' Buyers Comments'"></a>
+    <span> or </span>
+    <!-- /ko -->
 <button data-bind="click: writeReview" class="TTteaser__write-review">Be the first to write a review</button>
 <!-- /ko -->

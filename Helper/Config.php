@@ -89,6 +89,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     const XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS = 'turnto_socialcommerce_configuration/reviews/enable_reviews';
 
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS_TEASER = 'turnto_socialcommerce_configuration/reviews/enable_reviews_teaser';
+
     const XML_PATH_SOCIALCOMMERCE_MOBILE_PAGE_TITLE = 'turnto_socialcommerce_configuration/mobile/mobile_page_title';
 
     const XML_PATH_SOCIALCOMMERCE_ENABLE_PRODUCT_FEED_SUBMISSION = 'turnto_socialcommerce_configuration/product_feed/enable_automatic_submission';
@@ -403,6 +405,22 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return (bool)$this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * Gets the Reviews Teaser Enabled configuration value
+     *
+     * @param null $store
+     *
+     * @return bool
+     */
+    public function getReviewsTeaserEnabled($store = null)
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS_TEASER,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );

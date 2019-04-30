@@ -17,6 +17,7 @@ define([
             teaserSku: null,
             reviewsData: {},
             reviewsEnabled: null,
+            reviewsTeaserEnabled: null,
             qaEnabled: null
         },
 
