@@ -31,7 +31,8 @@ $configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
                                 "teaserSku": "<?= $block->getProduct()->getSku() ?>",
                                 "reviewsEnabled": "<?= $configHelper->getReviewsEnabled() ? 'true' : 'false' ?>",
                                 "reviewsTeaserEnabled": "<?= $configHelper->getReviewsTeaserEnabled() ? 'true' : 'false' ?>",
-                                "qaEnabled": "<?= $configHelper->getQaEnabled() ? 'true' : 'false' ?>"
+                                "qaEnabled": "<?= $configHelper->getQaEnabled() ? 'true' : 'false' ?>",
+                                "qaTeaserEnabled": "<?= $configHelper->getQaTeaserEnabled() ? 'true' : 'false' ?>"
                             }
                         }
                     }

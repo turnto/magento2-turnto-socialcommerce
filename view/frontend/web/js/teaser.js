@@ -18,7 +18,8 @@ define([
             reviewsData: {},
             reviewsEnabled: null,
             reviewsTeaserEnabled: null,
-            qaEnabled: null
+            qaEnabled: null,
+            qaTeaserEnabled: null
         },
 
         /**

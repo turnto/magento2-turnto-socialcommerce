@@ -72,6 +72,16 @@
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
+                <field id="enable_qa_teaser" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Enable Questions &amp; Answers Teaser</label>
+                    <comment><![CDATA[
+                        Show the Q&A teaser below the product name on the product details page.
+                    ]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
             </group>
             <group id="reviews" translate="label" sortOrder="40" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Reviews</label>

@@ -53,8 +53,8 @@
 <span> | </span>
 <a href="javascript:void(0)" class="TTteaser__read-comments" data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().comments + ' Buyers Comments'"></a>
 <!-- /ko -->
-<!-- ko if: reviewsData().questions > 0 -->
-<span> | </span>
+<!-- ko if: reviewsData().questions > 0 && qaTeaserEnabled === "true" -->
+<!-- ko if: reviewsTeaserEnabled === "false" --><span> | </span><!-- /ko -->
 <a href="javascript:void(0)" class="TTteaser__read-comments" data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().questions + ' questions, ' + reviewsData().answers + ' answers'"></a>
 <!-- /ko -->
 <!-- ko if: reviewsTeaserEnabled === "true" -->

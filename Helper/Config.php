@@ -84,6 +84,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     const XML_PATH_SOCIALCOMMERCE_ENABLE_QA = 'turnto_socialcommerce_configuration/qa/enable_qa';
 
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_QA_TEASER = 'turnto_socialcommerce_configuration/qa/enable_qa_teaser';
+
     /**
      * Reviews
      */
@@ -389,6 +391,22 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return (bool)$this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_QA,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * Gets the Question and Answer Teaser Enabled configuration value
+     *
+     * @param null $store
+     *
+     * @return bool
+     */
+    public function getQaTeaserEnabled($store = null)
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_ENABLE_QA_TEASER,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );
