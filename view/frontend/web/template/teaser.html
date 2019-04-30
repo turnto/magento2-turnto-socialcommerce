@@ -50,7 +50,7 @@
 <a href="javascript:void(0)" class="TTteaser__read-comments" data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().comments + ' Buyers Comments'"></a>
 <!-- /ko -->
 <!-- ko if: reviewsData().questions > 0 -->
-<span class="TTteaser__questions" data-bind="text: ' | '  + reviewsData().questions + ' questions, ' + reviewsData().answers + ' answers'"></span>
+<a href="javascript:void(0)" class="TTteaser__read-comments" data-bind="click: function() {openTab('#turnto_qa')}, text: ' | '  + reviewsData().questions + ' questions, ' + reviewsData().answers + ' answers'"></a>
 <!-- /ko -->
 or <button data-bind="click: writeReview" class="TTteaser__write-review">Write a Review</button>
 <!-- /ko -->
