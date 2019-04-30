@@ -46,7 +46,7 @@
 
 <!-- ko if: reviewsData().questions > 0 -->
 <div class="TTteaser__questions">
-    <span class="TTteaser__questions" data-bind="text: reviewsData().questions + ' questions'"></span>
+    <span class="TTteaser__questions" data-bind="text: ' | '  + reviewsData().questions + ' questions, ' + reviewsData().answers + ' answers'"></span>
 </div>
 <!-- /ko -->
 
