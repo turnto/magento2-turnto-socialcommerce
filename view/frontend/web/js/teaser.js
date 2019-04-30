@@ -30,7 +30,7 @@ define([
 
             this.observe(['reviewsData']);
 
-            if (this.teaserSku !== null && (this.qaEnabled === true || this.reviewsEnabled === true)) {
+            if (this.teaserSku !== null && (this.qaEnabled === "1" || this.reviewsEnabled === "1")) {
                 this.loadTeaserCounts(this.teaserSku);
             }
 
