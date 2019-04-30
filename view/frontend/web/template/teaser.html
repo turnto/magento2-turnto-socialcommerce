@@ -44,6 +44,11 @@
     <!-- /ko -->
 </div>
 
+<!-- ko if: reviewsData().questions > 0 -->
+<div class="TTteaser__questions">
+    <span class="TTteaser__questions" data-bind="text: reviewsData().questions + ' questions'"></span>
+</div>
+
 <a href="javascript:void(0)" class="TTteaser__read-reviews" data-bind="click: function() {openTab('#reviews')}, text: 'Read ' + reviewsData().reviews + ' Reviews'"></a>
 <!-- ko if: reviewsData().comments > 0 -->
 <span> | </span>

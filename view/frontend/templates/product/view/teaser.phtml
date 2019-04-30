@@ -16,10 +16,6 @@
 /** @var \Magento\Catalog\Block\Product\View $block */
 $configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
 
-if(!$configHelper->getReviewsEnabled()) {
-    return;
-}
-
 ?>
 <div id="tt-teaser" class="TTteaser" data-bind="scope:'teaser'">
     <!-- ko template: getTemplate() --><!-- /ko -->
@@ -32,7 +28,9 @@ if(!$configHelper->getReviewsEnabled()) {
                             "component": "TurnTo_SocialCommerce/js/teaser",
                             "config": {
                                 "siteKey": "<?= $configHelper->getSiteKey() ?>",
-                                "teaserSku": "<?= $block->getProduct()->getSku() ?>"
+                                "teaserSku": "<?= $block->getProduct()->getSku() ?>",
+                                "reviewsEnabled": "<?= $configHelper->getReviewsEnabled() ?>",
+                                "qaEnabled": "<?= $configHelper->getQaEnabled() ?>"
                             }
                         }
                     }

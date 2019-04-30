@@ -15,7 +15,9 @@ define([
             template: 'TurnTo_SocialCommerce/teaser',
             siteKey: null,
             teaserSku: null,
-            reviewsData: {}
+            reviewsData: {},
+            reviewsEnabled: null,
+            qaEnabled: null
         },
 
         /**
@@ -28,7 +30,7 @@ define([
 
             this.observe(['reviewsData']);
 
-            if (this.teaserSku !== null) {
+            if (this.teaserSku !== null && (this.qaEnabled === true || this.reviewsEnabled === true)) {
                 this.loadTeaserCounts(this.teaserSku);
             }
 
