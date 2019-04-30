@@ -44,16 +44,13 @@
     <!-- /ko -->
 </div>
 
-<!-- ko if: reviewsData().questions > 0 -->
-<div class="TTteaser__questions">
-    <span class="TTteaser__questions" data-bind="text: ' | '  + reviewsData().questions + ' questions, ' + reviewsData().answers + ' answers'"></span>
-</div>
-<!-- /ko -->
-
 <a href="javascript:void(0)" class="TTteaser__read-reviews" data-bind="click: function() {openTab('#reviews')}, text: 'Read ' + reviewsData().reviews + ' Reviews'"></a>
 <!-- ko if: reviewsData().comments > 0 -->
 <span> | </span>
 <a href="javascript:void(0)" class="TTteaser__read-comments" data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().comments + ' Buyers Comments'"></a>
+<!-- /ko -->
+<!-- ko if: reviewsData().questions > 0 -->
+<span class="TTteaser__questions" data-bind="text: ' | '  + reviewsData().questions + ' questions, ' + reviewsData().answers + ' answers'"></span>
 <!-- /ko -->
 or <button data-bind="click: writeReview" class="TTteaser__write-review">Write a Review</button>
 <!-- /ko -->
