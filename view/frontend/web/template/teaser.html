@@ -18,35 +18,35 @@
 
 
 <!-- ko if: reviewsData().reviews > 0 -->
-<!-- ko if: reviewsTeaserEnabled === true -->
+<!-- ko if: reviewsTeaserEnabled === "true" -->
 <div class="TTteaser__rating">
     <!-- ko foreach: new Array(getNumFullStars()) -->
     <span class="TTteaser__star">
-                <svg class="TTteaser__icon--full">
-                    <use xlink:href="#tt-teaser-star--full"></use>
-                </svg>
-            </span>
+        <svg class="TTteaser__icon--full">
+            <use xlink:href="#tt-teaser-star--full"></use>
+        </svg>
+    </span>
     <!-- /ko -->
 
     <!-- ko if: hasHalfStar() -->
     <span class="TTteaser__star">
-                <svg class="TTteaser__icon--half">
-                    <use xlink:href="#tt-teaser-star--half"></use>
-                </svg>
-            </span>
+        <svg class="TTteaser__icon--half">
+            <use xlink:href="#tt-teaser-star--half"></use>
+        </svg>
+    </span>
     <!-- /ko -->
 
     <!-- ko foreach: new Array(getNumEmptyStars()) -->
     <span class="TTteaser__star">
-                <svg class="TTteaser__icon--empty">
-                    <use xlink:href="#tt-teaser-star--empty"></use>
-                </svg>
-            </span>
+        <svg class="TTteaser__icon--empty">
+            <use xlink:href="#tt-teaser-star--empty"></use>
+        </svg>
+    </span>
     <!-- /ko -->
 </div>
 <!-- /ko -->
 
-<!-- ko if: reviewsTeaserEnabled === true -->
+<!-- ko if: reviewsTeaserEnabled === "true" -->
 <a href="javascript:void(0)" class="TTteaser__read-reviews" data-bind="click: function() {openTab('#reviews')}, text: 'Read ' + reviewsData().reviews + ' Reviews'"></a>
 <!-- /ko -->
 <!-- ko if: reviewsData().comments > 0 -->
@@ -57,7 +57,7 @@
 <span> | </span>
 <a href="javascript:void(0)" class="TTteaser__read-comments" data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().questions + ' questions, ' + reviewsData().answers + ' answers'"></a>
 <!-- /ko -->
-<!-- ko if: reviewsTeaserEnabled === true -->
+<!-- ko if: reviewsTeaserEnabled === "true" -->
 or <button data-bind="click: writeReview" class="TTteaser__write-review">Write a Review</button>
 <!-- /ko -->
 <!-- /ko -->
