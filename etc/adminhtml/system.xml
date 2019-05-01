@@ -107,6 +107,29 @@
                     </depends>
                 </field>
             </group>
+            <group id="checkout_comments" translate="label" sortOrder="50" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>Checkout Comments</label>
+                <field id="enable_checkout_comments" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Enable Checkout Comments</label>
+                    <comment><![CDATA[
+                        Enable the checkout comments feature. Customers will be shown a list of products they purchased and will be given the opportunity to share why the decided to purchase each product.
+                    ]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="enable_comments_pdp" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Enable Display Widget on Product Page</label>
+                    <comment><![CDATA[
+                        Enable viewing checkout comments on the product details page.
+                    ]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+            </group>
             <group id="product_feed" translate="label" sortOrder="70" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Product Feed</label>
                 <comment>On a nightly basis, Magento submits a product feed to TurnTo. This feed includes important information like product urls, image urls, name, etc. The feed is formatted in XML based on the Google Shopping feed specifications.</comment>

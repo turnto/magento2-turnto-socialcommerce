@@ -26,7 +26,7 @@
                         <item name="chatter" xsi:type="array"/>
                     </argument>
                 </arguments>
-                <block class="TurnTo\SocialCommerce\Block\Config" ifconfig="turnto_socialcommerce_configuration/reviews/enable_reviews" name="turnto.pdp" template="TurnTo_SocialCommerce::product/view/config.phtml" />
+                <block class="TurnTo\SocialCommerce\Block\Config" name="turnto.pdp" template="TurnTo_SocialCommerce::product/view/config.phtml" />
             </block>
         </referenceContainer>
 
