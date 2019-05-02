@@ -1,3 +1,8 @@
+<?php
+$configHelper = $this->config('TurnTo\SocialCommerce\Helper\Config');
+?>
 <div id="tt-instant-answers-widget"></div>
 <div id="tt-qa-list"></div>
+<?php if($configHelper->getCommentsPdpEnabled()): ?>
 <div id="tt-chatter-widget"></div>
+<?php endif; ?>
