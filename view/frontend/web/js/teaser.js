@@ -19,7 +19,8 @@ define([
             reviewsEnabled: null,
             reviewsTeaserEnabled: null,
             qaEnabled: null,
-            qaTeaserEnabled: null
+            qaTeaserEnabled: null,
+            commentsTeaserEnabled: null
         },
 
         /**

@@ -119,10 +119,30 @@
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
-                <field id="enable_comments_pdp" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
+                <field id="enable_comments_pdp" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInStore="1" showInWebsite="1">
                     <label>Enable Display Widget on Product Page</label>
                     <comment><![CDATA[
                         Enable viewing checkout comments on the product details page.
+                    ]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="enable_top_comments" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Enable Top Comments</label>
+                    <comment><![CDATA[
+                        Enable top comments block on the product details page
+                    ]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="enable_comments_teaser" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Enable Comments Teaser</label>
+                    <comment><![CDATA[
+                        Enable comment count in teaser on product details page.
                     ]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>

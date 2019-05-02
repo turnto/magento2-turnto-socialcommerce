@@ -49,7 +49,7 @@
 <!-- ko if: reviewsTeaserEnabled === "true" -->
 <a href="javascript:void(0)" class="TTteaser__read-reviews" data-bind="click: function() {openTab('#reviews')}, text: 'Read ' + reviewsData().reviews + ' Reviews'"></a>
 <!-- /ko -->
-<!-- ko if: reviewsData().comments > 0 -->
+<!-- ko if: reviewsData().comments > 0 && commentsTeaserEnabled === "true" -->
 <span> | </span>
 <a href="javascript:void(0)" class="TTteaser__read-comments" data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().comments + ' Buyers Comments'"></a>
 <!-- /ko -->

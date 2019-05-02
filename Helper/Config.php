@@ -110,9 +110,13 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Checkout Comments
      */
-    const XML_PATH_SOCIALCOMMERCE_ENABLE_CHECKOUT_COMMENTS = 'turnto_socialcommerce_configuration/reviews/enable_checkout_comments';
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_CHECKOUT_COMMENTS = 'turnto_socialcommerce_configuration/checkout_comments/enable_checkout_comments';
 
-    const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_PDP = 'turnto_socialcommerce_configuration/reviews/enable_comments_pdp';
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_PDP = 'turnto_socialcommerce_configuration/checkout_comments/enable_comments_pdp';
+
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_TOP_COMMENTS = 'turnto_socialcommerce_configuration/checkout_comments/enable_top_comments';
+
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_TEASER = 'turnto_socialcommerce_configuration/checkout_comments/enable_comments_teaser';
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface|null
@@ -514,6 +518,34 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return (bool)$this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_PDP,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * Gets the Top Comments Enabled on PDP configuration value
+     * @param null $store
+     * @return bool
+     */
+    public function getTopCommentsEnabled($store = null)
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_ENABLE_TOP_COMMENTS,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * Gets the Comments Teaser Enabled configuration value
+     * @param null $store
+     * @return bool
+     */
+    public function getCommentsTeaserEnabled($store = null)
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_TEASER,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );
