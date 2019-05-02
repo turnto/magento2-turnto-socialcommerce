@@ -14,8 +14,9 @@
  */
 
 $configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
+$productHelper = $this->helper('TurnTo\SocialCommerce\Helper\Product');
 ?>
 
 <?php if($configHelper->getTopCommentsEnabled()): ?>
-<div class="tt-top-comment" data-ttsku="MT07"></div>
+<div class="tt-top-comment" data-ttsku="<?= $productHelper->getProductSku() ?>"></div>
 <?php endif; ?>

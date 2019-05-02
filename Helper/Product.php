@@ -12,6 +12,22 @@ use Magento\Framework\App\Helper\AbstractHelper;
 
 class Product extends AbstractHelper
 {
+    /**
+     * @var \Magento\Catalog\Model\Product
+     */
+    protected $product;
+
+    /**
+     * Product constructor.
+     * @param \Magento\Catalog\Block\Product\View\Description $descriptionBlock
+     */
+    public function __construct(
+        \Magento\Catalog\Block\Product\View\Description $descriptionBlock
+    )
+    {
+        $this->product = $descriptionBlock->getProduct();
+    }
+
     const TURNTO_CHARACTER_MAPPING = [
         '/' => 'FORWARDSLASH',
         '#' => 'HASH',
@@ -48,5 +64,18 @@ class Product extends AbstractHelper
     public function turnToSafeDecoding($string)
     {
         return str_replace(array_values(self::TURNTO_CHARACTER_MAPPING), array_keys(self::TURNTO_CHARACTER_MAPPING), $string);
+    }
+
+    /**
+     * @return string
+     */
+    public function getProductSku()
+    {
+        $value = "";
+        if ($this->product) {
+            $value = $this->turnToSafeEncoding($this->product->getSku());
+        }
+
+        return $value;
     }
 }
