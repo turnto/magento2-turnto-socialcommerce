@@ -72,7 +72,7 @@ class Product extends AbstractHelper
     public function getProductSku()
     {
         $value = "";
-        if ($this->product) {
+        if ($this->product && $this->product->getSku()) {
             $value = $this->turnToSafeEncoding($this->product->getSku());
         }
 
