@@ -73,7 +73,9 @@
 <!-- /ko -->
 
 <!-- ko if: reviewsData().reviews === 0 && reviewsTeaserEnabled === "true" -->
-<!-- ko if: qaTeaserEnabled === "true" || commentsTeaserEnabled === "true" --><span> or </span><!-- /ko -->
-<button data-bind="click: writeReview" class="TTteaser__write-review">Be the first to write a review</button>
+    <!-- ko if: qaTeaserEnabled === "true" || commentsTeaserEnabled === "true" -->
+        <span> or </span>
+    <!-- /ko -->
+   <button data-bind="click: writeReview" class="TTteaser__write-review">Be the first to write a review</button>
 <!-- /ko -->
 
