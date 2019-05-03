@@ -60,7 +60,6 @@
     <!-- ko if: reviewsTeaserEnabled === "true" --><span> | </span><!-- /ko -->
     <a href="javascript:void(0)" class="TTteaser__read-comments"
        data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().questions + ' questions, ' + reviewsData().answers + ' answers'"></a>
-    <!-- /ko -->
     <!-- ko if: reviewsTeaserEnabled === "true" -->
     or
     <button data-bind="click: writeReview" class="TTteaser__write-review">Write a Review</button>
