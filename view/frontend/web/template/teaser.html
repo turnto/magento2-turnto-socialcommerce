@@ -67,11 +67,6 @@
     <!-- /ko -->
 <!-- /ko -->
 
-<!-- ko if: reviewsData().comments > 0 -->
-<a href="javascript:void(0)" class="TTteaser__read-comments"
-   data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().comments + ' Buyers Comments'"></a>
-<!-- /ko -->
-
 <!-- ko if: reviewsData().reviews === 0 && reviewsTeaserEnabled === "true" -->
     <!-- ko if: qaTeaserEnabled === "true" || commentsTeaserEnabled === "true" -->
         <span> or </span>
