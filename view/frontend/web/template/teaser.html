@@ -57,7 +57,7 @@
 <!-- /ko -->
 
 <!-- ko if: reviewsData().questions > 0 && qaTeaserEnabled === "true" -->
-    <!-- ko if: reviewsTeaserEnabled === "false" --><span> | </span><!-- /ko -->
+    <!-- ko if: reviewsTeaserEnabled === "true" --><span> | </span><!-- /ko -->
     <a href="javascript:void(0)" class="TTteaser__read-comments"
        data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().questions + ' questions, ' + reviewsData().answers + ' answers'"></a>
     <!-- /ko -->
@@ -67,12 +67,13 @@
     <!-- /ko -->
 <!-- /ko -->
 
-<!-- ko if: reviewsData().reviews === 0 -->
-    <!-- ko if: reviewsData().comments > 0 -->
-    <a href="javascript:void(0)" class="TTteaser__read-comments"
-       data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().comments + ' Buyers Comments'"></a>
-    <span> or </span>
-    <!-- /ko -->
+<!-- ko if: reviewsData().comments > 0 -->
+<a href="javascript:void(0)" class="TTteaser__read-comments"
+   data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().comments + ' Buyers Comments'"></a>
+<!-- /ko -->
+
+<!-- ko if: reviewsData().reviews === 0 && reviewsTeaserEnabled === "true" -->
+<!-- ko if: qaTeaserEnabled === "true" || commentsTeaserEnabled === "true" --><span> or </span><!-- /ko -->
 <button data-bind="click: writeReview" class="TTteaser__write-review">Be the first to write a review</button>
 <!-- /ko -->
 
