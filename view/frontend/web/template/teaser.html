@@ -59,7 +59,7 @@
 <!-- /ko -->
 
 <!-- ko if: reviewsData().questions > 0 && qaTeaserEnabled === "true" -->
-    <!-- ko if: reviewsTeaserEnabled === "true" || (commentsTeaserEnabled === "true" && reviewsData.comments > 0) -->
+    <!-- ko if: reviewsTeaserEnabled === "true" || (commentsTeaserEnabled === "true" && reviewsData().comments > 0) -->
         <span> | </span>
     <!-- /ko -->
     <a href="javascript:void(0)" class="TTteaser__read-comments"
