@@ -19,7 +19,7 @@
 
 <!-- ko if: reviewsData().reviews > 0 -->
 
-    <!-- ko if: reviewsTeaserEnabled === "true" -->
+    <!-- ko if: reviewsTeaserEnabled === "true" && reviewsEnabled === "true" -->
     <div class="TTteaser__rating">
         <!-- ko foreach: new Array(getNumFullStars()) -->
         <span class="TTteaser__star">
@@ -50,31 +50,31 @@
     <!-- /ko -->
 <!-- /ko -->
 
-<!-- ko if: reviewsData().comments > 0 && commentsTeaserEnabled === "true" -->
-    <!-- ko if: reviewsTeaserEnabled === "true" -->
+<!-- ko if: reviewsData().comments > 0 && commentsTeaserEnabled === "true" && commentsEnabled === "true" -->
+    <!-- ko if: reviewsTeaserEnabled === "true" && reviewsEnabled === "true" -->
         <span> | </span>
     <!-- /ko -->
     <a href="javascript:void(0)" class="TTteaser__read-comments"
        data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().comments + ' Buyers Comments'"></a>
 <!-- /ko -->
 
-<!-- ko if: reviewsData().questions > 0 && qaTeaserEnabled === "true" -->
-    <!-- ko if: reviewsTeaserEnabled === "true" || (commentsTeaserEnabled === "true" && reviewsData().comments > 0) -->
+<!-- ko if: reviewsData().questions > 0 && qaTeaserEnabled === "true" && qaEnabled === "true" -->
+    <!-- ko if: (reviewsTeaserEnabled === "true" && reviewsEnabled === "true") || (commentsTeaserEnabled === "true" && reviewsData().comments > 0 && commentsEnabled === "true") -->
         <span> | </span>
     <!-- /ko -->
     <a href="javascript:void(0)" class="TTteaser__read-comments"
        data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().questions + ' Questions, ' + reviewsData().answers + ' Answers'"></a>
 <!-- /ko -->
 
-<!-- ko if: reviewsData().reviews === 0 && reviewsTeaserEnabled === "true" -->
-    <!-- ko if: qaTeaserEnabled === "true" || commentsTeaserEnabled === "true" -->
+<!-- ko if: reviewsData().reviews === 0 && reviewsTeaserEnabled === "true" && reviewsEnabled === "true" -->
+    <!-- ko if: (qaTeaserEnabled === "true" && qaEnabled === "true") || (commentsTeaserEnabled === "true" && commentsEnabled === "true") -->
         <span> or </span>
     <!-- /ko -->
    <button data-bind="click: writeReview" class="TTteaser__write-review">Be the first to write a review</button>
 <!-- /ko -->
 
-<!-- ko if: reviewsData().reviews > 0 && reviewsTeaserEnabled === "true" -->
-    <!-- ko if: qaTeaserEnabled === "true" || commentsTeaserEnabled === "true" -->
+<!-- ko if: reviewsData().reviews > 0 && reviewsTeaserEnabled === "true" && reviewsEnabled === "true" -->
+    <!-- ko if: (qaTeaserEnabled === "true" && qaEnabled === "true") || (commentsTeaserEnabled === "true" && && commentsEnabled === "true") -->
         <span> or </span>
     <!-- /ko -->
     <button data-bind="click: writeReview" class="TTteaser__write-review">Write a Review</button>

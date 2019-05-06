@@ -20,6 +20,7 @@ define([
             reviewsTeaserEnabled: null,
             qaEnabled: null,
             qaTeaserEnabled: null,
+            commentsEnabled: null,
             commentsTeaserEnabled: null
         },
 
