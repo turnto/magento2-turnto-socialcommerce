@@ -63,11 +63,7 @@
         <span> | </span>
     <!-- /ko -->
     <a href="javascript:void(0)" class="TTteaser__read-comments"
-       data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().questions + ' questions, ' + reviewsData().answers + ' answers'"></a>
-    <!-- ko if: reviewsTeaserEnabled === "true" -->
-    or
-    <button data-bind="click: writeReview" class="TTteaser__write-review">Write a Review</button>
-    <!-- /ko -->
+       data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().questions + ' Questions, ' + reviewsData().answers + ' Answers'"></a>
 <!-- /ko -->
 
 <!-- ko if: reviewsData().reviews === 0 && reviewsTeaserEnabled === "true" -->
@@ -75,5 +71,12 @@
         <span> or </span>
     <!-- /ko -->
    <button data-bind="click: writeReview" class="TTteaser__write-review">Be the first to write a review</button>
+<!-- /ko -->
+
+<!-- ko if: reviewsData().reviews > 0 && reviewsTeaserEnabled === "true" -->
+    <!-- ko if: qaTeaserEnabled === "true" || commentsTeaserEnabled === "true" -->
+        <span> or </span>
+    <!-- /ko -->
+    <button data-bind="click: writeReview" class="TTteaser__write-review">Write a Review</button>
 <!-- /ko -->
 
