@@ -56,6 +56,9 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
+        // TODO: Prevent until implemented in V5
+        throw new \Magento\Framework\Exception\NotFoundException();
+
         $customer = $this->customerSession->getCustomer();
 
         if ($customer->getId()) {

@@ -14,10 +14,4 @@ interface TurnToConfigInterface
      * @return string
      */
     public function getJavaScriptConfig();
-
-    /**
-     * Returns custom configuration from admin that will be merged into the standard config
-     * @return string
-     */
-    public function getCustomJavaScriptConfiguration();
 }

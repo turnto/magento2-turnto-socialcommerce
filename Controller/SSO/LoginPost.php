@@ -71,6 +71,9 @@ class LoginPost extends \Magento\Customer\Controller\Account\LoginPost
      */
     public function execute()
     {
+        // TODO: Prevent until implemented in V5
+        throw new \Magento\Framework\Exception\NotFoundException();
+
         parent::execute();
 
         $resultJson = $this->resultFactory->create(ResultFactory::TYPE_JSON);
