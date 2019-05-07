@@ -67,7 +67,7 @@
 <!-- /ko -->
 
 <!-- ko if: reviewsData().reviews === 0 && reviewsTeaserEnabled === "true" && reviewsEnabled === "true" -->
-    <!-- ko if: (qaTeaserEnabled === "true" && qaEnabled === "true") || (commentsTeaserEnabled === "true" && commentsEnabled === "true") -->
+    <!-- ko if: (qaTeaserEnabled === "true" && qaEnabled === "true" && reviewsData().questions > 0) || (commentsTeaserEnabled === "true" && commentsEnabled === "true" && reviewsData().comments > 0) -->
         <span> or </span>
     <!-- /ko -->
    <button data-bind="click: writeReview" class="TTteaser__write-review">Be the first to write a review</button>
