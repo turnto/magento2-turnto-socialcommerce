@@ -23,10 +23,4 @@ echo $block->getTurnToConfigHtml();
 
 ?>
 
-<script type="text/javascript">
-    require(['jquery'], function ($) {
-        $.getScript("<?= sprintf('%s/traServer%s/pinboardjs/%s/turnto-pinboard.js', $staticUrl, $configHelper->getTurnToVersion(), $configHelper->getSiteKey()) ?>");
-    });
-</script>
-
-<div id="TurnToPinboardContent"></div>
+<div id="tt-comments-pinboard-widget"></div>

@@ -12,6 +12,51 @@
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 & when (@media-common = true) {
+    .TTteaser {
+        font-size: 12px;
+        font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+        margin-bottom: 15px;
+    }
+
+    .TTteaser__rating {
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 5px;
+    }
+
+    .TTteaser__star svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .TTteaser__icon--full {
+        fill: #000;
+    }
+
+    .TTteaser__icon--half {
+        stroke: #000;
+        fill: transparent;
+        color: #000;
+    }
+
+    .TTteaser__icon--empty {
+        stroke: #000;
+    }
+
+    .TTteaser__read-comments, .TTteaser__read-reviews, .TTteaser__write-review {
+        font-size: 12px;
+        font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+        color: #000;
+    }
+
+    .TTteaser__write-review {
+        border: none;
+        text-decoration: underline;
+        background: transparent;
+        padding: 0;
+        cursor: pointer;
+    }
+
     #TTcommentCapture {
         margin-bottom: 20px;
     }
@@ -31,6 +76,7 @@
         overflow: hidden;
         background: @color-black;
         border: 2px solid @color-white;
+
         &:before {
             color: @color-white;
             font-family: @icons__font-name;
@@ -46,8 +92,10 @@
         display: inline-block;
         font-family: "Helvetica Neue", Helvetica, Verdana, Arial, Helvetica, sans-serif;
         font-size: 12px !important;
+
         a {
             text-decoration: none !important;
+
             &:hover {
                 color: #000;
             }
@@ -58,8 +106,10 @@
         font-family: "Helvetica Neue", Helvetica, Verdana, Arial, Helvetica, sans-serif;
         font-size: 12px !important;
         display: inline-block;
+
         a {
             text-decoration: none !important;
+
             &:hover {
                 color: #000;
             }
@@ -86,48 +136,60 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
+
         .logo {
             display: block;
             float: none;
             margin: 0 0 20px;
             max-width: 100%;
             width: 100%;
+
             img {
                 margin: 0 auto;
             }
         }
+
         .block {
             margin-bottom: 0;
         }
+
         .block-title {
             display: none;
         }
+
         .field.note {
             display: none;
         }
+
         .secondary {
             text-align: center;
         }
+
         .form-login {
             .primary,
             .secondary {
                 width: 100%;
+
                 .action {
                     width: 100%;
                 }
             }
         }
+
         .form-create-account {
             .fieldset {
                 &.create.account {
                     margin: 0;
                 }
+
                 &.create.info {
                     margin: 0 0 20px;
                 }
+
                 > .field {
                     padding: 0 1%;
                     margin: 0 0 10px;
+
                     &.field-name-firstname,
                     &.field-name-lastname,
                     &.password,
@@ -136,6 +198,7 @@
                         width: 48%;
                     }
                 }
+
                 > .legend {
                     margin: 0 0 10px;
                 }

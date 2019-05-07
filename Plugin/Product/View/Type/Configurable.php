@@ -46,6 +46,6 @@ class Configurable
             }
         }
 
-        return \Zend_Json::encode($data);;
+        return \Zend_Json::encode($data);
     }
 }

@@ -44,21 +44,16 @@ class PinboardConfig implements TurnToConfigDataSourceInterface
     {
         try {
             $config = [
-                'siteKey' => $this->configHelper->getSiteKey(),
-                'pinboard' => [
-                    'contentType' => $this->pinboardBlock->getContentType(),
-                    'title' => $this->pinboardBlock->getTitle(),
-                    'limit' => (int)$this->pinboardBlock->getLimit(),
-                    'maxDaysOld' => (int)$this->pinboardBlock->getMaxDaysOld(),
-                    'maxCommentsPerBox' => (int)$this->pinboardBlock->getMaxCommentsPerBox(),
-                    'progressiveLoading' => (bool)$this->pinboardBlock->getProgressiveLoading()
-                ]
+                'locale' => 'en_US',
+                'pageId' => 'comments-pinboard-page',
+                'commentsPinboard' => []
             ];
 
             $skus = $this->pinboardBlock->getProductSkus();
 
             if (!empty($skus)) {
-                $config['pinboard']['skus'] = array_values($skus);
+                $config['commentsPinboard']['skus'] = array_values($skus);
+                $config['commentsPinboard']['skus'][] = 'MT07';
             }
 
             return $config;

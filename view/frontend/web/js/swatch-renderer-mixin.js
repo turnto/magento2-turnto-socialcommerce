@@ -50,13 +50,11 @@ define([
              * @param sku
              */
             turntoProductReset: function(sku) {
-                if (typeof TurnTo != "undefined" && typeof sku != "undefined") {
-                    TurnTo.reset({"sku": sku});
+                if (TurnToCmd === void(0) || sku === void(0)) {
+                    return;
                 }
 
-                if (typeof TurnToChatter != "undefined" && typeof sku != "undefined") {
-                    TurnToChatter.reset({"sku": sku});
-                }
+                TurnToCmd('set', {"sku": sku});
             }
         });
 

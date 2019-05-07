@@ -180,7 +180,7 @@ class Orders extends AbstractExport
         $searchCriteria = $this->getOrdersSearchCriteria($storeId, $fromDate, $toDate);
 
         try {
-            $outputHandle = fopen(self::TEMP_FILE_PATH, 'w');
+            $outputHandle = fopen('var/tmp/tuntoexport.csv', 'w');
             fputcsv(
                 $outputHandle,
                 [
@@ -197,8 +197,7 @@ class Orders extends AbstractExport
                     'PRICE',
                     'ITEMIMAGEURL',
                     'DELIVERYDATE'
-                ],
-                "\t"
+                ]
             );
             $this->writeOrdersFeed($searchCriteria, $outputHandle, $forceIncludeAllItems);
             rewind($outputHandle);
@@ -281,7 +280,7 @@ class Orders extends AbstractExport
                 'An error occurred while transmitting the order feed to TurnTo',
                 [
                     'exception' => $e,
-                    'response' => $response ? 'null' : $response->getBody()
+                    'response' => $response ? $response->getBody() : 'null'
                 ]
             );
             throw $e;
@@ -296,6 +295,7 @@ class Orders extends AbstractExport
     public function writeOrdersFeed(\Magento\Framework\Api\SearchCriteria $searchCriteria, $outputHandle, $forceIncludeAllItems)
     {
         $orderList = $this->orderService->getList($searchCriteria);
+
         $pageLimit = $orderList->getLastPageNumber();
         $pageSize = $orderList->getPageSize();
         for ($i = 1; $i <= $pageLimit; $i++) {
@@ -498,7 +498,7 @@ class Orders extends AbstractExport
         $row[] = $this->productHelper->getImageUrl($product);
         $row[] = $shipmentDate;
 
-        fputcsv($outputHandle, $row, "\t");
+        fputcsv($outputHandle, $row);
     }
 
     /**

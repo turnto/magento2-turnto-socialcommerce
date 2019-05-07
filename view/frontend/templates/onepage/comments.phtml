@@ -12,37 +12,10 @@
 
 /** @var \TurnTo\SocialCommerce\Block\CheckoutComments $block */
 /** @var TurnTo\SocialCommerce\Helper\Config $configHelper */
-$configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
-
-$staticUrl = preg_replace("(^https?://)", "//", $configHelper->getStaticUrl());
-$version = $configHelper->getTurnToVersion();
-
-echo $block->getChildHtml('turnto.config');
-
 ?>
 
 <script type="text/javascript">
-    require(['jquery'], function ($) {
-        $.getScript("<?= sprintf('%s/tra%s/turntoFeed.js', $staticUrl, $version) ?>", function () {
-            $.getScript("<?= sprintf(
-                '%s/traServer%s/trajs/%s/tra.js',
-                $staticUrl,
-                $version,
-                $configHelper->getSiteKey()
-            )?>", function () {
-                TurnToFeed.addFeedPurchaseOrder(<?= $block->getFeedPurchaseOrderData() ?>);
-
-                <?php foreach($block->getOrderItemData() as $item): ?>
-                TurnToFeed.addFeedLineItem(<?= $item ?>);
-                <?php endforeach; ?>
-
-                TurnToFeed.sendFeed();
-            });
-        });
-    });
-
+    TurnToCmd('feed.send', <?= $block->getFeedPurchaseOrderData() ?>);
 </script>
 
-<?php if ((bool)$configHelper->getCheckoutCommentsEnabledCheckoutSuccess()): ?>
-    <div id="TTcommentCapture"></div>
-<?php endif; ?>
+<div id="tt-comment-capture"></div>

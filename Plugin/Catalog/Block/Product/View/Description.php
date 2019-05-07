@@ -46,14 +46,10 @@ class Description
      */
     public function afterGetGroupChildNames(\Magento\Catalog\Block\Product\View\Description $subject, $result)
     {
-        if (!$this->config->getQaEnabled() || !$this->config->getIsEnabled()) {
+        if (!$this->config->getIsEnabled()) {
             $result = array_diff($result, ['turnto.qa.tab']);
         }
-        if (!$this->config->getReviewsEnabled() || !$this->config->getIsEnabled()) {
-            $result = array_diff($result, ['turnto.reviews.tab']);
-        } else {
-            $result = array_diff($result, ['reviews.tab']);
-        }
+
         return $result;
     }
 }

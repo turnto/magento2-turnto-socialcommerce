@@ -41,8 +41,15 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const XML_PATH_SOCIALCOMMERCE_SINGLE_SIGN_ON = 'turnto_socialcommerce_configuration/general/single_sign_on';
 
-    const XML_PATH_SOCIALCOMMERCE_CUSTOM_CONFIGURATION = 'turnto_socialcommerce_configuration/general/custom_configuration';
+    const SOCIALCOMMERCE_VERSION = 'v5';
 
+    const SOCIALCOMMERCE_URL = 'http://www.turnto.com';
+
+    const SOCIALCOMMERCE_STATIC_URL = 'http://static.www.turnto.com';
+
+    const SOCIALCOMMERCE_SINGLE_SIGN_ON = false;
+
+    const SOCIALCOMMERCE_MOBILE_TITLE_PAGE = 'TurnTo - Social Commerce';
     /**
      * Product Groups
      */
@@ -73,30 +80,11 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     ];
 
     /**
-     * Checkout Comments
-     */
-    const XML_PATH_ENABLE_CHECKOUT_COMMENTS_SUCCESS = 'turnto_socialcommerce_configuration/checkout_comments/enable_checkout_success';
-
-    const XML_PATH_ENABLE_CHECKOUT_COMMENTS_PRODUCT_DETAIL = 'turnto_socialcommerce_configuration/checkout_comments/enable_product_detail';
-
-    const XML_PATH_COLUMNS = 'turnto_socialcommerce_configuration/checkout_comments/columns';
-
-    /**
      * Questions and Answers
      */
-    const XML_PATH_ENABLED = 'turnto_socialcommerce_configuration/general/enabled';
-
-    const XML_PATH_SITE_KEY = 'turnto_socialcommerce_configuration/general/site_key';
-
-    const XML_PATH_VERSION = 'turnto_socialcommerce_configuration/general/version';
-
-    const XML_PATH_AUTHORIZATION_KEY = 'turnto_socialcommerce_configuration/general/authorization_key';
-
     const XML_PATH_SOCIALCOMMERCE_ENABLE_QA = 'turnto_socialcommerce_configuration/qa/enable_qa';
 
     const XML_PATH_SOCIALCOMMERCE_ENABLE_QA_TEASER = 'turnto_socialcommerce_configuration/qa/enable_qa_teaser';
-
-    const XML_PATH_SOCIALCOMMERCE_SETUP_TYPE = 'turnto_socialcommerce_configuration/qa/setup_type';
 
     /**
      * Reviews
@@ -104,8 +92,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS = 'turnto_socialcommerce_configuration/reviews/enable_reviews';
 
     const XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS_TEASER = 'turnto_socialcommerce_configuration/reviews/enable_reviews_teaser';
-
-    const XML_PATH_SOCIALCOMMERCE_REVIEWS_SETUP_TYPE = 'turnto_socialcommerce_configuration/reviews/reviews_setup_type';
 
     const XML_PATH_SOCIALCOMMERCE_MOBILE_PAGE_TITLE = 'turnto_socialcommerce_configuration/mobile/mobile_page_title';
 
@@ -122,18 +108,15 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_PATH_PRODUCT_GROUP = 'turnto_socialcommerce_configuration/product_attribute_mappings/';
 
     /**
-     * Gallery
+     * Checkout Comments
      */
-    const XML_PATH_SOCIALCOMMERCE_ENABLE_GALLERY = 'turnto_socialcommerce_configuration/gallery/enable_gallery';
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_CHECKOUT_COMMENTS = 'turnto_socialcommerce_configuration/checkout_comments/enable_checkout_comments';
 
-    /**
-     * Setup Types
-     */
-    const SETUP_TYPE_DYNAMIC_EMBED = 'dynamicEmbed';
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_PDP = 'turnto_socialcommerce_configuration/checkout_comments/enable_comments_pdp';
 
-    const SETUP_TYPE_STATIC_EMBED = 'staticEmbed';
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_TOP_COMMENTS = 'turnto_socialcommerce_configuration/checkout_comments/enable_top_comments';
 
-    const SETUP_TYPE_OVERLAY = 'overlay';
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_TEASER = 'turnto_socialcommerce_configuration/checkout_comments/enable_comments_teaser';
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface|null
@@ -237,15 +220,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getTurnToVersion($scopeCode = null)
     {
-        return str_replace(
-            '.',
-            '_',
-            $this->scopeConfig->getValue(
-                self::XML_PATH_SOCIALCOMMERCE_VERSION,
-                ScopeInterface::SCOPE_STORE,
-                $scopeCode ?: $this->getCurrentStoreCode()
-            )
-        );
+        return self::SOCIALCOMMERCE_VERSION;
     }
 
     /**
@@ -257,11 +232,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getStaticUrl($store = null)
     {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_STATIC_URL,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
+        return self::SOCIALCOMMERCE_STATIC_URL;
     }
 
     /**
@@ -273,11 +244,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getUrl($store = null)
     {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_URL,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
+        return self::SOCIALCOMMERCE_URL;
     }
 
     /**
@@ -305,31 +272,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getSingleSignOn($store = null)
     {
-        return (bool)$this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_SINGLE_SIGN_ON,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * Get custom configuration entered by user via admin
-     *
-     * @param null $store
-     *
-     * @return string
-     */
-    public function getCustomConfigurationJs($store = null)
-    {
-        $configValue = trim(
-            $this->scopeConfig->getValue(
-                self::XML_PATH_SOCIALCOMMERCE_CUSTOM_CONFIGURATION,
-                ScopeInterface::SCOPE_STORE,
-                $store ?: $this->getCurrentStoreCode()
-            )
-        );
-
-        return strlen($configValue) > 0 ? $configValue : '{}';
+        return self::SOCIALCOMMERCE_SINGLE_SIGN_ON;
     }
 
     /**
@@ -449,52 +392,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param null $store
-     *
-     * @return mixed
-     */
-    public function getCheckoutCommentsEnabledCheckoutSuccess($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_ENABLE_CHECKOUT_COMMENTS_SUCCESS,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * Gets the Checkout Comments Enabled Product Detail configuration value
-     *
-     * @param null $store
-     *
-     * @return bool
-     */
-    public function getCheckoutCommentsEnabledProductDetail($store = null)
-    {
-        return (bool)$this->scopeConfig->getValue(
-            self::XML_PATH_ENABLE_CHECKOUT_COMMENTS_PRODUCT_DETAIL,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * Gets the Checkout Comments Columns configuration value
-     *
-     * @param null $store
-     *
-     * @return mixed
-     */
-    public function getColumns($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_COLUMNS,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
      * Gets the Question and Answer Enabled configuration value
      *
      * @param null $store
@@ -511,45 +408,16 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Gets the Gallery Enabled configuration value
-     *
-     * @param null $store
-     *
-     * @return mixed
-     */
-    public function getGalleryEnabled($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_ENABLE_GALLERY,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
      * Gets the Question and Answer Teaser Enabled configuration value
      *
      * @param null $store
      *
-     * @return mixed
+     * @return bool
      */
     public function getQaTeaserEnabled($store = null)
     {
-        return $this->scopeConfig->getValue(
+        return (bool)$this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_QA_TEASER,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * Gets the Question and Answer Setup Type configuration value
-     * @return string
-     */
-    public function getSetupType($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_SETUP_TYPE,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );
@@ -576,28 +444,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @param null $store
      *
-     * @return mixed
+     * @return bool
      */
     public function getReviewsTeaserEnabled($store = null)
     {
-        return $this->scopeConfig->getValue(
+        return (bool)$this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS_TEASER,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * Gets the Reviews Setup Type configuration value
-     *
-     * @param null $store
-     *
-     * @return mixed
-     */
-    public function getReviewsSetupType($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_REVIEWS_SETUP_TYPE,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );
@@ -612,11 +464,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getMobilePageTitle($store = null)
     {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_MOBILE_PAGE_TITLE,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
+        return self::SOCIALCOMMERCE_MOBILE_TITLE_PAGE;
     }
 
     /**
@@ -642,6 +490,62 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_EXCLUDE_ITEMS_WITHOUT_DELIVERY_DATE,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * Gets the Checkout Comments Enabled configuration value
+     * @param null $store
+     * @return bool
+     */
+    public function getCheckoutCommentsEnabled($store = null)
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_ENABLE_CHECKOUT_COMMENTS,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * Gets the Comments Enabled on PDP configuration value
+     * @param null $store
+     * @return bool
+     */
+    public function getCommentsPdpEnabled($store = null)
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_PDP,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * Gets the Top Comments Enabled on PDP configuration value
+     * @param null $store
+     * @return bool
+     */
+    public function getTopCommentsEnabled($store = null)
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_ENABLE_TOP_COMMENTS,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * Gets the Comments Teaser Enabled configuration value
+     * @param null $store
+     * @return bool
+     */
+    public function getCommentsTeaserEnabled($store = null)
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_TEASER,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );

@@ -20,12 +20,8 @@
         <turnto_socialcommerce_configuration>
             <general>
                 <enabled>0</enabled>
-                <version>4.3</version>
-                <static_url>http://static.www.turnto.com</static_url>
-                <url>http://www.turnto.com</url>
                 <image_store_base>http://wac.edgecastcdn.net/001A39/prod</image_store_base>
                 <use_child_sku>0</use_child_sku>
-                <single_sign_on>0</single_sign_on>
             </general>
             <product_attribute_mappings>
                 <upc_attribute></upc_attribute>
@@ -54,9 +50,6 @@
             <gallery>
                 <enable_gallery>1</enable_gallery>
             </gallery>
-            <mobile>
-                <mobile_page_title>TurnTo - Social Commerce</mobile_page_title>
-            </mobile>
             <product_feed>
                 <enable_automatic_submission>1</enable_automatic_submission>
                 <product_feed_url>http://static.www.turnto.com/static/export/</product_feed_url>

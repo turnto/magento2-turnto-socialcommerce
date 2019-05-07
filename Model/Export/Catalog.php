@@ -126,6 +126,7 @@ class Catalog extends AbstractExport
                 ]
             )->setFileUpload(self::FEED_STYLE, 'file', $feed->asXML(), self::FEED_MIME);
 
+            \file_put_contents(BP . "/var/google-product_storecode_{$store->getCode()}.xml", $feed->asXML());
             $response = $zendClient->request();
 
             if (!$response || !$response->isSuccessful()) {
@@ -133,6 +134,7 @@ class Catalog extends AbstractExport
             }
 
             $body = $response->getBody();
+            \file_put_contents(BP . "/var/google-product_storecode_{$store->getCode()}_request.xml", $body);
 
             //It is possible to get a status 200 message who's body is an error message from TurnTo
             if (empty($body) || $body != self::TURNTO_SUCCESS_RESPONSE) {

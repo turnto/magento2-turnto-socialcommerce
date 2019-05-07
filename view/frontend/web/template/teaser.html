@@ -1,0 +1,82 @@
+<div id="tt-teaser-icons" style="display:none;" width="0" height="0">
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <symbol id="tt-teaser-star--empty" viewBox="0 0 24 24">
+            <path d="M12 18l-6.4 3.88 1.73-7.33-5.66-4.93L9.09 9 12 2.09 14.91 9l7.42.64-5.63 5 1.72 7.34z" fill="none"
+                  xmlns="http://www.w3.org/2000/svg"></path>
+        </symbol>
+        <symbol id="tt-teaser-star--full" viewBox="0 0 24 24">
+            <path d="M12 18.66l-7.44 4.35 1.98-8.16L0 9.36l8.62-.7L12 .99l3.38 7.67 8.62.7-6.54 5.49 1.98 8.16L12 18.66z"
+                  xmlns="http://www.w3.org/2000/svg"></path>
+        </symbol>
+        <symbol id="tt-teaser-star--half" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M12 2.09L9.09 9l-7.42.62 5.66 4.93-1.72 7.32 1.07-.65L12 17.97V2.09z"
+                  xmlns="http://www.w3.org/2000/svg"></path>
+            <path d="M12 2.09L14.91 9l7.42.62-5.66 4.93 1.72 7.32-1.07-.65L12 17.97V2.09z"></path>
+        </symbol>
+    </svg>
+</div>
+
+
+<!-- ko if: reviewsData().reviews > 0 -->
+
+    <!-- ko if: reviewsTeaserEnabled === "true" && reviewsEnabled === "true" -->
+    <div class="TTteaser__rating">
+        <!-- ko foreach: new Array(getNumFullStars()) -->
+        <span class="TTteaser__star">
+            <svg class="TTteaser__icon--full">
+                <use xlink:href="#tt-teaser-star--full"></use>
+            </svg>
+        </span>
+        <!-- /ko -->
+
+        <!-- ko if: hasHalfStar() -->
+        <span class="TTteaser__star">
+            <svg class="TTteaser__icon--half">
+                <use xlink:href="#tt-teaser-star--half"></use>
+            </svg>
+        </span>
+        <!-- /ko -->
+
+        <!-- ko foreach: new Array(getNumEmptyStars()) -->
+        <span class="TTteaser__star">
+            <svg class="TTteaser__icon--empty">
+                <use xlink:href="#tt-teaser-star--empty"></use>
+            </svg>
+        </span>
+        <!-- /ko -->
+    </div>
+    <a href="javascript:void(0)" class="TTteaser__read-reviews"
+        data-bind="click: function() {openTab('#reviews')}, text: 'Read ' + reviewsData().reviews + ' Reviews'"></a>
+    <!-- /ko -->
+<!-- /ko -->
+
+<!-- ko if: reviewsData().comments > 0 && commentsTeaserEnabled === "true" && commentsEnabled === "true" -->
+    <!-- ko if: reviewsTeaserEnabled === "true" && reviewsEnabled === "true" -->
+        <span> | </span>
+    <!-- /ko -->
+    <a href="javascript:void(0)" class="TTteaser__read-comments"
+       data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().comments + ' Buyers Comments'"></a>
+<!-- /ko -->
+
+<!-- ko if: reviewsData().questions > 0 && qaTeaserEnabled === "true" && qaEnabled === "true" -->
+    <!-- ko if: (reviewsTeaserEnabled === "true" && reviewsEnabled === "true") || (commentsTeaserEnabled === "true" && reviewsData().comments > 0 && commentsEnabled === "true") -->
+        <span> | </span>
+    <!-- /ko -->
+    <a href="javascript:void(0)" class="TTteaser__read-comments"
+       data-bind="click: function() {openTab('#turnto_qa')}, text: reviewsData().questions + ' Questions, ' + reviewsData().answers + ' Answers'"></a>
+<!-- /ko -->
+
+<!-- ko if: reviewsData().reviews === 0 && reviewsTeaserEnabled === "true" && reviewsEnabled === "true" -->
+    <!-- ko if: (qaTeaserEnabled === "true" && qaEnabled === "true" && reviewsData().questions > 0) || (commentsTeaserEnabled === "true" && commentsEnabled === "true" && reviewsData().comments > 0) -->
+        <span> or </span>
+    <!-- /ko -->
+   <button data-bind="click: writeReview" class="TTteaser__write-review">Be the first to write a review</button>
+<!-- /ko -->
+
+<!-- ko if: reviewsData().reviews > 0 && reviewsTeaserEnabled === "true" && reviewsEnabled === "true" -->
+    <!-- ko if: (qaTeaserEnabled === "true" && qaEnabled === "true") || (commentsTeaserEnabled === "true" && && commentsEnabled === "true") -->
+        <span> or </span>
+    <!-- /ko -->
+    <button data-bind="click: writeReview" class="TTteaser__write-review">Write a Review</button>
+<!-- /ko -->
+

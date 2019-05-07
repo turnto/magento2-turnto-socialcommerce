@@ -30,6 +30,7 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
      * @var \Magento\Catalog\Helper\Image
      */
     protected $imageHelper;
+
     /**
      * @var Product
      */
@@ -81,12 +82,34 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
             $lastName = $address->getLastname();
         }
 
+        $orderItems = [];
+
+        /** @var \Magento\Sales\Model\Order\Item $item */
+        foreach ($order->getAllVisibleItems() as $item) {
+            $product = $item->getProduct();
+
+            if ($product === null) {
+                continue;
+            }
+
+            $sku = $this->config->getUseChildSku() ? $item->getSku() : $product->getSku();
+
+            $orderItems[] = [
+                'title' => $product->getName(),
+                'url' => $product->getProductUrl(),
+                'sku' => $this->productHelper->turnToSafeEncoding($sku),
+                'getPrice' => $product->getFinalPrice(),
+                'itemImageUrl' => $this->imageHelper->init($product, 'product_small_image')->getUrl()
+            ];
+        }
+
         return json_encode(
             [
                 'orderId' => $order->getRealOrderId(),
                 'email' => $order->getCustomerEmail(),
                 'firstName' => $firstName,
-                'lastName' => $lastName
+                'lastName' => $lastName,
+                'items' => $orderItems
             ],
             JSON_PRETTY_PRINT
         );
@@ -104,7 +127,7 @@ class CheckoutComments extends \Magento\Framework\View\Element\Template
         foreach ($order->getAllVisibleItems() as $item) {
             $product = $item->getProduct();
 
-            if($product === null) {
+            if ($product === null) {
                 continue;
             }
 
