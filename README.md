@@ -103,11 +103,9 @@ The TurnTo extension implements a custom widget that allows an admin to insert "
 
 ## Troubleshooting
 
-If you experience issues with the extension, review the errors in the `var/log/turnto.log` file, as that is where all TurnTo errors are logged.
-
-### Troubleshooting issue when "Minify JavaScript Files" is enabled
-
-If you're using Magento's "Minify JavaScript Files" feature, see [this page](https://github.com/turnto/magento2-turnto-socialcommerce/issues/22#issuecomment-337093756) for details on how to get it working with this extension.
+* **General** - If you experience issues with the extension, review the errors in the `var/log/turnto.log` file, as that is where all TurnTo errors are logged.
+* **Issue when "Minify JavaScript Files" is enabled** - If you're using Magento's "Minify JavaScript Files" feature, see [this page](https://github.com/turnto/magento2-turnto-socialcommerce/issues/22#issuecomment-337093756) for details on how to get it working with this extension.
+* **How to review product feed that is sent to TurnTo** - See this Github issue: [#27](https://github.com/turnto/magento2-turnto-socialcommerce/issues/27)
 
 # About TurnTo Social Commerce
 
