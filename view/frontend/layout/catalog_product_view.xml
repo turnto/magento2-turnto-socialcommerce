@@ -39,7 +39,7 @@
 
         <!-- QA Tab Content -->
         <referenceBlock name="product.info.details">
-            <block ifconfig="turnto_socialcommerce_configuration/qa/enable_qa" class="Magento\Framework\View\Element\Template" template="TurnTo_SocialCommerce::product/view/qa-tab.phtml" name="turnto.qa.tab" as="turnto_qa" group="detailed_info">
+            <block ifconfig="turnto_socialcommerce_configuration/qa/enable_qa" class="Magento\Framework\View\Element\Template" template="TurnTo_SocialCommerce::product/view/qa-tab.phtml" name="turnto.qa.tab" as="turnto_qa" group="detailed_info" after="-">
                 <arguments>
                     <argument name="title" translate="true" xsi:type="string">Q&amp;A</argument>
                 </arguments>
