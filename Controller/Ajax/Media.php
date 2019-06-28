@@ -37,12 +37,13 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
     /**
      * Media constructor.
      *
-     * @param \Magento\Framework\App\Action\Context           $context
-     * @param \Magento\Swatches\Helper\Data                   $swatchHelper
-     * @param \Magento\Catalog\Model\ProductFactory           $productModelFactory
-     * @param \TurnTo\SocialCommerce\Helper\Config            $config
+     * @param \Magento\Framework\App\Action\Context $context
+     * @param \Magento\Swatches\Helper\Data $swatchHelper
+     * @param \Magento\Catalog\Model\ProductFactory $productModelFactory
+     * @param \TurnTo\SocialCommerce\Helper\Config $config
      * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
-     * @param Product                                         $productHelper
+     * @param Product $productHelper
+     * @param \Magento\PageCache\Model\Config $pageCacheConfig
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -50,12 +51,14 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
         \Magento\Catalog\Model\ProductFactory $productModelFactory,
         \TurnTo\SocialCommerce\Helper\Config $config,
         \Magento\Framework\App\ProductMetadataInterface $productMetadata,
-        Product $productHelper
-    )
-    {
+        Product $productHelper,
+        \Magento\PageCache\Model\Config $pageCacheConfig
+    ) {
         $version = $productMetadata->getVersion();
 
-        if (version_compare($version, '2.2.0', '>=')) {
+        if ($this->versionNeedsPageConfig($version)) {
+            $this->loadParentConstructorWithConfig($context, $productModelFactory, $swatchHelper, $pageCacheConfig);
+        } elseif ($this->versionNeedsNewOrder($version)) {
             $this->loadParentConstructor($context, $productModelFactory, $swatchHelper);
         } else {
             $this->loadLegacyParentConstructor($context, $swatchHelper, $productModelFactory);
@@ -64,6 +67,59 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
         $this->productHelper = $productHelper;
         $this->config = $config;
         $this->swatchHelper = $swatchHelper;
+    }
+
+    /**
+     * Determines if this version requires page cache config for the constructor
+     *
+     * @param $version
+     * @return bool
+     */
+    public function versionNeedsPageConfig($version)
+    {
+        $returnValue = false;
+
+        if (version_compare($version, '2.3.1', '>=') || version_compare($version, '2.2.9', '>=')) {
+            $returnValue = true;
+        }
+
+        return $returnValue;
+    }
+
+    /**
+     * Determines if this version requires new constructor order
+     *
+     * @param $version
+     * @return bool
+     */
+    public function versionNeedsNewOrder($version)
+    {
+        $returnValue = false;
+
+        if (version_compare($version, '2.2.0', '>=') && version_compare($version, '2.2.8', '<=')) {
+            $returnValue = true;
+        } elseif (version_compare($version, '2.3.0', '=')) {
+            $returnValue = true;
+        }
+
+        return $returnValue;
+    }
+
+    /**
+     * Call through to parent constructor with page cache config; Magneto 2.3.1+ and 2.2.9+
+     *
+     * @param \Magento\Framework\App\Action\Context $context
+     * @param \Magento\Catalog\Model\ProductFactory $productModelFactory
+     * @param \Magento\Swatches\Helper\Data $swatchHelper
+     * @param \Magento\PageCache\Model\Config $config
+     */
+    public function loadParentConstructorWithConfig(
+        \Magento\Framework\App\Action\Context $context,
+        \Magento\Catalog\Model\ProductFactory $productModelFactory,
+        \Magento\Swatches\Helper\Data $swatchHelper,
+        \Magento\PageCache\Model\Config $config
+    ) {
+        parent::__construct($context, $productModelFactory, $swatchHelper, $config);
     }
 
     /**
@@ -77,8 +133,7 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
         \Magento\Framework\App\Action\Context $context,
         \Magento\Catalog\Model\ProductFactory $productModelFactory,
         \Magento\Swatches\Helper\Data $swatchHelper
-    )
-    {
+    ) {
         parent::__construct($context, $productModelFactory, $swatchHelper);
     }
 
@@ -93,8 +148,7 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
         \Magento\Framework\App\Action\Context $context,
         \Magento\Swatches\Helper\Data $swatchHelper,
         \Magento\Catalog\Model\ProductFactory $productModelFactory
-    )
-    {
+    ) {
         parent::__construct($context, $swatchHelper, $productModelFactory);
     }
 
