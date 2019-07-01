@@ -23,7 +23,7 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
     /**
      * @var \TurnTo\SocialCommerce\Helper\Config
      */
-    protected $config;
+    protected $configHelper;
 
     /**
      * @var \Magento\Swatches\Helper\Data
@@ -35,29 +35,34 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
     protected $productHelper;
 
     /**
+     * @var \Magento\PageCache\Model\Config
+     */
+    protected $config;
+
+    /**
      * Media constructor.
      *
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Magento\Swatches\Helper\Data $swatchHelper
      * @param \Magento\Catalog\Model\ProductFactory $productModelFactory
-     * @param \TurnTo\SocialCommerce\Helper\Config $config
+     * @param \TurnTo\SocialCommerce\Helper\Config $configHelper
      * @param \Magento\Framework\App\ProductMetadataInterface $productMetadata
      * @param Product $productHelper
-     * @param \Magento\PageCache\Model\Config $pageCacheConfig
+     * @param \Magento\PageCache\Model\Config $config
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Swatches\Helper\Data $swatchHelper,
         \Magento\Catalog\Model\ProductFactory $productModelFactory,
-        \TurnTo\SocialCommerce\Helper\Config $config,
+        \TurnTo\SocialCommerce\Helper\Config $configHelper,
         \Magento\Framework\App\ProductMetadataInterface $productMetadata,
         Product $productHelper,
-        \Magento\PageCache\Model\Config $pageCacheConfig
+        \Magento\PageCache\Model\Config $config
     ) {
         $version = $productMetadata->getVersion();
 
         if ($this->versionNeedsPageConfig($version)) {
-            $this->loadParentConstructorWithConfig($context, $productModelFactory, $swatchHelper, $pageCacheConfig);
+            $this->loadParentConstructorWithConfig($context, $productModelFactory, $swatchHelper, $config);
         } elseif ($this->versionNeedsNewOrder($version)) {
             $this->loadParentConstructor($context, $productModelFactory, $swatchHelper);
         } else {
@@ -65,8 +70,9 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
         }
 
         $this->productHelper = $productHelper;
-        $this->config = $config;
+        $this->configHelper = $configHelper;
         $this->swatchHelper = $swatchHelper;
+        $this->config = $config;
     }
 
     /**
@@ -162,7 +168,7 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
     public function execute()
     {
         // Begin Edit
-        if (!$this->config->getUseChildSku()) {
+        if (!$this->configHelper->getUseChildSku()) {
             return parent::execute();
         }
         // End Edit
