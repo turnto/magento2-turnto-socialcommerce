@@ -53,6 +53,13 @@
                         <field id="enabled">1</field>
                     </depends>
                 </field>
+                <field id="social_commerce_url" translate="label comment" type="text" sortOrder="65" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Social Commerce URL</label>
+                    <comment>The URL used to communicate with the TurnTo API</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
                 <field id="use_child_sku" translate="label comment" type="select" sortOrder="70" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Use child SKU instead of parent SKU</label>
                     <comment><![CDATA[Default is "No". If set to "No", the parent SKU of configurable products will be used. If set to "Yes", the child SKU will be used everywhere that this extension references SKUs.]]></comment>

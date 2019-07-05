@@ -43,11 +43,11 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const SOCIALCOMMERCE_VERSION = 'v5';
 
-    const SOCIALCOMMERCE_URL = 'http://www.turnto.com';
+    const SOCIALCOMMERCE_URL = 'turnto_socialcommerce_configuration/general/social_commerce_url';
 
     const SOCIALCOMMERCE_STATIC_URL = 'http://static.www.turnto.com';
 
-    const SOCIALCOMMERCE_SINGLE_SIGN_ON = false;
+    const SOCIALCOMMERCE_SINGLE_SIGN_ON = true;
 
     const SOCIALCOMMERCE_MOBILE_TITLE_PAGE = 'TurnTo - Social Commerce';
     /**
