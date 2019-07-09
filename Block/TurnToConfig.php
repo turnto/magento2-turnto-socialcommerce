@@ -68,6 +68,17 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         if ($this->configHelper->getQaEnabled()) {
             $additionalConfigData['qa'] = [];
         }
+        if($this->configHelper->getSingleSignOn()){
+            $additionalConfigData['siteKey' ] = 'h4reAaJjYWi7Q85site';
+            //TODO replace null with userDataFn function
+            $additionalConfigData['sso'] = ['userDataFn' => null];
+        }
+
+
+
+
+
+
 
         $configData = array_merge($additionalConfigData, $configData);
 
@@ -77,6 +88,6 @@ class TurnToConfig extends Template implements TurnToConfigInterface
          * for more context http://stackoverflow.com/questions/6169640/php-json-encode-encode-a-function
          */
 
-        return \Zend_Json::encode($configData, false, ['enableJsonExprFinder' => true]);
+        return \Zend_Json::encode($configData, true, ['enableJsonExprFinder' => true]);
     }
 }
