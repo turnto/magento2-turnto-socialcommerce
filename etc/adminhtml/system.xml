@@ -55,7 +55,7 @@
                 </field>
                 <field id="social_commerce_url" translate="label comment" type="text" sortOrder="65" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Social Commerce URL</label>
-                    <comment>The URL used to communicate with the TurnTo API</comment>
+                    <comment>The URL used to communicate with the TurnTo API. For U.S. use "turnto.com". Europe use "api.turnto.eu"</comment>
                     <depends>
                         <field id="enabled">1</field>
                     </depends>
