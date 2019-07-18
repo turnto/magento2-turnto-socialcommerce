@@ -137,6 +137,6 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
         );
 
         //TODO JF Dont hard code this key
-        return JWT::encode($userData, ,$this->configHelper->getSiteKey(), 'HS256');
+        return JWT::encode($userData, $this->configHelper->getSiteKey(), 'HS256');
     }
 }
