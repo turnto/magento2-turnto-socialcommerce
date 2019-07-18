@@ -15,6 +15,7 @@
 
 namespace TurnTo\SocialCommerce\Controller\SSO;
 
+use Firebase\JWT\JWT;
 use Magento\Framework\Controller\ResultFactory;
 
 class GetUserStatus extends \Magento\Framework\App\Action\Action
@@ -57,7 +58,7 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
     public function execute()
     {
         // TODO: Prevent until implemented in V5
-        throw new \Magento\Framework\Exception\NotFoundException();
+//        throw new \Magento\Framework\Exception\NotFoundException();
 
         $customer = $this->customerSession->getCustomer();
 
@@ -77,9 +78,10 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
                 ]
             ];
         } else {
-            $customerData['payload'] = [
-                'user_auth_token' => null
-            ];
+            $resultJson = $this->resultFactory->create(ResultFactory::TYPE_JSON);
+            $resultJson->setData(["error"=>"no user data"]);
+            return $resultJson;
+
         }
 
         if (!is_null($customerData['payload']['user_auth_token'])) {
@@ -92,7 +94,9 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
          */
         $customerData['payload']['nickname'] = $customer->getFirstname();
         $resultJson = $this->resultFactory->create(ResultFactory::TYPE_JSON);
-        $resultJson->setData($customerData);
+        $resultJson->setData(['jwt' => $this->getUserJWTToken($customerData['payload'])]);
+
+
 
         return $resultJson;
     }
@@ -115,5 +119,24 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
         $signature = base64_encode(hash_hmac('sha256', $params, $authKey, true));
 
         return $signature;
+    }
+
+    public function getUserJWTToken($customer){
+
+        if(!$customer){
+            return "error"; //TODO more specific
+        }
+
+        $userData = array (
+            "ua" => $customer['user_auth_token'],
+            "fn" => $customer['first_name'],
+            "ln" => $customer['last_name'],
+            "e" => $customer['email'],
+            "iss" => "TurnTo",        // issuer should always be TurnTo
+            "exp" => time() + 86400   // current Unix timestamp (in seconds), plus 24 hrs in secs
+        );
+
+        //TODO JF Dont hard code this key
+        return JWT::encode($userData, ,$this->configHelper->getSiteKey(), 'HS256');
     }
 }
