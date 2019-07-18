@@ -79,7 +79,7 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
             ];
         } else {
             $resultJson = $this->resultFactory->create(ResultFactory::TYPE_JSON);
-            $resultJson->setData(["error"=>"no user data"]);
+            $resultJson->setData(['jwt'=>null]);
             return $resultJson;
 
         }
