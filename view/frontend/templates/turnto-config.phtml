@@ -13,6 +13,17 @@ $version = $configHelper->getTurnToVersion();
         };
     })(window);
 </script>
+
+<script type="text/x-magento-init">
+    {
+        "*": {"turnToConfig":{
+                "turnToConfigData": <?= $block->getJavaScriptConfig() ?>
+            }
+        }
+    }
+
+</script>
+
 <?php if ($siteKey): ?>
     <script src="https://widgets.turnto.com/<?= $version ? $version : 'v5' ?>/widgets/<?= $siteKey ?>/js/turnto.js"
             type="text/javascript" async></script>
