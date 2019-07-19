@@ -16,26 +16,14 @@ define([
 ], function ($) {
     'use strict';
     return function (config) {
-       //get user jwt here
-
-
-
-        console.log(window.turnToConfig);
-
-        //TODO Where should this code live?
         window.turnToConfig.sso.userDataFn = function(contextObj){
             //todo change this so dynamic url
             $.get('https://turnto23.dev/turnto/sso/getuserstatus',function(data){
-
-                if("error"  in data){
-                    window.location.replace("https://turnto23.dev/customer/account/login");
+                if(data.jwt === null){
+                    let context = JSON.parse(atob(contextObj));
+                    window.location.replace("/turnto/sso/redirecttologin/action/"+context.action);
                 }else{
-                    console.log("_____________________ JWT Bellow ____________________")
-                    console.log(data.jwt )
-                    console.log("_____________________ ContexObj Bellow ____________________")
-                    console.log(contextObj )
                     window.TurnToCmd('ssoRegDone', {context: contextObj, userDataToken: data.jwt});
-
                 }
             })
 
