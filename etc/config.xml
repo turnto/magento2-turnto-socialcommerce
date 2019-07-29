@@ -22,6 +22,7 @@
                 <enabled>0</enabled>
                 <image_store_base>http://wac.edgecastcdn.net/001A39/prod</image_store_base>
                 <use_child_sku>0</use_child_sku>
+                <single_sign_on>0</single_sign_on>
             </general>
             <product_attribute_mappings>
                 <upc_attribute></upc_attribute>

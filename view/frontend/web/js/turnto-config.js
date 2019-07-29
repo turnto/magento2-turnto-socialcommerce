@@ -16,18 +16,24 @@ define([
 ], function ($) {
     'use strict';
     return function (config) {
-        window.turnToConfig.sso.userDataFn = function(contextObj){
-            //todo change this so dynamic url
-            $.get('https://turnto23.dev/turnto/sso/getuserstatus',function(data){
-                if(data.jwt === null){
-                    let context = JSON.parse(atob(contextObj));
-                    window.location.replace("/turnto/sso/redirecttologin/action/"+context.action);
-                }else{
-                    window.TurnToCmd('ssoRegDone', {context: contextObj, userDataToken: data.jwt});
-                }
-            })
 
-        };
+        if( window.turnToConfig.hasOwnProperty('sso')
+        ){
+            window.turnToConfig.sso.userDataFn = function(contextObj){
+                //todo change this so dynamic url
+                $.get('https://turntotest.dev/turnto/sso/getuserstatus',function(data){
+                    if(data.jwt === null){
+                        let context = JSON.parse(atob(contextObj));
+                        console.log(context);
+                        window.location.replace("/turnto/sso/redirecttologin/action/"+context.action);
+                    }else{
+                        window.TurnToCmd('ssoRegDone', {context: contextObj, userDataToken: data.jwt});
+                    }
+                })
+
+            };
+        }
+
 
     }
 });

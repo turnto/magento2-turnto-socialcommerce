@@ -29,6 +29,11 @@
                     <label>Enable Social Commerce</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="single_sign_on" translate="label comment" type="select" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Enable Single Sign On</label>
+                    <comment>Single Sign On</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="site_key" translate="label comment" type="text" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Site Key</label>
                     <comment>Site Key from the turnto.com configuration</comment>

@@ -39,15 +39,13 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const XML_PATH_SOCIALCOMMERCE_USE_CHILD_SKU = 'turnto_socialcommerce_configuration/general/use_child_sku';
 
-    const XML_PATH_SOCIALCOMMERCE_SINGLE_SIGN_ON = 'turnto_socialcommerce_configuration/general/single_sign_on';
-
     const SOCIALCOMMERCE_VERSION = 'v5';
 
     const SOCIALCOMMERCE_URL = 'http://www.turnto.com';
 
     const SOCIALCOMMERCE_STATIC_URL = 'http://static.www.turnto.com';
 
-    const SOCIALCOMMERCE_SINGLE_SIGN_ON = false;
+    const SOCIALCOMMERCE_SINGLE_SIGN_ON = 'turnto_socialcommerce_configuration/general/single_sign_on';
 
     const SOCIALCOMMERCE_MOBILE_TITLE_PAGE = 'TurnTo - Social Commerce';
     /**
@@ -272,7 +270,13 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getSingleSignOn($store = null)
     {
-        return self::SOCIALCOMMERCE_SINGLE_SIGN_ON;
+        return (bool)$this->scopeConfig->getValue(
+            self::SOCIALCOMMERCE_SINGLE_SIGN_ON,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+
+
     }
 
     /**
