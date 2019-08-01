@@ -180,7 +180,7 @@ class Orders extends AbstractExport
         $searchCriteria = $this->getOrdersSearchCriteria($storeId, $fromDate, $toDate);
 
         try {
-            $outputHandle = fopen('var/tmp/tuntoexport.csv', 'w');
+            $outputHandle = fopen('var/tmp/tuntoexport.csv', 'w+');
             fputcsv(
                 $outputHandle,
                 [
