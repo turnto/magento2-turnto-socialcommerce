@@ -180,7 +180,7 @@ class Orders extends AbstractExport
         $searchCriteria = $this->getOrdersSearchCriteria($storeId, $fromDate, $toDate);
 
         try {
-            $outputHandle = fopen('var/tmp/tuntoexport.csv', 'w');
+            $outputHandle = fopen('var/tmp/tuntoexport.csv', 'w+');
             fputcsv(
                 $outputHandle,
                 [
@@ -197,7 +197,7 @@ class Orders extends AbstractExport
                     'PRICE',
                     'ITEMIMAGEURL',
                     'DELIVERYDATE'
-                ]
+                ],"\t"
             );
             $this->writeOrdersFeed($searchCriteria, $outputHandle, $forceIncludeAllItems);
             rewind($outputHandle);
@@ -498,7 +498,7 @@ class Orders extends AbstractExport
         $row[] = $this->productHelper->getImageUrl($product);
         $row[] = $shipmentDate;
 
-        fputcsv($outputHandle, $row);
+        fputcsv($outputHandle, $row,"\t");
     }
 
     /**
