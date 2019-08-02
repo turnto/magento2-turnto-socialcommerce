@@ -1,3 +1,6 @@
+##3.0.2 (2019-08-02)
+* Fixed historical order feed cron job upload.
+
 ##3.0.1 (2019-05-14)
 * Added Magento 2.3 Compatibility
 
