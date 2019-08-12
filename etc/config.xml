@@ -54,6 +54,10 @@
                 <enable_automatic_submission>1</enable_automatic_submission>
                 <product_feed_url>http://static.www.turnto.com/static/export/</product_feed_url>
                 <feed_submission_url>https://www.turnto.com/feedUpload/postfile</feed_submission_url>
+                <teaser_api_url>https://cdn-ws.turnto.com/v5/sitedata/</teaser_api_url>
+                <config_api_url>https://widgets.turnto.com/</config_api_url>
+                <social_commerce_api_url>http://www.turnto.com</social_commerce_api_url>
+                <social_commerce_static_api_url>http://static.www.turnto.com</social_commerce_static_api_url>
             </product_feed>
             <historical_orders_feed>
                 <enable_historical_feed>1</enable_historical_feed>
