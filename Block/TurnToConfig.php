@@ -80,7 +80,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         if ($this->configHelper->getQaEnabled()) {
             $additionalConfigData['qa'] = [];
         }
-        if($this->configHelper->getSingleSignOn()){
+        if($this->configHelper->getSsoEnabled()){
             $additionalConfigData['siteKey' ] = 'h4reAaJjYWi7Q85site';
             $additionalConfigData['sso'] = ['userDataFn' => null];
         }
