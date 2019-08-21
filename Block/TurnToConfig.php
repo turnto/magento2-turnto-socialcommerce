@@ -80,6 +80,10 @@ class TurnToConfig extends Template implements TurnToConfigInterface
 
 
 
+        if ($this->configHelper->getCheckoutCommentsEnabled() ) {
+            $additionalConfigData['commentsPinboardTeaser'] = [];
+        }
+
         $configData = array_merge($additionalConfigData, $configData);
 
         /*

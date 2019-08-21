@@ -34,7 +34,8 @@ $configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
                                 "qaEnabled": "<?= $configHelper->getQaEnabled() ? 'true' : 'false' ?>",
                                 "qaTeaserEnabled": "<?= $configHelper->getQaTeaserEnabled() ? 'true' : 'false' ?>",
                                 "commentsEnabled": "<?= $configHelper->getCheckoutCommentsEnabled() ? 'true' : 'false' ?>",
-                                "commentsTeaserEnabled": "<?= $configHelper->getCommentsTeaserEnabled() ? 'true' : 'false' ?>"
+                                "commentsTeaserEnabled": "<?= $configHelper->getCommentsTeaserEnabled() ? 'true' : 'false' ?>",
+                                "teaserUrl": "<?= $configHelper->getTeaserUrl()?>"
                             }
                         }
                     }

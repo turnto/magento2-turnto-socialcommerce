@@ -21,7 +21,8 @@ define([
             qaEnabled: null,
             qaTeaserEnabled: null,
             commentsEnabled: null,
-            commentsTeaserEnabled: null
+            commentsTeaserEnabled: null,
+            teaserUrl: null
         },
 
         /**
@@ -48,7 +49,7 @@ define([
         loadTeaserCounts: function loadTeaserCounts(sku) {
             var xhr = new XMLHttpRequest();
 
-            xhr.open('GET', 'https://cdn-ws.turnto.com/v5/sitedata/' + this.siteKey + '/' + sku + '/d/ugc/counts/en_US', true);
+            xhr.open('GET', this.teaserUrl + this.siteKey + '/' + sku + '/d/ugc/counts/en_US', true);
             xhr.addEventListener('load', function () {
                 if (!xhr.responseText) {
                     return;
@@ -68,7 +69,7 @@ define([
         },
 
         getNumEmptyStars: function getNumEmptyStars() {
-            return 5 - this.getNumFullStars() + (this.hasHalfStar() ? 1 : 0);
+            return (5 - (this.getNumFullStars() + (this.hasHalfStar() ? 1 : 0)));
         },
 
         writeReview: function writeReview() {
