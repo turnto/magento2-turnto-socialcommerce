@@ -136,7 +136,6 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
             "exp" => time() + 86400   // current Unix timestamp (in seconds), plus 24 hrs in secs
         );
 
-        //TODO JF Dont hard code this key
         return JWT::encode($userData, $this->configHelper->getAuthorizationKey(), 'HS256');
     }
 }
