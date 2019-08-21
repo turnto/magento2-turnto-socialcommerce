@@ -39,19 +39,18 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const XML_PATH_SOCIALCOMMERCE_USE_CHILD_SKU = 'turnto_socialcommerce_configuration/general/use_child_sku';
 
-    const XML_PATH_SOCIALCOMMERCE_SINGLE_SIGN_ON = 'turnto_socialcommerce_configuration/general/single_sign_on';
-
     const SOCIALCOMMERCE_VERSION = 'v5';
 
     const SOCIALCOMMERCE_URL = 'turnto_socialcommerce_configuration/product_feed/social_commerce_api_url';
 
     const SOCIALCOMMERCE_STATIC_URL = 'turnto_socialcommerce_configuration/product_feed/social_commerce_static_api_url';
 
+    const SOCIALCOMMERCE_SINGLE_SIGN_ON = 'turnto_socialcommerce_configuration/general/single_sign_on';
+
     const WIDGET_URL = 'turnto_socialcommerce_configuration/product_feed/config_api_url';
 
     const TEASER_URL = 'turnto_socialcommerce_configuration/product_feed/teaser_api_url';
 
-    const SOCIALCOMMERCE_SINGLE_SIGN_ON = false;
 
     const SOCIALCOMMERCE_MOBILE_TITLE_PAGE = 'TurnTo - Social Commerce';
     /**
@@ -121,6 +120,26 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_PATH_SOCIALCOMMERCE_ENABLE_TOP_COMMENTS = 'turnto_socialcommerce_configuration/checkout_comments/enable_top_comments';
 
     const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_TEASER = 'turnto_socialcommerce_configuration/checkout_comments/enable_comments_teaser';
+
+    /**
+     * SSO
+     */
+    CONST XML_PATH_SOCIALCOMMERCE_SINGLE_SIGN_ON = 'turnto_socialcommerce_configuration/sso/single_sign_on';
+
+    CONST XML_PATH_SOCIALCOMMERCE_REVIEW_MSG = 'turnto_socialcommerce_configuration/sso/review_msg';
+
+    CONST XML_PATH_SOCIALCOMMERCE_REVIEW_MSG_PUR_REQ = 'turnto_socialcommerce_configuration/sso/review_msg_pur_req';
+
+    CONST XML_PATH_SOCIALCOMMERCE_QUESTION_MSG = 'turnto_socialcommerce_configuration/sso/question_msg';
+
+    CONST XML_PATH_SOCIALCOMMERCE_QUESTION_MSG_ANON = 'turnto_socialcommerce_configuration/sso/question_msg_anon';
+
+    CONST XML_PATH_SOCIALCOMMERCE_ANSWER_MSG = 'turnto_socialcommerce_configuration/sso/answer_msg';
+
+    CONST XML_PATH_SOCIALCOMMERCE_REPLY_MSG = 'turnto_socialcommerce_configuration/sso/reply_msg';
+
+
+
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface|null
@@ -324,11 +343,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getSingleSignOn($store = null)
     {
-        return $this->scopeConfig->getValue(
-            self::SOCIALCOMMERCE_SINGLE_SIGN_ON,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode());
-
+        return self::SOCIALCOMMERCE_SINGLE_SIGN_ON;
     }
 
     /**
@@ -602,6 +617,97 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return (bool)$this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_TEASER,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return bool
+     */
+    public function getSsoEnabled($store = null)
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_SINGLE_SIGN_ON,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return bool
+     */
+    public function getReviewMsg($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_REVIEW_MSG,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return bool
+     */
+    public function getReviewMsgPurchaseReq($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_REVIEW_MSG_PUR_REQ,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return bool
+     */
+    public function getQuestionMsg($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_QUESTION_MSG,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return bool
+     */
+    public function getQuestionMsgAnon($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_QUESTION_MSG_ANON,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return bool
+     */
+    public function getAnswerMessage($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_ANSWER_MSG,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return bool
+     */
+    public function getReplyMsg($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_REPLY_MSG,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );

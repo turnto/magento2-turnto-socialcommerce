@@ -9,6 +9,7 @@ namespace TurnTo\SocialCommerce\Block;
 
 use Magento\Framework\Locale\Resolver;
 use Magento\Framework\View\Element\Template;
+use Magento\Store\Model\StoreManagerInterface;
 use TurnTo\SocialCommerce\Api\TurnToConfigDataSourceInterface;
 use TurnTo\SocialCommerce\Helper\Config as TurnToConfigHelper;
 
@@ -27,16 +28,24 @@ class TurnToConfig extends Template implements TurnToConfigInterface
      * @var Resolver
      */
     protected $localeResolver;
+    /**
+     * @var StoreManagerInterface
+     */
+    private $storeManager;
+
 
     /**
-     * @param Template\Context   $context
+     * TurnToConfig constructor.
+     * @param Template\Context $context
      * @param TurnToConfigHelper $configHelper
-     * @param Resolver           $localeResolver
-     * @param array              $data
+     * @param StoreManagerInterface $storeManager
+     * @param Resolver $localeResolver
+     * @param array $data
      */
     public function __construct(
         Template\Context $context,
         TurnToConfigHelper $configHelper,
+        StoreManagerInterface $storeManager,
         Resolver $localeResolver,
         array $data = []
     )
@@ -49,6 +58,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
 
         $this->configHelper = $configHelper;
         $this->localeResolver = $localeResolver;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -59,6 +69,8 @@ class TurnToConfig extends Template implements TurnToConfigInterface
     {
         $configData = $this->getConfigData();
 
+        $configData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
+
         if ($configData instanceof TurnToConfigDataSourceInterface) {
             $configData = $configData->getData();
         }
@@ -67,6 +79,10 @@ class TurnToConfig extends Template implements TurnToConfigInterface
 
         if ($this->configHelper->getQaEnabled()) {
             $additionalConfigData['qa'] = [];
+        }
+        if($this->configHelper->getSsoEnabled()){
+            $additionalConfigData['siteKey' ] = 'h4reAaJjYWi7Q85site';
+            $additionalConfigData['sso'] = ['userDataFn' => null];
         }
 
         if ($this->configHelper->getCheckoutCommentsEnabled() ) {
@@ -81,6 +97,6 @@ class TurnToConfig extends Template implements TurnToConfigInterface
          * for more context http://stackoverflow.com/questions/6169640/php-json-encode-encode-a-function
          */
 
-        return \Zend_Json::encode($configData, false, ['enableJsonExprFinder' => true]);
+        return \Zend_Json::encode($configData, true, ['enableJsonExprFinder' => true]);
     }
 }
