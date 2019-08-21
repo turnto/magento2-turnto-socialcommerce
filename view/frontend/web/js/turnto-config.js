@@ -25,7 +25,7 @@ define([
                     if(data.jwt === null){
                         let context = JSON.parse(atob(contextObj));
                         console.log(context);
-                        window.location.replace("/turnto/sso/redirecttologin/action/"+context.action);
+                        window.location.replace("/turnto/sso/redirecttologin/action/"+context.action+'/authSetting/'+context.authSetting);
                     }else{
                         window.TurnToCmd('ssoRegDone', {context: contextObj, userDataToken: data.jwt});
                     }

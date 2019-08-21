@@ -9,24 +9,27 @@ namespace TurnTo\SocialCommerce\Controller\SSO;
 
 
 use Magento\Framework\App\Action\Context;
+use TurnTo\SocialCommerce\Helper\Config;
 
 class RedirectToLogin extends  \Magento\Framework\App\Action\Action
 {
 
-    const REVIEW_MSG = "We need to know who you are before we post your review. Please login or register to continue.";
-    const QUESTION_MSG = "Your question has been submitted. Please login or register to have answers emailed to you.";
-    const ANSWER_MSG =  "Please login or register to complete your submission.";
-    const REPLY_MSG =  "Please login or register to complete your submission.";
+
 
     /**
      * @var Magento\Framework\UrlInterface
      */
     private $uriInterface;
+    /**
+     * @var Config
+     */
+    private $config;
 
-    public function __construct(Context $context, \Magento\Framework\Message\ManagerInterface $messageManager, \Magento\Framework\UrlInterface $uriInterface) {
+    public function __construct(Context $context, \Magento\Framework\Message\ManagerInterface $messageManager, \Magento\Framework\UrlInterface $uriInterface, Config $config) {
         $this->messageManager = $messageManager;
         parent::__construct($context);
         $this->uriInterface = $uriInterface;
+        $this->config = $config;
     }
 
     public function execute() {
@@ -46,13 +49,16 @@ class RedirectToLogin extends  \Magento\Framework\App\Action\Action
        $action =  $this->getRequest()->getParam('action');
        switch ($action){
            case "QUESTION_CREATE":
-               return self::QUESTION_MSG;
+               return $this->config->getQuestionMsg();
            case "ANSWER_CREATE":
-               return self::ANSWER_MSG;
+               return $this->config->getAnswerMessage();
            case "REVIEW_CREATE":
-               return self::REVIEW_MSG;
+               if($this->getRequest()->getParam('authSetting') == 'PURCHASE_REQUIRED'){
+                   return $this->config->getReviewMsgPurchaseReq();
+               }
+               return $this->config->getReviewMsg();
            case "REPLY_CREATE":
-               return self::REPLY_MSG;
+               return $this->config->getReviewMsg();
            default:
                return "";
        }
