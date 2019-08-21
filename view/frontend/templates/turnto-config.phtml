@@ -17,7 +17,8 @@ $version = $configHelper->getTurnToVersion();
 <script type="text/x-magento-init">
     {
         "*": {"turnToConfig":{
-                "turnToConfigData": <?= $block->getJavaScriptConfig() ?>
+                "turnToConfigData": <?= $block->getJavaScriptConfig() ?>,
+                "siteUrl" : "<?php  $block->getUrl(); ?>"
             }
         }
     }

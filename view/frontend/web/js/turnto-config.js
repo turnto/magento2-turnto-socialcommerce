@@ -19,12 +19,10 @@ define([
 
         if( window.turnToConfig.hasOwnProperty('sso')
         ){
-            console.log('url' + url);
             window.turnToConfig.sso.userDataFn = function(contextObj){
                 $.get( window.turnToConfig.baseUrl + 'turnto/sso/getuserstatus',function(data){
                     if(data.jwt === null){
                         let context = JSON.parse(atob(contextObj));
-                        console.log(context);
                         window.location.replace("/turnto/sso/redirecttologin/action/"+context.action+'/authSetting/'+context.authSetting);
                     }else{
                         window.TurnToCmd('ssoRegDone', {context: contextObj, userDataToken: data.jwt});
