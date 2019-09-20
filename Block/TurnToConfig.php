@@ -85,8 +85,15 @@ class TurnToConfig extends Template implements TurnToConfigInterface
             $additionalConfigData['sso'] = ['userDataFn' => null];
         }
 
-        if ($this->configHelper->getCheckoutCommentsEnabled() ) {
+        if ($this->configHelper->getCommentsPinboard() ) {
+            $additionalConfigData['commentsPinboard'] = [];
+        }
+        if ($this->configHelper->getCommentsTeaser() ) {
             $additionalConfigData['commentsPinboardTeaser'] = [];
+        }
+
+        if ($this->configHelper->getVisualContentPinboard() ) {
+            $additionalConfigData['vcPinboard'] = [];
         }
 
         $configData = array_merge($additionalConfigData, $configData);
