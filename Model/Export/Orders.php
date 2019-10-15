@@ -15,6 +15,7 @@
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
+use Magento\Framework\App\Filesystem\DirectoryList;
 use TurnTo\SocialCommerce\Helper\Product as TurnToProductHelper;
 
 class Orders extends AbstractExport
@@ -71,7 +72,7 @@ class Orders extends AbstractExport
     protected $productHelper = null;
 
     /**
-     * @var \Magento\Framework\Filesystem\DirectoryList|null
+     * @var DirectoryList|null
      */
     protected $directoryList = null;
     /**
@@ -95,7 +96,7 @@ class Orders extends AbstractExport
      * @param \Magento\Sales\Api\ShipmentRepositoryInterface                 $shipmentsService
      * @param \Magento\Catalog\Model\ProductRepository                       $productRepository
      * @param \Magento\Catalog\Helper\Product                                $productHelper
-     * @param \Magento\Framework\Filesystem\DirectoryList                    $directoryList
+     * @param DirectoryList                $directoryList
      * @param TurnToProductHelper                                            $turnToProductHelper
      */
     public function __construct(
@@ -112,7 +113,7 @@ class Orders extends AbstractExport
         \Magento\Sales\Api\ShipmentRepositoryInterface $shipmentsService,
         \Magento\Catalog\Model\ProductRepository $productRepository,
         \Magento\Catalog\Helper\Product $productHelper,
-        \Magento\Framework\Filesystem\DirectoryList $directoryList,
+        DirectoryList $directoryList,
         TurnToProductHelper $turnToProductHelper
     )
     {
@@ -180,7 +181,8 @@ class Orders extends AbstractExport
         $searchCriteria = $this->getOrdersSearchCriteria($storeId, $fromDate, $toDate);
 
         try {
-            $outputHandle = fopen('var/tmp/tuntoexport.csv', 'w+');
+            $outputFile = $this->directoryList->getPath(DirectoryList::TMP) . '/tuntoexport.csv';
+            $outputHandle = fopen($outputFile, 'w+');
             fputcsv(
                 $outputHandle,
                 [
