@@ -1,3 +1,9 @@
+##3.0.4 (2019-10-16)
+* Module now searches for Magento 2 root and appends it to export file paths. This fixes some read/write errors for servers running in a non-standard configuration. 
+  
+##3.0.3 (2019-10-10)
+* Added version to composer.json
+
 ##3.0.2 (2019-08-02)
 * Fixed historical order feed cron job upload.
 
