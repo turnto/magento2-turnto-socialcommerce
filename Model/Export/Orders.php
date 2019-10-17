@@ -513,7 +513,7 @@ class Orders extends AbstractExport
         $row[] = $this->productHelper->getImageUrl($product);
         $row[] = $shipmentDate;
 
-        fputcsv($outputHandle, $row);
+        fputcsv($outputHandle, $row, "\t");
     }
 
     /**
