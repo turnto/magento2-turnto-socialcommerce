@@ -17,19 +17,34 @@ define([
     'use strict';
     return function (config) {
 
-        if( window.turnToConfig.hasOwnProperty('sso')
-        ){
-            window.turnToConfig.sso.userDataFn = function(contextObj){
-                $.get( window.turnToConfig.baseUrl + 'turnto/sso/getuserstatus',function(data){
-                    if(data.jwt === null){
+
+        if (window.turnToConfig.hasOwnProperty('sso')
+        ) {
+            let searchParams = new URLSearchParams(window.location.search)
+
+
+            window.turnToConfig.sso.userDataFn = function (contextObj) {
+                    $.get(window.turnToConfig.baseUrl + 'turnto/sso/getuserstatus', function (data) {
+                    if (data.jwt === null) {
                         let context = JSON.parse(atob(contextObj));
-                        window.location.replace("/turnto/sso/redirecttologin/action/"+context.action+'/authSetting/'+context.authSetting);
-                    }else{
+                        window.location.replace("/turnto/sso/redirecttologin/action/" + context.action + '/authSetting/' + context.authSetting + '/ctx/' + contextObj);
+                    } else if (searchParams.has('ctx')) {
+                        window.TurnToCmd('ssoRegDone', {context: searchParams.get('ctx'), userDataToken: data.jwt});
+                        searchParams.delete('ctx');
+                    } else {
                         window.TurnToCmd('ssoRegDone', {context: contextObj, userDataToken: data.jwt});
                     }
                 })
 
             };
+
+            if(searchParams.has('ctx')){
+                $.get(window.turnToConfig.baseUrl + 'turnto/sso/getuserstatus', function (data) {
+                window.TurnToCmd('ssoRegDone', {context: searchParams.get('ctx'), userDataToken: data.jwt});
+                searchParams.delete('ctx');
+            })
+            }
+
         }
 
 
