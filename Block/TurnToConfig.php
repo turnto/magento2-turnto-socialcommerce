@@ -69,31 +69,37 @@ class TurnToConfig extends Template implements TurnToConfigInterface
     {
         $configData = $this->getConfigData();
 
-        $configData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
-
         if ($configData instanceof TurnToConfigDataSourceInterface) {
             $configData = $configData->getData();
         }
-
+        $configData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
         $additionalConfigData = ['locale' => $this->localeResolver->getLocale()];
 
         if ($this->configHelper->getQaEnabled()) {
             $additionalConfigData['qa'] = [];
         }
         if($this->configHelper->getSsoEnabled()){
-            $additionalConfigData['siteKey' ] = 'h4reAaJjYWi7Q85site';
             $additionalConfigData['sso'] = ['userDataFn' => null];
+        } else {
+           $additionalConfigData['sso'] = ['loggedInDataFn' => null];
         }
 
-        if ($this->configHelper->getCommentsPinboard() ) {
+        $additionalConfigData['siteKey' ] = 'h4reAaJjYWi7Q85site';
+        $additionalConfigData['authKey'] = 'JLWPk365eMx6pj6mv1eXR823LqzSauth';
+        if ($this->configHelper->getCommentsPinboard()) {
             $additionalConfigData['commentsPinboard'] = [];
         }
-        if ($this->configHelper->getCommentsTeaser() ) {
+
+        if ($this->configHelper->getCommentsTeaser()) {
             $additionalConfigData['commentsPinboardTeaser'] = [];
         }
 
-        if ($this->configHelper->getVisualContentPinboard() ) {
+        if ($this->configHelper->getVisualContentPinboard()) {
             $additionalConfigData['vcPinboard'] = [];
+        }
+
+        if ($this->configHelper->getVisualContentGalleryRowWidget()) {
+            $additionalConfigData['gallery'] = [];
         }
 
         $configData = array_merge($additionalConfigData, $configData);

@@ -43,17 +43,28 @@ class PinboardConfig implements TurnToConfigDataSourceInterface
     public function getData()
     {
         try {
+            $pinboardType = $this->pinboardBlock->getContentType();
             $config = [
                 'locale' => 'en_US',
-                'pageId' => 'comments-pinboard-page',
-                'commentsPinboard' => []
+                $pinboardType => []
             ];
+
+            switch($pinboardType) {
+                case 'vcPinboard':
+                    $config['pageId'] = 'vc-pinboard-page';
+                    break;
+                case 'commentsPinboardTeaser':
+                    $config['pageId'] = 'comments-pinboard-teaser-page';
+                    break;
+                default:
+                    $config['pageId'] = 'comments-pinboard-page';
+            }
 
             $skus = $this->pinboardBlock->getProductSkus();
 
             if (!empty($skus)) {
-                $config['commentsPinboard']['skus'] = array_values($skus);
-                $config['commentsPinboard']['skus'][] = 'MT07';
+                $config[$pinboardType]['skus'] = array_values($skus);
+                $config[$pinboardType]['skus'][] = 'MT07';
             }
 
             return $config;

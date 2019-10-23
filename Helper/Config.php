@@ -147,6 +147,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     CONST XML_PATH_SOCIALCOMMERCE_VISUAL_CONTENT_PINBOARD = 'turnto_socialcommerce_configuration/pinboards/visual_content_pinboard';
 
+    CONST XML_PATH_SOCIALCOMMERCE_VISUAL_CONTENT_GALLERY_ROW_WIDGET = 'turnto_socialcommerce_configuration/pinboards/visual_content_gallery_row';
+
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface|null
@@ -754,6 +756,15 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_VISUAL_CONTENT_PINBOARD,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    public function getVisualContentGalleryRowWidget($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_VISUAL_CONTENT_GALLERY_ROW_WIDGET,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );
