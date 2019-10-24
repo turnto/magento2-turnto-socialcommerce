@@ -44,7 +44,7 @@ class RedirectToLogin extends \Magento\Framework\App\Action\Action
                 ['referer' => base64_encode($url . "?ctx=$ctxObj")]
             );
         $resultRedirect->setPath($login_url);
-        $this->messageManager->addErrorMessage($this->getMessage());
+        $this->messageManager->addNoticeMessage($this->getMessage());
         return $resultRedirect;
     }
 

@@ -81,7 +81,10 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         if ($configData instanceof TurnToConfigDataSourceInterface) {
             $configData = $configData->getData();
         }
+
+
         $configData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
+        $additionalConfigData['siteKey' ] = $this->configHelper->getSiteKey();
         $additionalConfigData = ['locale' => $this->localeResolver->getLocale()];
 
         if ($this->configHelper->getQaEnabled()) {

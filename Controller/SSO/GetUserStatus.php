@@ -15,7 +15,7 @@
 
 namespace TurnTo\SocialCommerce\Controller\SSO;
 
-use Firebase\JWT\JWT;
+use TurnTo\SocialCommerce\Helper\firebase\JWT;
 use Magento\Framework\Controller\ResultFactory;
 
 class GetUserStatus extends \Magento\Framework\App\Action\Action
@@ -57,14 +57,12 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
-        // TODO: Prevent until implemented in V5
-//        throw new \Magento\Framework\Exception\NotFoundException();
-
         $customer = $this->customerSession->getCustomer();
 
         if ($customer->getId()) {
             $customerData = [
                 'payload' => [
+                    //add unique key
                     'user_auth_token' => $customer->getId(),
                     'first_name' => $customer->getFirstname(),
                     'last_name' => $customer->getLastname(),
@@ -96,8 +94,6 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
         $resultJson = $this->resultFactory->create(ResultFactory::TYPE_JSON);
         $resultJson->setData(['jwt' => $this->getUserJWTToken($customerData['payload'])]);
 
-
-
         return $resultJson;
     }
 
@@ -124,7 +120,7 @@ class GetUserStatus extends \Magento\Framework\App\Action\Action
     public function getUserJWTToken($customer){
 
         if(!$customer){
-            return "error"; //TODO more specific
+            return "error";
         }
 
         $userData = array (
