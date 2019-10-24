@@ -69,11 +69,13 @@ class TurnToConfig extends Template implements TurnToConfigInterface
     {
         $configData = $this->getConfigData();
 
-        $configData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
-
         if ($configData instanceof TurnToConfigDataSourceInterface) {
             $configData = $configData->getData();
         }
+
+        $configData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
+        $additionalConfigData['siteKey' ] = $this->configHelper->getSiteKey();
+
 
         $additionalConfigData = ['locale' => $this->localeResolver->getLocale()];
 
@@ -81,7 +83,6 @@ class TurnToConfig extends Template implements TurnToConfigInterface
             $additionalConfigData['qa'] = [];
         }
         if($this->configHelper->getSsoEnabled()){
-            $additionalConfigData['siteKey' ] = 'h4reAaJjYWi7Q85site';
             $additionalConfigData['sso'] = ['userDataFn' => null];
         }
 
