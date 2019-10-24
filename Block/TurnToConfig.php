@@ -7,6 +7,7 @@
 
 namespace TurnTo\SocialCommerce\Block;
 
+use Magento\Catalog\Helper\Data;
 use Magento\Framework\Locale\Resolver;
 use Magento\Framework\View\Element\Template;
 use Magento\Store\Model\StoreManagerInterface;
@@ -33,6 +34,11 @@ class TurnToConfig extends Template implements TurnToConfigInterface
      */
     private $storeManager;
 
+    /**
+     * @var Data
+     */
+    protected $helper;
+
 
     /**
      * TurnToConfig constructor.
@@ -41,13 +47,15 @@ class TurnToConfig extends Template implements TurnToConfigInterface
      * @param StoreManagerInterface $storeManager
      * @param Resolver $localeResolver
      * @param array $data
+     * @param Data $helper
      */
     public function __construct(
         Template\Context $context,
         TurnToConfigHelper $configHelper,
         StoreManagerInterface $storeManager,
         Resolver $localeResolver,
-        array $data = []
+        array $data = [],
+        Data $helper
     )
     {
         // Set the template here so that it's easier to manually create a config block to place anywhere, such as widget
@@ -59,6 +67,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         $this->configHelper = $configHelper;
         $this->localeResolver = $localeResolver;
         $this->storeManager = $storeManager;
+        $this->helper = $helper;
     }
 
     /**
@@ -84,22 +93,12 @@ class TurnToConfig extends Template implements TurnToConfigInterface
            $additionalConfigData['sso'] = ['loggedInDataFn' => null];
         }
 
-        $additionalConfigData['siteKey' ] = 'h4reAaJjYWi7Q85site';
-        $additionalConfigData['authKey'] = 'JLWPk365eMx6pj6mv1eXR823LqzSauth';
-        if ($this->configHelper->getCommentsPinboard()) {
-            $additionalConfigData['commentsPinboard'] = [];
-        }
-
-        if ($this->configHelper->getCommentsTeaser()) {
-            $additionalConfigData['commentsPinboardTeaser'] = [];
-        }
-
-        if ($this->configHelper->getVisualContentPinboard()) {
-            $additionalConfigData['vcPinboard'] = [];
-        }
-
         if ($this->configHelper->getVisualContentGalleryRowWidget()) {
-            $additionalConfigData['gallery'] = [];
+            $product = $this->helper->getProduct();
+            if ($product) {
+                $skus = [$product->getSku()];
+                $additionalConfigData['gallery'] = ['skus' => $skus];
+            }
         }
 
         $configData = array_merge($additionalConfigData, $configData);

@@ -26,9 +26,6 @@
                     <option name="commentsPinboard" value="commentsPinboard" selected="true">
                         <label>Comments Pinboard</label>
                     </option>
-                    <option name="commentsPinboardTeaser" value="commentsPinboardTeaser">
-                        <label>Comments Pinboard Teaser</label>
-                    </option>
                     <option name="vcPinboard" value="vcPinboard">
                         <label>Visual Content Pinboard</label>
                     </option>
