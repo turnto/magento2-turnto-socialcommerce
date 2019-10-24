@@ -53,7 +53,6 @@
         </referenceContainer>
 
         <!-- Pinboard PDP Content -->
-<!--        TODO put in right location-->
         <referenceContainer name="product.info.main">
             <block class="Magento\Framework\View\Element\Template" name="pinboard_widget" template="TurnTo_SocialCommerce::widget/pinboard.phtml" after="product.info.details"/>
         </referenceContainer>
