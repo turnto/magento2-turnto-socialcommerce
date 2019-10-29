@@ -16,18 +16,18 @@
 -->
 <widgets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Widget:etc/widget.xsd">
     <widget id="turnto_socialcommerce_pinboard" class="TurnTo\SocialCommerce\Block\Widget\Pinboard">
-        <label translate="true">Social Commerce Pinboard</label>
+        <label translate="true">TurnTo SpeedFlex</label>
         <description>A responsive pinboard showcasing customer-submitted Checkout Comments or Visual Content in a unique product-centered browsing experience. Only one pinboard may be inserted on a page.</description>
         <parameters>
             <parameter name="content_type" xsi:type="select" required="true" visible="true" sort_order="10">
                 <label>Content Type</label>
                 <description>The type of pinboard content to be displayed</description>
                 <options>
-                    <option name="checkoutComments" value="checkoutComments" selected="true">
-                        <label>Checkout Comments</label>
+                    <option name="commentsPinboard" value="commentsPinboard" selected="true">
+                        <label>Comments Pinboard</label>
                     </option>
-                    <option name="visualContent" value="visualContent">
-                        <label>Visual Content</label>
+                    <option name="vcPinboard" value="vcPinboard">
+                        <label>Visual Content Pinboard</label>
                     </option>
                 </options>
             </parameter>

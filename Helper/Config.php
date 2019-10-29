@@ -138,7 +138,16 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     CONST XML_PATH_SOCIALCOMMERCE_REPLY_MSG = 'turnto_socialcommerce_configuration/sso/reply_msg';
 
+    /**
+     * Pinboards
+     */
+    CONST XML_PATH_SOCIALCOMMERCE_PINBOARDS_COMMENTS = 'turnto_socialcommerce_configuration/pinboards/comments_pinboard';
 
+    CONST XML_PATH_SOCIALCOMMERCE_PINBOARDS_COMMENTS_TEASER = 'turnto_socialcommerce_configuration/pinboards/comments_teaser';
+
+    CONST XML_PATH_SOCIALCOMMERCE_VISUAL_CONTENT_PINBOARD = 'turnto_socialcommerce_configuration/pinboards/visual_content_pinboard';
+
+    CONST XML_PATH_SOCIALCOMMERCE_VISUAL_CONTENT_GALLERY_ROW_WIDGET = 'turnto_socialcommerce_configuration/pinboards/visual_content_gallery_row';
 
 
     /**
@@ -708,6 +717,54 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_REPLY_MSG,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return bool
+     */
+    public function getCommentsPinboard($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_PINBOARDS_COMMENTS,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return bool
+     */
+    public function getCommentsTeaser($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_PINBOARDS_COMMENTS_TEASER,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return bool
+     */
+    public function getVisualContentPinboard($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_VISUAL_CONTENT_PINBOARD,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    public function getVisualContentGalleryRowWidget($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_VISUAL_CONTENT_GALLERY_ROW_WIDGET,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );
