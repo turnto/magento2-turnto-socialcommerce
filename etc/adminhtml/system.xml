@@ -307,47 +307,48 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="review_msg" canRestore="1" type="textarea" translate="label comment" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Review Redirect Message</label>
-                    <comment>The default redirect messaged shown to a user when they attempt to leave a review while not logged in.</comment>
+                    <label>Review Login Message</label>
+                    <comment>The default message shown to a user on the login screen when they attempt to leave a review while not logged in.</comment>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/sso/single_sign_on">1</field>
                     </depends>
                 </field>
                 <field id="review_msg_pur_req" canRestore="1" type="textarea" translate="label comment" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Review Redirect Message (purchase Required)</label>
-                    <comment>The redirect messaged shown to a user when they attempt to leave a review while not logged in and TurnTo is set to require a purchase for reviews.</comment>
+                    <label>Review Login Message (Purchase Required)</label>
+                    <comment>The default message shown to a user on the login screen when a purchase is required to leave a review.</comment>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/sso/single_sign_on">1</field>
                     </depends>
                 </field>
                 <field id="question_msg" canRestore="1" type="textarea" translate="label comment" sortOrder="40" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Question Message</label>
-                    <comment>The default redirect messaged shown to a user when they attempt to leave question while not logged in and log in is required.</comment>
+                    <label>Question Login Message</label>
+                    <comment>The default message shown to a user on the login screen after asking a question.</comment>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/sso/single_sign_on">1</field>
                     </depends>
                 </field>
                 <field id="question_msg_anon" canRestore="1" type="textarea" translate="label comment" sortOrder="50" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Question Message (Anonymous Allowed)</label>
-                    <comment>The redirect messaged shown to a user when they attempt to leave a review while not logged in.</comment>
+                    <label>Question Login Message (Anonymous Allowed)</label>
+                    <comment>The default message shown to a user on the login screen after asking a question when login is not required.</comment>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/sso/single_sign_on">1</field>
                     </depends>
                 </field>
                 <field id="answer_msg" canRestore="1" type="textarea" translate="label comment" sortOrder="60" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Question Answer Message</label>
-                    <comment>The default redirect messaged shown to a user when they attempt to leave a review while not logged in.</comment>
+                    <label>Answer Login Message</label>
+                    <comment>The default message shown to a user on the login screen after answering a question.</comment>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/sso/single_sign_on">1</field>
                     </depends>
                 </field>
                 <field id="reply_msg" canRestore="1" type="textarea" translate="label comment" sortOrder="60" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Question Reply Message</label>
-                    <comment>The default redirect messaged shown to a user when they attempt to leave a review while not logged in.</comment>
+                    <label>Reply Login Message</label>
+                    <comment>The default message shown to a user on the login screen after replying to an answer.</comment>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/sso/single_sign_on">1</field>
                     </depends>
                 </field>
+
 
 
             </group>

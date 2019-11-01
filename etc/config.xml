@@ -67,8 +67,8 @@
             <sso>
                 <single_sign_on>0</single_sign_on>
                 <review_msg>We need to know who you are before we post your review. Please login or register to continue.</review_msg>
-                <review_msg_pur_req>To ensure authenticity you may only write reviews for items you've purchased. Please log in or register so we can look up your purchases.</review_msg_pur_req>
-                <question_msg>Your question has been submitted. Please login or register to have answers emailed to you.</question_msg>
+                <review_msg_pur_req>To ensure authenticity you may only write reviews for items you've purchased. Please login or register so we can look up your purchases.</review_msg_pur_req>
+                <question_msg>Please login or register to complete your submission and have answers emailed to you.</question_msg>
                 <question_msg_anon>Your question has been submitted. Please check back here for answers, or log in or register to have answers emailed to you.</question_msg_anon>
                 <answer_msg>Please login or register to complete your submission.</answer_msg>
                 <reply_msg>Please login or register to complete your submission.</reply_msg>

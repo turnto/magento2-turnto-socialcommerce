@@ -53,6 +53,9 @@ class RedirectToLogin extends \Magento\Framework\App\Action\Action
         $action = $this->getRequest()->getParam('action');
         switch ($action) {
             case "QUESTION_CREATE":
+                if($this->getRequest()->getParam('authSetting') == 'ANONYMOUS'){
+                    return $this->config->getQuestionMsgAnon();
+                }
                 return $this->config->getQuestionMsg();
             case "ANSWER_CREATE":
                 return $this->config->getAnswerMessage();
@@ -62,7 +65,7 @@ class RedirectToLogin extends \Magento\Framework\App\Action\Action
                 }
                 return $this->config->getReviewMsg();
             case "REPLY_CREATE":
-                return $this->config->getReviewMsg();
+                return $this->config->getReplyMsg();
             default:
                 return "";
         }
