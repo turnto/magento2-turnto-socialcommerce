@@ -41,7 +41,7 @@ class RedirectToLogin extends \Magento\Framework\App\Action\Action
         $resultRedirect = $this->resultRedirectFactory->create();
         $login_url = $this->uriInterface
             ->getUrl('customer/account/login',
-                ['referer' => base64_encode($url . "?ctx=$ctxObj")]
+                ['referer' => strtr(base64_encode($url . "?ctx=$ctxObj"), '+/=', '-_,')]
             );
         $resultRedirect->setPath($login_url);
         $this->messageManager->addNoticeMessage($this->getMessage());
