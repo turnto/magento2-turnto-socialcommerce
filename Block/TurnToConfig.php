@@ -92,10 +92,8 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         }
         if($this->configHelper->getSsoEnabled()){
             $additionalConfigData['sso'] = ['userDataFn' => null];
-        } else {
-           $additionalConfigData['sso'] = ['loggedInDataFn' => null];
         }
-
+        
         if ($this->configHelper->getVisualContentGalleryRowWidget()) {
             $product = $this->helper->getProduct();
             if ($product) {
