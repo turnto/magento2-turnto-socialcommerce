@@ -138,7 +138,10 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     CONST XML_PATH_SOCIALCOMMERCE_REPLY_MSG = 'turnto_socialcommerce_configuration/sso/reply_msg';
 
-
+    /**
+     * Visual Content
+     */
+    CONST XML_PATH_SOCIALCOMMERCE_VISUAL_CONTENT_GALLERY_ROW_WIDGET = 'turnto_socialcommerce_configuration/visual_content/visual_content_gallery_row';
 
 
     /**
@@ -708,6 +711,15 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_REPLY_MSG,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    public function getVisualContentGalleryRowWidget($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_VISUAL_CONTENT_GALLERY_ROW_WIDGET,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );
