@@ -107,6 +107,16 @@
                     </depends>
                 </field>
             </group>
+            <group id="visual_content" translate="label" sortOrder="45" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>Visual Content</label>
+                <field id="visual_content_gallery_row" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Enable PDP Gallery Row</label>
+                    <comment><![CDATA[
+                        Enable the visual content gallery row widget on the product detail page.
+                    ]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
             <group id="checkout_comments" translate="label" sortOrder="50" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Checkout Comments</label>
                 <field id="enable_checkout_comments" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
@@ -351,39 +361,7 @@
 
 
             </group>
-            <group id="pinboards" translate="label" sortOrder="100" showInStore="1" showInWebsite="1" showInDefault="1">
-                <label>Pinboards</label>
-                <field id="comments_pinboard" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Comments Pinboard</label>
-                    <comment>Enable Comments Pinboard Teasers</comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
 
-                </field>
-                <field id="comments_teaser" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Comments Teaser</label>
-                    <comment><![CDATA[
-                        Enable Comments Teaser
-                    ]]></comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-
-                </field>
-                <field id="visual_content_pinboard" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Visual Content Pinboard</label>
-                    <comment><![CDATA[
-                        Enable Visual Content Pinboard
-                    ]]></comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-
-                </field>
-                <field id="visual_content_gallery_row" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Gallery Row Widget</label>
-                    <comment><![CDATA[
-                        Enable Visual Content Gallery Row Widget
-                    ]]></comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-
-                </field>
-            </group>
 
         </section>
     </system>
