@@ -44,18 +44,14 @@ class PinboardConfig implements TurnToConfigDataSourceInterface
     {
         try {
             $pinboardType = $this->pinboardBlock->getContentType();
-            $config = [
-                'locale' => 'en_US'
-            ];
+            $config = [];
 
-            switch($pinboardType) {
-                case 'vcPinboard':
-                    $config['pageId'] = 'vc-pinboard-page';
-                    $config['vcPinboard'] = new \stdClass();
-                    break;
-                default:
-                    $config['pageId'] = 'comments-pinboard-page';
-                    $config['commentsPinboard'] = new \stdClass();
+            if ($pinboardType === 'vcPinboard') {
+                $config['pageId'] = 'vc-pinboard-page';
+                $config['vcPinboard']= $this->pinboardBlock->getProductSkus() ? ['skus' => $this->pinboardBlock->getProductSkus()] : new \stdClass();
+            } else {
+                $config['pageId'] = 'comments-pinboard-page';
+                $config['commentsPinboard'] = $this->pinboardBlock->getProductSkus() ? ['skus' => $this->pinboardBlock->getProductSkus()] : new \stdClass();
             }
 
             return $config;
