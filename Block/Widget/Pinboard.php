@@ -108,9 +108,9 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
         $productSkus = $this->getData('skus');
         if ($productSkus) {
             $productSkus = explode(',', $productSkus);
-        }
-        foreach ($productSkus as $key => $productSku) {
-            $productSkus[$key] = trim($productSku);
+            foreach ($productSkus as $key => $productSku) {
+                $productSkus[$key] = trim($productSku);
+            }
         }
 
         return $productSkus;
