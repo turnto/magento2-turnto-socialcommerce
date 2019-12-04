@@ -23,28 +23,45 @@ class RedirectToLogin extends \Magento\Framework\App\Action\Action
      * @var Config
      */
     private $config;
+    /**
+     * @var \Magento\Framework\Registry
+     */
+    private $registry;
+    /**
+     * @var \Magento\Customer\Model\SessionFactory
+     */
+    private $customerSessionFactory;
 
-    public function __construct(Context $context, \Magento\Framework\Message\ManagerInterface $messageManager, \Magento\Framework\UrlInterface $uriInterface, Config $config)
+
+    public function __construct(Context $context,
+                                \Magento\Framework\Message\ManagerInterface $messageManager,
+                                \Magento\Framework\UrlInterface $uriInterface,
+                                Config $config,
+                                \Magento\Customer\Model\SessionFactory $customerSessionFactory
+                                )
     {
         $this->messageManager = $messageManager;
-        parent::__construct($context);
         $this->uriInterface = $uriInterface;
         $this->config = $config;
+        $this->customerSessionFactory = $customerSessionFactory;
+        parent::__construct($context);
     }
 
     public function execute()
     {
         $url = $this->_redirect->getRefererUrl();
-        $ctxObj = $this->getRequest()->getParam('ctx');
-
 
         $resultRedirect = $this->resultRedirectFactory->create();
         $login_url = $this->uriInterface
             ->getUrl('customer/account/login',
-                ['referer' => strtr(base64_encode($url . "?ctx=$ctxObj"), '+/=', '-_,')]
+                ['referer' => base64_encode($url)]
             );
         $resultRedirect->setPath($login_url);
         $this->messageManager->addNoticeMessage($this->getMessage());
+
+        //store the PDP in session
+        $customerSession = $this->customerSessionFactory->create();
+        $customerSession->setPdpUrl($url);
         return $resultRedirect;
     }
 
