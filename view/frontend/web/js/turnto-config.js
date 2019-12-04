@@ -20,17 +20,15 @@ define([
 
         if (window.turnToConfig.hasOwnProperty('sso')
         ) {
-            let searchParams = new URLSearchParams(window.location.search)
-
-
             window.turnToConfig.sso.userDataFn = function (contextObj) {
                     $.get(window.turnToConfig.baseUrl + 'turnto/sso/getuserstatus', function (data) {
                     if (data.jwt === null) {
                         let context = JSON.parse(atob(contextObj));
-                        window.location.replace("/turnto/sso/redirecttologin/action/" + context.action + '/authSetting/' + context.authSetting + '/ctx/' + contextObj);
-                    } else if (searchParams.has('ctx')) {
-                        window.TurnToCmd('ssoRegDone', {context: searchParams.get('ctx'), userDataToken: data.jwt});
-                        searchParams.delete('ctx');
+                        window.sessionStorage.setItem('contextObj', contextObj)
+                        window.location.replace("/turnto/sso/redirecttologin/action/" + context.action + '/authSetting/' + context.authSetting);
+                    } else if (window.sessionStorage.getItem('contextObj')) {
+                        window.TurnToCmd('ssoRegDone', {context: window.sessionStorage.getItem('contextObj'), userDataToken: data.jwt});
+                        window.sessionStorage.removeItem('contextObj')
                     } else {
                         window.TurnToCmd('ssoRegDone', {context: contextObj, userDataToken: data.jwt});
                     }
@@ -38,10 +36,10 @@ define([
 
             };
 
-            if(searchParams.has('ctx')){
+            if(window.sessionStorage.getItem('contextObj')){
                 $.get(window.turnToConfig.baseUrl + 'turnto/sso/getuserstatus', function (data) {
-                window.TurnToCmd('ssoRegDone', {context: searchParams.get('ctx'), userDataToken: data.jwt});
-                searchParams.delete('ctx');
+                window.TurnToCmd('ssoRegDone', {context: window.sessionStorage.getItem('contextObj'), userDataToken: data.jwt});
+                window.sessionStorage.removeItem('contextObj');
             })
             }
 
