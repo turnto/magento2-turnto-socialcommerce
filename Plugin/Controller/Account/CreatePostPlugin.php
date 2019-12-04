@@ -57,7 +57,7 @@ class CreatePostPlugin
 
         //if no errors get PDP from session and redirect
         $resultRedirect = $this->redirectFactory->create();
-        $resultRedirect->setUrl();
+        $resultRedirect->setUrl($resultRedirectUrl);
         $this->customerSession->setPdpUrl(null);
         return $resultRedirect;
 
