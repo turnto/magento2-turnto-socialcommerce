@@ -13,6 +13,7 @@ use Magento\Framework\View\Element\Template;
 use Magento\Store\Model\StoreManagerInterface;
 use TurnTo\SocialCommerce\Api\TurnToConfigDataSourceInterface;
 use TurnTo\SocialCommerce\Helper\Config as TurnToConfigHelper;
+use TurnTo\SocialCommerce\Helper\Version;
 
 /**
  * @method void setConfigData(TurnToConfigDataSourceInterface|array $config)
@@ -38,6 +39,10 @@ class TurnToConfig extends Template implements TurnToConfigInterface
      * @var Data
      */
     protected $helper;
+    /**
+     * @var Version
+     */
+    private $versionHelper;
 
 
     /**
@@ -55,7 +60,8 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         StoreManagerInterface $storeManager,
         Resolver $localeResolver,
         array $data = [],
-        Data $helper
+        Data $helper,
+        Version $versionHelper
     )
     {
         // Set the template here so that it's easier to manually create a config block to place anywhere, such as widget
@@ -68,6 +74,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         $this->localeResolver = $localeResolver;
         $this->storeManager = $storeManager;
         $this->helper = $helper;
+        $this->versionHelper = $versionHelper;
     }
 
     /**
@@ -83,7 +90,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         }
 
 
-        $configData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
+        $additionalConfigData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
         $additionalConfigData['siteKey' ] = $this->configHelper->getSiteKey();
         $additionalConfigData = ['locale' => $this->localeResolver->getLocale()];
 
@@ -101,7 +108,6 @@ class TurnToConfig extends Template implements TurnToConfigInterface
                 $additionalConfigData['gallery'] = ['skus' => $skus];
             }
         }
-
         $configData = array_merge($additionalConfigData, $configData);
 
         /*
