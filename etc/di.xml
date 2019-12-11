@@ -41,9 +41,5 @@
         <plugin name="turnto_socialcommerce_plugin_add_sku_to_product_images" type="TurnTo\SocialCommerce\Plugin\Product\View\Type\Configurable" />
     </type>
     <preference for="Magento\Swatches\Controller\Ajax\Media" type="TurnTo\SocialCommerce\Controller\Ajax\Media"/>
-    <type name="Magento\Customer\Controller\Account\CreatePost">
-        <plugin sortOrder="1" name="turnToSocialCommerceCreatePost"
-                type="TurnTo\SocialCommerce\Plugin\Controller\Account\CreatePostPlugin"/>
-    </type>
 </config>
 

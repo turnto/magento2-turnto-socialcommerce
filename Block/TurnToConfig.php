@@ -97,10 +97,6 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         if ($this->configHelper->getQaEnabled()) {
             $additionalConfigData['qa'] = [];
         }
-        if($this->configHelper->getSsoEnabled()){
-            $additionalConfigData['sso'] = ['userDataFn' => null];
-        }
-        
         if ($this->configHelper->getVisualContentGalleryRowWidget()) {
             $product = $this->helper->getProduct();
             if ($product) {
