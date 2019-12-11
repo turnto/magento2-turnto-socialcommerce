@@ -90,25 +90,25 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         }
 
 
-        $configData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
-        $configData['siteKey' ] = $this->configHelper->getSiteKey();
-        $configData = ['locale' => $this->localeResolver->getLocale()];
-        $configData['extensionVersion'] = ['magentoVersion'=> $this->versionHelper->getMagentoVersion(), 'turnToCart' => $this->versionHelper->getTurnToVersion()];
+        $additionalConfigData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
+        $additionalConfigData['siteKey' ] = $this->configHelper->getSiteKey();
+        $additionalConfigData = ['locale' => $this->localeResolver->getLocale()];
 
         if ($this->configHelper->getQaEnabled()) {
-            $configData['qa'] = [];
+            $additionalConfigData['qa'] = [];
         }
         if($this->configHelper->getSsoEnabled()){
-            $configData['sso'] = ['userDataFn' => null];
+            $additionalConfigData['sso'] = ['userDataFn' => null];
         }
         
         if ($this->configHelper->getVisualContentGalleryRowWidget()) {
             $product = $this->helper->getProduct();
             if ($product) {
                 $skus = [$product->getSku()];
-                $configData['gallery'] = ['skus' => $skus];
+                $additionalConfigData['gallery'] = ['skus' => $skus];
             }
         }
+        $configData = array_merge($additionalConfigData, $configData);
 
         /*
          * Zend_Json::encode is used instead of json_encode because the values of iTeaserFunc and reviewsTeaserFunc
