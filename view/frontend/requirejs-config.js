@@ -18,10 +18,5 @@ var config = {
                 'TurnTo_SocialCommerce/js/swatch-renderer-mixin': true
             }
         }
-    },
-    map :{
-        '*':{
-        turnToConfig: 'TurnTo_SocialCommerce/js/turnto-config',
-        }
     }
 };
