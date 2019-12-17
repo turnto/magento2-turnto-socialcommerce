@@ -9,7 +9,6 @@ namespace TurnTo\SocialCommerce\Model\Data;
 
 use TurnTo\SocialCommerce\Api\TurnToConfigDataSourceInterface;
 use TurnTo\SocialCommerce\Helper\Config as TurnToConfigHelper;
-use TurnTo\SocialCommerce\Helper\ConfigProviderHelper;
 
 class MobileLandingConfig implements TurnToConfigDataSourceInterface
 {
@@ -18,19 +17,16 @@ class MobileLandingConfig implements TurnToConfigDataSourceInterface
      */
     protected $configHelper;
 
-    /**
-     * @var ConfigProviderHelper
-     */
-    protected $configProviderHelper;
+
 
     /**
      * @param TurnToConfigHelper   $configHelper
      * @param ConfigProviderHelper $configProviderHelper
      */
-    public function __construct(TurnToConfigHelper $configHelper, ConfigProviderHelper $configProviderHelper)
+    public function __construct(TurnToConfigHelper $configHelper)
     {
         $this->configHelper = $configHelper;
-        $this->configProviderHelper = $configProviderHelper;
+
     }
 
     /**
@@ -46,7 +42,6 @@ class MobileLandingConfig implements TurnToConfigDataSourceInterface
             'setupType' => 'mobileTT'
         ];
 
-        $config = array_merge($config, $this->configProviderHelper->getSingleSignOnConfig());
 
         return $config;
     }
