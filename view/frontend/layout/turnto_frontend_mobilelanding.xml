@@ -25,7 +25,6 @@
             <block class="Magento\Framework\View\Element\Template" name="turnto_frontend_mobilelanding" template="TurnTo_SocialCommerce::mobilelanding.phtml"/>
         </referenceContainer>
         <referenceBlock name="head.additional">
-            <block class="Magento\Framework\View\Element\Template" name="turnto.config.js.mobile.sso" template="TurnTo_SocialCommerce::config/sso.phtml"/>
             <block class="TurnTo\SocialCommerce\Block\TurnToConfig" name="turnto.config.js.mobile.config">
                 <arguments>
                     <argument name="config_data" xsi:type="object">\TurnTo\SocialCommerce\Model\Data\MobileLandingConfig</argument>

@@ -107,6 +107,16 @@
                     </depends>
                 </field>
             </group>
+            <group id="visual_content" translate="label" sortOrder="45" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>Visual Content</label>
+                <field id="visual_content_gallery_row" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Enable PDP Gallery Row</label>
+                    <comment><![CDATA[
+                        Enable the visual content gallery row widget on the product detail page.
+                    ]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
             <group id="checkout_comments" translate="label" sortOrder="50" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Checkout Comments</label>
                 <field id="enable_checkout_comments" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
@@ -174,6 +184,34 @@
                     <comment>The URL to submit Product Information Feed. Default is https://www.turnto.com/feedUpload/postfile</comment>
                     <depends>
                         <field id="enable_automatic_submission">1</field>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="teaser_api_url" translate="label comment" type="text" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Teaser URL</label>
+                    <comment>URL pulled by teaser.js Should not be changed, unless instructed by TurnTo.</comment>
+                    <depends>
+                          <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="config_api_url" translate="label comment" type="text" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Config Template URL</label>
+                    <comment>URL pulled by the configuration template. Should not be changed, unless instructed by TurnTo.</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="social_commerce_api_url" translate="label comment" type="text" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Scoial Commerce URL</label>
+                    <comment>URL pulled by the configuration helper. Should not be changed, unless instructed by TurnTo.</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="social_commerce_static_api_url" translate="label comment" type="text" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Scoial Commerce Static URL</label>
+                    <comment>URL pulled by the configuration helper. Should not be changed, unless instructed by TurnTo.</comment>
+                    <depends>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
@@ -270,6 +308,9 @@
                     </depends>
                 </field>
             </group>
+
         </section>
     </system>
 </config>
+
+

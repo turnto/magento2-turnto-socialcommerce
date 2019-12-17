@@ -39,15 +39,18 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const XML_PATH_SOCIALCOMMERCE_USE_CHILD_SKU = 'turnto_socialcommerce_configuration/general/use_child_sku';
 
-    const XML_PATH_SOCIALCOMMERCE_SINGLE_SIGN_ON = 'turnto_socialcommerce_configuration/general/single_sign_on';
-
     const SOCIALCOMMERCE_VERSION = 'v5';
 
-    const SOCIALCOMMERCE_URL = 'http://www.turnto.com';
+    const SOCIALCOMMERCE_URL = 'turnto_socialcommerce_configuration/product_feed/social_commerce_api_url';
 
-    const SOCIALCOMMERCE_STATIC_URL = 'http://static.www.turnto.com';
+    const SOCIALCOMMERCE_STATIC_URL = 'turnto_socialcommerce_configuration/product_feed/social_commerce_static_api_url';
 
-    const SOCIALCOMMERCE_SINGLE_SIGN_ON = false;
+    const SOCIALCOMMERCE_SINGLE_SIGN_ON = 'turnto_socialcommerce_configuration/general/single_sign_on';
+
+    const WIDGET_URL = 'turnto_socialcommerce_configuration/product_feed/config_api_url';
+
+    const TEASER_URL = 'turnto_socialcommerce_configuration/product_feed/teaser_api_url';
+
 
     const SOCIALCOMMERCE_MOBILE_TITLE_PAGE = 'TurnTo - Social Commerce';
     /**
@@ -117,6 +120,11 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_PATH_SOCIALCOMMERCE_ENABLE_TOP_COMMENTS = 'turnto_socialcommerce_configuration/checkout_comments/enable_top_comments';
 
     const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_TEASER = 'turnto_socialcommerce_configuration/checkout_comments/enable_comments_teaser';
+
+    /**
+     * Visual Content
+     */
+    CONST XML_PATH_SOCIALCOMMERCE_VISUAL_CONTENT_GALLERY_ROW_WIDGET = 'turnto_socialcommerce_configuration/visual_content/visual_content_gallery_row';
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface|null
@@ -230,10 +238,53 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return mixed
      */
-    public function getStaticUrl($store = null)
+    public function getStaticUrl($scopeCode = null)
     {
-        return self::SOCIALCOMMERCE_STATIC_URL;
+        return $this->scopeConfig->getValue(
+            self::SOCIALCOMMERCE_STATIC_URL,
+            ScopeInterface::SCOPE_STORE,
+            $scopeCode ?: $this->getCurrentStoreCode()
+        );
     }
+
+    /**
+     * Gets the Widget URL configuration value
+     *
+     * @param null $store
+     *
+     * @return mixed
+     */
+    public function getWidgetUrl($scopeCode = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::WIDGET_URL,
+            ScopeInterface::SCOPE_STORE,
+            $scopeCode ?: $this->getCurrentStoreCode()
+        );
+
+    }
+
+
+
+    /**
+     * Gets the Teaser URL configuration value
+     *
+     * @param null $store
+     *
+     * @return mixed
+     */
+    public function getTeaserUrl($scopeCode = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::TEASER_URL,
+            ScopeInterface::SCOPE_STORE,
+            $scopeCode ?: $this->getCurrentStoreCode()
+        );
+
+    }
+
+
+
 
     /**
      * Gets the URL configuration value
@@ -242,9 +293,14 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return mixed
      */
-    public function getUrl($store = null)
+    public function getUrl($scopeCode = null)
     {
-        return self::SOCIALCOMMERCE_URL;
+        return $this->scopeConfig->getValue(
+            self::SOCIALCOMMERCE_URL,
+            ScopeInterface::SCOPE_STORE,
+            $scopeCode ?: $this->getCurrentStoreCode()
+        );
+
     }
 
     /**
@@ -546,6 +602,93 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return (bool)$this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_TEASER,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return bool
+     */
+    public function getReviewMsg($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_REVIEW_MSG,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return bool
+     */
+    public function getReviewMsgPurchaseReq($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_REVIEW_MSG_PUR_REQ,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return bool
+     */
+    public function getQuestionMsg($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_QUESTION_MSG,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return bool
+     */
+    public function getQuestionMsgAnon($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_QUESTION_MSG_ANON,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return bool
+     */
+    public function getAnswerMessage($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_ANSWER_MSG,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     * @return bool
+     */
+    public function getReplyMsg($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_REPLY_MSG,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    public function getVisualContentGalleryRowWidget($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_VISUAL_CONTENT_GALLERY_ROW_WIDGET,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );

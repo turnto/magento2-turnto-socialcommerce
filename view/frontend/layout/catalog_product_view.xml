@@ -51,5 +51,10 @@
         <referenceContainer name="product.info.main">
             <block class="Magento\Framework\View\Element\Template" name="turnto_checkout_comments" template="TurnTo_SocialCommerce::product/view/comments.phtml" after="product.info.details" ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_product_detail"/>
         </referenceContainer>
+
+        <!-- Pinboard PDP Content -->
+        <referenceContainer name="product.info.main">
+            <block class="Magento\Framework\View\Element\Template" name="gallery_row_widget" template="TurnTo_SocialCommerce::widget/gallery_row.phtml" after="product.info.details"/>
+        </referenceContainer>
     </body>
 </page>

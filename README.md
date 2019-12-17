@@ -97,9 +97,15 @@ When you add values to this configuration field, it is critical that you enter a
 
 ## Visual Content and Checkout Comment Pinboards
 
-The TurnTo extension implements a custom widget that allows an admin to insert "Visual Content" pinboards or "Checkout Comment" pinboards. To insert this widget, edit a CMS page or CMS block and click the "Insert Widget…" button and select "Social Commerce Pinboards". You'll then be able to configure and insert the widget using these options:
+The TurnTo extension implements a custom widget that allows an admin to insert "Visual Content" pinboards or "Checkout Comment" pinboards. To insert this widget, edit a CMS page or CMS block and click the "Insert Widget…" button and select "TurnTo SpeedFlex". You'll then be able to configure and insert the widget using these options:
 
 [<img alt="Pinboard widget" src="README/pinboard_widget.png" width="550"/>](https://raw.githubusercontent.com/turnto/magento2-turnto-socialcommerce/master/README/pinboard_widget.png)
+
+## Visual Content Gallery Row Widget
+
+The TurnTo extension implements a custom widget that allows a user to toggle a gallery row of user submitted images on the product page. To enable this widget, go to Stores -> Configuration -> TurnTo SocialCommerce -> Configuration -> Visual Content -> Enable PDP Gallery Row and set the value to "Yes."
+
+[<img alt="Gallery Row widget" src="README/gallery_row_config.png" width="550"/>](https://raw.githubusercontent.com/turnto/magento2-turnto-socialcommerce/master/README/gallery_row_config.png)
 
 ## Troubleshooting
 

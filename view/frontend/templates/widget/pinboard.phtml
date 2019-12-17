@@ -22,5 +22,9 @@ $staticUrl = preg_replace("(^https?://)", "//", $configHelper->getStaticUrl());
 echo $block->getTurnToConfigHtml();
 
 ?>
-
+<?php if ($block->getContentType() === 'vcPinboard'): ?>
+<div id="tt-vc-pinboard-widget"></div>
+<?php else: ?>
 <div id="tt-comments-pinboard-widget"></div>
+<?php endif; ?>
+

@@ -68,20 +68,49 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
     }
 
     /**
+     * Prepare and return product collection
+     *
+     * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
+     * @SuppressWarnings(PHPMD.RequestAwareBlockMethod)
+     */
+    public function createCollection()
+    {
+        /** @var $collection \Magento\Catalog\Model\ResourceModel\Product\Collection */
+        $collection = $this->productCollectionFactory->create();
+
+        if ($this->getData('store_id') !== null) {
+            $collection->setStoreId($this->getData('store_id'));
+        }
+
+        $collection->setVisibility($this->catalogProductVisibility->getVisibleInCatalogIds());
+
+        $collection = $this->_addProductAttributesAndPrices($collection)
+            ->addStoreFilter()
+            ->addAttributeToSort('created_at', 'desc')
+            ->setPageSize($this->getPageSize())
+            ->setCurPage($this->getRequest()->getParam($this->getData('page_var_name'), 1));
+
+        /**
+         * Prevent retrieval of duplicate records. This may occur when multiselect product attribute matches
+         * several allowed values from condition simultaneously
+         */
+        $collection->distinct(true);
+
+        return $collection;
+    }
+
+    /**
      * @return array
      * @throws LocalizedException
      */
     public function getProductSkus()
     {
-        $productSkus = [];
-        if (!empty($this->getConditions()->getConditions())) {
-            $productSkus = array_map(
-                function ($product) {
-                    /** @var \Magento\Catalog\Model\Product $product */
-                    return $this->productHelper->turnToSafeEncoding((string)$product->getSku());
-                },
-                $this->getProductCollection()->getItems()
-            );
+        $productSkus = $this->getData('skus');
+        if ($productSkus) {
+            $productSkus = explode(',', $productSkus);
+            foreach ($productSkus as $key => $productSku) {
+                $productSkus[$key] = trim($productSku);
+            }
         }
 
         return $productSkus;
@@ -107,4 +136,10 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
 
         return $pinboardBlock->toHtml();
     }
+
+    public function getPageTitle()
+    {
+        return $this->getData('title');
+    }
+
 }
