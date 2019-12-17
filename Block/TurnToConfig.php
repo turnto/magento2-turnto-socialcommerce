@@ -93,6 +93,8 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         $additionalConfigData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
         $additionalConfigData['siteKey' ] = $this->configHelper->getSiteKey();
         $additionalConfigData = ['locale' => $this->localeResolver->getLocale()];
+        $additionalConfigData['extensionVersion'] = ['magentoVersion'=> $this->versionHelper->getMagentoVersion(), 'turnToCart' => $this->versionHelper->getTurnToVersion()];
+
 
         if ($this->configHelper->getQaEnabled()) {
             $additionalConfigData['qa'] = [];
