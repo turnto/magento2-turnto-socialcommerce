@@ -187,66 +187,73 @@ class Catalog extends AbstractExport
         $products = [];
 
         try {
-            $products = $this->getProducts($store);
 
-            $feed = new \SimpleXMLElement(
-                '<?xml version="1.0" encoding="UTF-8"?>' . '<feed xmlns="http://www.w3.org/2005/Atom"' . ' xmlns:g="http://base.google.com/ns/1.0" xml:lang="en-US" />'
-            );
+            $page = 1;
+            while ($products = $this->getProducts($store,$page,1000)) {
 
-            $feed->addChild('title', $this->sanitizeData($store->getName() . ' - Google Product Atom 1.0 Feed'));
-            $feed->addChild(
-                'link',
-                $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK))
-            );
-            $feed->addChild(
-                'updated',
-                $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->format(DATE_ATOM)
-            );
-            $feed->addChild('author')->addChild('name', 'TurnTo');
-            $feed->addChild(
-                'id',
-                $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB))
-            );
 
-            $childProducts = [];
-            // TurnTo requires a product feed where children of configurable products are aware of their parent SKUs
-            // and include that parent SKU in the feed. This code is not very performant and therefore the feed will
-            // take longer to generate in large catalogs with many configurable products. However in the interest of
-            // development time, this simpler approach is being taken and if it proves to not scale well, can be
-            // refactored in the future to use a query that loads all child products for all configurable products
-            // at one time.
-            if ($this->config->getUseChildSku($store->getId())) {
+                $feed = new \SimpleXMLElement(
+                    '<?xml version="1.0" encoding="UTF-8"?>' . '<feed xmlns="http://www.w3.org/2005/Atom"' . ' xmlns:g="http://base.google.com/ns/1.0" xml:lang="en-US" />'
+                );
+
+                $feed->addChild('title', $this->sanitizeData($store->getName() . ' - Google Product Atom 1.0 Feed'));
+                $feed->addChild(
+                    'link',
+                    $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK))
+                );
+                $feed->addChild(
+                    'updated',
+                    $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->format(DATE_ATOM)
+                );
+                $feed->addChild('author')->addChild('name', 'TurnTo');
+                $feed->addChild(
+                    'id',
+                    $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB))
+                );
+
+                $childProducts = [];
+                // TurnTo requires a product feed where children of configurable products are aware of their parent SKUs
+                // and include that parent SKU in the feed. This code is not very performant and therefore the feed will
+                // take longer to generate in large catalogs with many configurable products. However in the interest of
+                // development time, this simpler approach is being taken and if it proves to not scale well, can be
+                // refactored in the future to use a query that loads all child products for all configurable products
+                // at one time.
+                if ($this->config->getUseChildSku($store->getId())) {
+                    foreach ($products as $product) {
+                        if ($product->getTypeId() !== Configurable::TYPE_CODE) {
+                            continue;
+                        }
+
+                        $children = $product->getTypeInstance()->getUsedProducts($product);
+                        foreach ($children as $child) {
+                            $childProducts[$child->getSku()] = $product;
+                        }
+                    }
+                }
+
                 foreach ($products as $product) {
-                    if ($product->getTypeId() !== Configurable::TYPE_CODE) {
-                        continue;
+                    $parent = false;
+                    if ($this->config->getUseChildSku($store->getId()) && isset($childProducts[$product->getSku()])) {
+                        $parent = $childProducts[$product->getSku()];
                     }
-
-                    $children = $product->getTypeInstance()->getUsedProducts($product);
-                    foreach ($children as $child) {
-                        $childProducts[$child->getSku()] = $product;
+                    try {
+                        $this->addProductToAtomFeed($feed->addChild('entry'), $product, $store, $parent);
+                    } catch (\Exception $entryException) {
+                        $this->logger->error(
+                            'Product failed to be added to feed',
+                            [
+                                'exception' => $entryException,
+                                'productSKU' => $product->getSku()
+                            ]
+                        );
+                    } finally {
+                        $progressCounter++;
                     }
                 }
+                $page++;
             }
 
-            foreach ($products as $product) {
-                $parent = false;
-                if ($this->config->getUseChildSku($store->getId()) && isset($childProducts[$product->getSku()])) {
-                    $parent = $childProducts[$product->getSku()];
-                }
-                try {
-                    $this->addProductToAtomFeed($feed->addChild('entry'), $product, $store, $parent);
-                } catch (\Exception $entryException) {
-                    $this->logger->error(
-                        'Product failed to be added to feed',
-                        [
-                            'exception' => $entryException,
-                            'productSKU' => $product->getSku()
-                        ]
-                    );
-                } finally {
-                    $progressCounter++;
-                }
-            }
+
         } catch (\Exception $feedException) {
             if ($feed) {
                 $this->logger->error(
@@ -498,4 +505,60 @@ class Catalog extends AbstractExport
 
         return false;
     }
+
+
+    /**
+     * Retrieves a store/visibility filtered product collection selecting only attributes necessary for the TurnTo Feed
+     *
+     * @param \Magento\Store\Api\Data\StoreInterface $store
+     * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
+     */
+    public function getProducts(\Magento\Store\Api\Data\StoreInterface $store, $page = null, $pageCount= 10000)
+    {
+
+
+        $collection = $this->productCollectionFactory->create()
+            ->addAttributeToSelect('id')
+            ->addAttributeToSelect('name')
+            ->addAttributeToSelect('sku')
+            ->addAttributeToSelect('url_path')
+            ->addAttributeToSelect('url_key')
+            ->addAttributeToSelect('url_in_store')
+            ->addAttributeToSelect('image')
+            ->addAttributeToSelect('quantity_and_stock_status')
+            ->addAttributeToSelect('price')
+            ->addAttributeToSelect('description')
+            ->setPage($page,$pageCount);
+
+        if($collection->getLastPageNumber() < $page){
+            return false;
+        }
+
+        $gtinMap = $this->config->getGtinAttributesMap($store->getCode());
+
+        if (!empty($gtinMap)) {
+            foreach ($gtinMap as $attributeName) {
+                $collection->addAttributeToSelect($attributeName);
+            }
+        }
+
+        if (!$this->config->getUseChildSku($store->getId())) {
+            $collection->addFieldToFilter(
+                'visibility',
+                [
+                    'in' =>
+                        [
+                            \Magento\Catalog\Model\Product\Visibility::VISIBILITY_BOTH,
+                            \Magento\Catalog\Model\Product\Visibility::VISIBILITY_IN_CATALOG
+                        ]
+                ]
+            );
+        }
+
+        $collection->addStoreFilter($store);
+
+        return $collection;
+    }
+
+
 }
