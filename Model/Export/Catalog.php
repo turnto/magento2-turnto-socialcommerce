@@ -189,27 +189,28 @@ class Catalog extends AbstractExport
         try {
 
             $page = 1;
+            $feed = new \SimpleXMLElement(
+                '<?xml version="1.0" encoding="UTF-8"?>' . '<feed xmlns="http://www.w3.org/2005/Atom"' . ' xmlns:g="http://base.google.com/ns/1.0" xml:lang="en-US" />'
+            );
+
+            $feed->addChild('title', $this->sanitizeData($store->getName() . ' - Google Product Atom 1.0 Feed'));
+            $feed->addChild(
+                'link',
+                $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK))
+            );
+            $feed->addChild(
+                'updated',
+                $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->format(DATE_ATOM)
+            );
+            $feed->addChild('author')->addChild('name', 'TurnTo');
+            $feed->addChild(
+                'id',
+                $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB))
+            );
+
             while ($products = $this->getProducts($store,$page,1000)) {
 
 
-                $feed = new \SimpleXMLElement(
-                    '<?xml version="1.0" encoding="UTF-8"?>' . '<feed xmlns="http://www.w3.org/2005/Atom"' . ' xmlns:g="http://base.google.com/ns/1.0" xml:lang="en-US" />'
-                );
-
-                $feed->addChild('title', $this->sanitizeData($store->getName() . ' - Google Product Atom 1.0 Feed'));
-                $feed->addChild(
-                    'link',
-                    $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK))
-                );
-                $feed->addChild(
-                    'updated',
-                    $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->format(DATE_ATOM)
-                );
-                $feed->addChild('author')->addChild('name', 'TurnTo');
-                $feed->addChild(
-                    'id',
-                    $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB))
-                );
 
                 $childProducts = [];
                 // TurnTo requires a product feed where children of configurable products are aware of their parent SKUs
