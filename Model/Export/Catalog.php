@@ -54,6 +54,12 @@ class Catalog extends AbstractExport
     protected $productHelper;
 
     /**
+     * Used to generate file name (x_of_totalPages_feed.xml)
+     * @var Int
+     */
+    protected $totalPages;
+
+    /**
      * Catalog constructor.
      *
      * @param Config                                                             $config
@@ -110,7 +116,7 @@ class Catalog extends AbstractExport
      *
      * @throws \Exception
      */
-    protected function transmitFeed(\SimpleXMLElement $feed, \Magento\Store\Api\Data\StoreInterface $store)
+    protected function transmitFeed(\SimpleXMLElement $feed, \Magento\Store\Api\Data\StoreInterface $store, $page = null)
     {
         $response = null;
 
@@ -124,7 +130,7 @@ class Catalog extends AbstractExport
                     'authKey' => $this->config->getAuthorizationKey($store->getCode()),
                     'feedStyle' => self::FEED_STYLE
                 ]
-            )->setFileUpload(self::FEED_STYLE, 'file', $feed->asXML(), self::FEED_MIME);
+            )->setFileUpload($page.'_of_'.$this->totalPages.'_store_'. $store->getId() .'_' . self::FEED_STYLE, 'file', $feed->asXML(), self::FEED_MIME);
 
             \file_put_contents(BP . "/var/google-product_storecode_{$store->getCode()}.xml", $feed->asXML());
             $response = $zendClient->request();
@@ -177,10 +183,10 @@ class Catalog extends AbstractExport
      *
      * @param \Magento\Store\Api\Data\StoreInterface $store
      *
-     * @return null|\SimpleXMLElement
+     * @return bool|\SimpleXMLElement
      * @throws \Exception If feed could not be generated
      */
-    protected function generateProductFeed(\Magento\Store\Api\Data\StoreInterface $store)
+    protected function generateProductFeed(\Magento\Store\Api\Data\StoreInterface $store, $page)
     {
         $feed = null;
         $progressCounter = 0;
@@ -188,7 +194,7 @@ class Catalog extends AbstractExport
 
         try {
 
-            $page = 1;
+
             $feed = new \SimpleXMLElement(
                 '<?xml version="1.0" encoding="UTF-8"?>' . '<feed xmlns="http://www.w3.org/2005/Atom"' . ' xmlns:g="http://base.google.com/ns/1.0" xml:lang="en-US" />'
             );
@@ -208,11 +214,10 @@ class Catalog extends AbstractExport
                 $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB))
             );
 
-            while ($products = $this->getProducts($store,$page,1000)) {
-
-
+            if ($products = $this->getProducts($store,$page,10000)){
 
                 $childProducts = [];
+
                 // TurnTo requires a product feed where children of configurable products are aware of their parent SKUs
                 // and include that parent SKU in the feed. This code is not very performant and therefore the feed will
                 // take longer to generate in large catalogs with many configurable products. However in the interest of
@@ -251,7 +256,10 @@ class Catalog extends AbstractExport
                         $progressCounter++;
                     }
                 }
-                $page++;
+                return $feed;
+            }else{
+                //no more products to submit
+                return false;
             }
 
 
@@ -286,7 +294,8 @@ class Catalog extends AbstractExport
             throw $feedException;
         }
 
-        return $feed;
+
+        return false;
     }
 
     /**
@@ -402,13 +411,11 @@ class Catalog extends AbstractExport
         // Restore the "current store"
         $this->storeManager->setCurrentStore($currentStore);
 
-        $stockItem = $this->stockRegistryProvider->getStockItem($product->getId(), $store->getId());
 
-        $entry->addChild('g:availability', $stockItem->getIsInStock() ? 'in stock' : 'out of stock');
+        $entry->addChild('g:availability', ($product->getStatus() == 1) ? 'in stock' : 'out of stock');
         $entry->addChild('g:image_link', $this->sanitizeData($productImageUrl));
         $entry->addChild('g:condition', 'new');
         $entry->addChild('g:price', $product->getPrice() . ' ' . $store->getBaseCurrencyCode());
-        $entry->addChild('g:description', $this->sanitizeData($product->getDescription()));
         $itemGroupId = $this->getItemGroupId($product, $parent);
         if ($parent) {
             $entry->addChild('g:item_group_id', $itemGroupId);
@@ -484,8 +491,13 @@ class Catalog extends AbstractExport
             if ($this->config->getIsEnabled($store->getCode()) && $this->config->getIsProductFeedSubmissionEnabled(
                     $store->getCode()
                 )) {
-                $feed = $this->generateProductFeed($store);
-                $this->transmitFeed($feed, $store);
+
+               $page =1;
+               while($feed=$this->generateProductFeed($store,$page)){
+                   $this->transmitFeed($feed, $store,$page);
+                   $page++;
+
+               }
             }
         }
     }
@@ -510,11 +522,13 @@ class Catalog extends AbstractExport
 
     /**
      * Retrieves a store/visibility filtered product collection selecting only attributes necessary for the TurnTo Feed
+     * over written to allow for pagination
      *
      * @param \Magento\Store\Api\Data\StoreInterface $store
      * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
      */
-    public function getProducts(\Magento\Store\Api\Data\StoreInterface $store, $page = null, $pageCount= 10000)
+
+    public function getProducts(\Magento\Store\Api\Data\StoreInterface $store, $page = null, $pageCount = 10000)
     {
 
 
@@ -528,10 +542,15 @@ class Catalog extends AbstractExport
             ->addAttributeToSelect('image')
             ->addAttributeToSelect('quantity_and_stock_status')
             ->addAttributeToSelect('price')
-            ->addAttributeToSelect('description')
+            ->addAttributeToSelect('status')
             ->setPage($page,$pageCount);
 
-        if($collection->getLastPageNumber() < $page){
+
+        //used to generate file name 1_of_$totalPages.xml
+        $this->totalPages = $collection->getLastPageNumber();
+
+        //stop the feed once we get to the last page
+        if($this->totalPages < $page){
             return false;
         }
 
