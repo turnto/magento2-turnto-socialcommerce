@@ -74,15 +74,6 @@ define([
             return (5 - (this.getNumFullStars() + (this.hasHalfStar() ? 1 : 0)));
         },
 
-        ttoGetRating: function ttoGetRating() {
-            var floorValue = Math.floor(this.reviewsData().avgRating);
-            var rounded = Math.round(this.reviewsData().avgRating * 100) / 100;
-            var decimalValue = parseFloat((rounded - floorValue).toFixed(2));
-            if (decimalValue < 0.25) {
-                return floorValue;
-            }
-        },
-
         writeReview: function writeReview() {
             window.TurnToCmd('reviewsList.writeReview');
         },
