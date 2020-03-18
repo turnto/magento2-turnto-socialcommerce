@@ -22,6 +22,8 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
      */
     protected $collection;
 
+    protected  $error;
+
     /**
      * @var array
      */
