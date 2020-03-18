@@ -67,7 +67,7 @@ define([
 
         hasHalfStar: function hasHalfStar() {
             let halfStarValue = (this.reviewsData().avgRating - this.getNumFullStars()).toFixed(1);
-            return halfStarValue >= 0.3 && halfStarValue <= .8;
+            return halfStarValue >= 0.3 && halfStarValue <= .7;
         },
 
         getNumEmptyStars: function getNumEmptyStars() {
