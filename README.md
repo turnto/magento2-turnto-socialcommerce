@@ -53,10 +53,14 @@ If the **Enable Automated Feed Submission** configuration option is set to **Yes
 3. Do the following (if you have multiple store views, follow these steps for each "Store View" scope):
     1. For the **Base URLS > Base URL for User Media Files** field, ensure a value is entered. If the field is blank, enter this value: `{{unsecure_base_url}}media/`
     2. For the **Base URLS (Secure) > Secure Base URL for User Media Files** field, ensure a value is entered. If the field is blank, enter this value: `{{secure_base_url}}media/`
-
 Here is a screenshot of an example configuration:
  
 ![Media Url Configuration](README/turnto_socialcommerce_media_url.png)
+
+##### **If your store has 10,000 or more items in the catalog:**
+If your catalog has 10,000 or more items, the size of the export file can reach over 6Mb. Please check your php.ini or your htaccess files to ensure
+that **upload_max_filesize** and **post_max_size** are set to a large enough value. We recommend setting them both to 10M. 
+ 
 
 ## Rating Import from TurnTo
 
