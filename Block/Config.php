@@ -78,7 +78,8 @@ class Config extends Template
         $sku = $this->_product->getSku();
 
         if ($this->config->getUseChildSku() && $this->_product->getTypeId() == Configurable::TYPE_CODE) {
-            $firstChild = reset(array_values($this->_product->getTypeInstance()->getUsedProducts($this->_product)));
+            $products = array_values($this->_product->getTypeInstance()->getUsedProducts($this->_product));
+            $firstChild = reset($products);
 
             if ($firstChild) {
                 $sku = $firstChild->getSku();
