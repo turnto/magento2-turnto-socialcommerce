@@ -54,6 +54,18 @@
                 <item name="label" xsi:type="string" translate="true">Feed Details</item>
             </item>
         </argument>
+        <htmlContent name="html_content">
+            <settings>
+                <additionalClasses>
+                    <class name="html-content-class">true</class>
+                </additionalClasses>
+            </settings>
+            <block name="html_content_block" class="Magento\Backend\Block\Template">
+                <arguments>
+                    <argument name="template" xsi:type="string">TurnTo_SocialCommerce::message.phtml</argument>
+                </arguments>
+            </block>
+        </htmlContent>
         <field name="store_ids">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">

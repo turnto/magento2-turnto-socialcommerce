@@ -15,19 +15,39 @@
 
 namespace TurnTo\SocialCommerce\Block\Adminhtml\Edit;
 
+use TurnTo\SocialCommerce\Helper\Config;
+
 class SaveButton implements \Magento\Framework\View\Element\UiComponent\Control\ButtonProviderInterface
 {
+
+    /**
+     * @var Config
+     */
+    private $config;
+
+    public function __construct(Config $config)
+    {
+
+        $this->config = $config;
+    }
+
     /**
      * @return array
      * @codeCoverageIgnore
      */
     public function getButtonData()
     {
+
+
         $data = [
             'label' => __('Download'),
             'class' => 'save primary',
             'on_click' => '',
         ];
+
+        if(empty($this->config->getAuthorizationKey()) || empty($this->config->getSiteKey())){
+            $data['disabled'] = 'true';
+        }
         
         return $data;
     }

@@ -61,11 +61,13 @@ define([
         },
 
         getNumFullStars: function getFullStars() {
-            return Math.floor(this.reviewsData().avgRating);
+            //if the reviews are 4.8 or above return 5 else return the reviews
+            return Math.floor(this.reviewsData().avgRating) >= 4.8 ? 5 : Math.floor(this.reviewsData().avgRating);
         },
 
         hasHalfStar: function hasHalfStar() {
-            return (this.reviewsData().avgRating - this.getNumFullStars()) >= 0.5;
+            let halfStarValue = (this.reviewsData().avgRating - this.getNumFullStars()).toFixed(1);
+            return halfStarValue >= 0.3 && halfStarValue <= .7;
         },
 
         getNumEmptyStars: function getNumEmptyStars() {
@@ -85,8 +87,8 @@ define([
 
             // Initializer intentionally left out for block scoping. Doesn't apply to var, but better practice to block
             // scope always, even if there is no practical effect
-            for(; tabIndex >= 0; tabIndex--) {
-                if(tabs[tabIndex].getAttribute('href') === tabAnchor) {
+            for (; tabIndex >= 0; tabIndex--) {
+                if (tabs[tabIndex].getAttribute('href') === tabAnchor) {
                     break;
                 }
             }
