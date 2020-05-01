@@ -1,0 +1,55 @@
+<?php
+/**
+ * TurnTo_SocialCommerce
+ * NOTICE OF LICENSE
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
+ * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ */
+?>
+<?php /* @var $block \TurnTo\SocialCommerce\Block\System\Config\ExportCatalog */ ?>
+
+<script>
+    require([
+        'jquery',
+        'prototype'
+    ], function(jQuery){
+
+        var exportCatalogSpan = jQuery('#export_catalog_span');
+
+        jQuery('#export_catalog_button').click(function () {
+            new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
+                loaderArea:     false,
+                asynchronous:   true,
+                onCreate: function() {
+                    exportCatalogSpan.find('.collected').hide();
+                    exportCatalogSpan.find('.processing').show();
+                    jQuery('#export_message_span').text('');
+                },
+                onSuccess: function(response) {
+                    exportCatalogSpan.find('.processing').hide();
+
+                    var resultText = '';
+                    if (response.status > 200) {
+                        resultText = response.statusText;
+                    } else {
+                        resultText = 'Success';
+                        exportCatalogSpan.find('.collected').show();
+                    }
+                    jQuery('#export_message_span').text(resultText);
+                }
+            });
+        });
+
+    });
+</script>
+
+<?php echo $block->getButtonHtml() ?>
+<span class="export-catalog-indicator" id="export_catalog_span">
+    <img class="processing" hidden="hidden" alt="Collecting" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
+    <img class="collected" hidden="hidden" alt="Collected" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
+    <span id="export_message_span"></span>
+</span>
