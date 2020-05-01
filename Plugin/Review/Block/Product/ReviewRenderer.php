@@ -39,8 +39,8 @@ class ReviewRenderer
      * @var array
      */
     protected $_availableTemplates = [
-        \Magento\Catalog\Block\Product\ReviewRendererInterface::FULL_VIEW => 'helper/summary.phtml',
-        \Magento\Catalog\Block\Product\ReviewRendererInterface::SHORT_VIEW => 'helper/summary_short.phtml',
+        \Magento\Catalog\Block\Product\ReviewRendererInterface::FULL_VIEW => 'Magento_Review::helper/summary.phtml',
+        \Magento\Catalog\Block\Product\ReviewRendererInterface::SHORT_VIEW => 'Magento_Review::helper/summary_short.phtml',
     ];
 
     /**
