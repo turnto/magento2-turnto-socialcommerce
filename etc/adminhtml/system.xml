@@ -215,6 +215,10 @@
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
+                <field id="export_catalog_feed_button" translate="Export Catalog" type="button" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <frontend_model>TurnTo\SocialCommerce\Block\System\Config\ExportCatalog</frontend_model>
+                    <label>Export Product Catalog to the TurnTo system</label>
+                </field>
             </group>
             <group id="product_attribute_mappings" translate="label comment" sortOrder="80" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Product Feed - Attributes and Identification</label>
