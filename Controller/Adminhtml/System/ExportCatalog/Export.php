@@ -23,11 +23,6 @@ class Export extends \Magento\Backend\App\Action
     protected $resultJsonFactory;
 
     /**
-     * @var Data
-     */
-    protected $helper;
-
-    /**
      * @var \TurnTo\SocialCommerce\Model\Export\Catalog
      */
     protected $catalogExport;
@@ -45,13 +40,11 @@ class Export extends \Magento\Backend\App\Action
     public function __construct(
         Context $context,
         JsonFactory $resultJsonFactory,
-        Data $helper,
         \TurnTo\SocialCommerce\Model\Export\Catalog $catalogExport,
         \TurnTo\SocialCommerce\Logger\Monolog $logger
     )
     {
         $this->resultJsonFactory = $resultJsonFactory;
-        $this->helper = $helper;
         $this->catalogExport = $catalogExport;
         $this->logger = $logger;
         parent::__construct($context);
