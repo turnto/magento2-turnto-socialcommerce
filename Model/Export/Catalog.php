@@ -510,9 +510,11 @@ class Catalog extends AbstractExport
      */
     public function getItemGroupId($product, $parent)
     {
-        return $parent->getSku();
-
-        return false;
+        if ($parent) {
+            return $parent->getSku();
+        } else {
+            return $product->getSku();
+        }
     }
 
 
