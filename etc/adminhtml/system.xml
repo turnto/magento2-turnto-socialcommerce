@@ -312,6 +312,56 @@
                     </depends>
                 </field>
             </group>
+            <group id="sso" translate="label" sortOrder="90" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>Single Sign On</label>
+                <field id="single_sign_on" translate="label comment" type="select" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Enable Single Sign On</label>
+                    <comment>If enabled, TurnTo will use the logged in user's name and information from questions and reviews. </comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="review_msg" canRestore="1" type="textarea" translate="label comment" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Review Login Message</label>
+                    <comment>The default message shown to a user on the login screen when they attempt to leave a review while not logged in.</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/sso/single_sign_on">1</field>
+                    </depends>
+                </field>
+                <field id="review_msg_pur_req" canRestore="1" type="textarea" translate="label comment" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Review Login Message (Purchase Required)</label>
+                    <comment>The default message shown to a user on the login screen when a purchase is required to leave a review.</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/sso/single_sign_on">1</field>
+                    </depends>
+                </field>
+                <field id="question_msg" canRestore="1" type="textarea" translate="label comment" sortOrder="40" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Question Login Message</label>
+                    <comment>The default message shown to a user on the login screen after asking a question.</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/sso/single_sign_on">1</field>
+                    </depends>
+                </field>
+                <field id="question_msg_anon" canRestore="1" type="textarea" translate="label comment" sortOrder="50" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Question Login Message (Anonymous Allowed)</label>
+                    <comment>The default message shown to a user on the login screen after asking a question when login is not required.</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/sso/single_sign_on">1</field>
+                    </depends>
+                </field>
+                <field id="answer_msg" canRestore="1" type="textarea" translate="label comment" sortOrder="60" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Answer Login Message</label>
+                    <comment>The default message shown to a user on the login screen after answering a question.</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/sso/single_sign_on">1</field>
+                    </depends>
+                </field>
+                <field id="reply_msg" canRestore="1" type="textarea" translate="label comment" sortOrder="60" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Reply Login Message</label>
+                    <comment>The default message shown to a user on the login screen after replying to an answer.</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/sso/single_sign_on">1</field>
+                    </depends>
+                </field>
+            </group>
 
         </section>
     </system>

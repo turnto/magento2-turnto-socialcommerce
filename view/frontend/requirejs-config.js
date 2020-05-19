@@ -13,10 +13,16 @@
  */
 var config = {
     config: {
+
         mixins: {
             'Magento_Swatches/js/swatch-renderer': {
                 'TurnTo_SocialCommerce/js/swatch-renderer-mixin': true
             }
+        }
+    },
+    map: {
+        '*': {
+            turnToConfig: 'TurnTo_SocialCommerce/js/turnto-config',
         }
     }
 };

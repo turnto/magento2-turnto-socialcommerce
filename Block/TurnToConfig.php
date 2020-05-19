@@ -83,10 +83,19 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         $additionalConfigData['siteKey' ] = $this->configHelper->getSiteKey();
         $additionalConfigData = ['locale' => $this->localeResolver->getLocale()];
         $additionalConfigData['extensionVersion'] = ['magentoVersion'=> $this->versionHelper->getMagentoVersion(), 'turnToCart' => $this->versionHelper->getTurnToVersion()];
-
+        $additionalConfigData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
+        $additionalConfigData['siteKey' ] = $this->configHelper->getSiteKey();
 
         if ($this->configHelper->getQaEnabled()) {
             $additionalConfigData['qa'] = [];
+        }
+
+        if($this->configHelper->getSsoEnabled()){
+            $additionalConfigData['sso'] = ['userDataFn' => null];
+        }
+
+        if ($this->configHelper->getCheckoutCommentsEnabled() ) {
+            $additionalConfigData['commentsPinboardTeaser'] = [];
         }
         if ($this->configHelper->getVisualContentGalleryRowWidget()) {
             $product = $this->helper->getProduct();

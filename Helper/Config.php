@@ -127,6 +127,26 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     CONST XML_PATH_SOCIALCOMMERCE_VISUAL_CONTENT_GALLERY_ROW_WIDGET = 'turnto_socialcommerce_configuration/visual_content/visual_content_gallery_row';
 
     /**
+     * SSO
+     */
+    CONST XML_PATH_SOCIALCOMMERCE_SINGLE_SIGN_ON = 'turnto_socialcommerce_configuration/sso/single_sign_on';
+
+    CONST XML_PATH_SOCIALCOMMERCE_REVIEW_MSG = 'turnto_socialcommerce_configuration/sso/review_msg';
+
+    CONST XML_PATH_SOCIALCOMMERCE_REVIEW_MSG_PUR_REQ = 'turnto_socialcommerce_configuration/sso/review_msg_pur_req';
+
+    CONST XML_PATH_SOCIALCOMMERCE_QUESTION_MSG = 'turnto_socialcommerce_configuration/sso/question_msg';
+
+    CONST XML_PATH_SOCIALCOMMERCE_QUESTION_MSG_ANON = 'turnto_socialcommerce_configuration/sso/question_msg_anon';
+
+    CONST XML_PATH_SOCIALCOMMERCE_ANSWER_MSG = 'turnto_socialcommerce_configuration/sso/answer_msg';
+
+    CONST XML_PATH_SOCIALCOMMERCE_REPLY_MSG = 'turnto_socialcommerce_configuration/sso/reply_msg';
+
+
+
+
+    /**
      * @var \Magento\Store\Model\StoreManagerInterface|null
      */
     protected $storeManager = null;
@@ -685,6 +705,10 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * @param null $store
+     * @return mixed
+     */
     public function getVisualContentGalleryRowWidget($store = null)
     {
         return $this->scopeConfig->getValue(
@@ -693,4 +717,19 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
             $store ?: $this->getCurrentStoreCode()
         );
     }
+
+
+    /**
+     * @param null $store
+     * @return bool
+     */
+    public function getSsoEnabled($store = null)
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_SINGLE_SIGN_ON,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
 }
