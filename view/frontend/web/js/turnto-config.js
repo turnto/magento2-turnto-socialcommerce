@@ -47,7 +47,7 @@ define([
             }
 
             window.turnToConfig.sso.loggedInDataFn = function(contextObj) {
-                $.get(window.turnToConfig.baseUrl + 'turnto/sso/LoggedInData', function (data) {
+                $.get(window.turnToConfig.baseUrl + 'turnto/sso/loggedindata', function (data) {
                         window.TurnToCmd('loggedInDataFnDone', {context: contextObj, userDataToken: data.jwt});
                     }
                 )

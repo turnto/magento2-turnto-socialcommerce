@@ -11,7 +11,7 @@ namespace TurnTo\SocialCommerce\Controller\SSO;
 use Magento\Framework\Controller\ResultFactory;
 use TurnTo\SocialCommerce\Helper\firebase\JWT;
 
-class LoggedInData
+class LoggedInData  extends \Magento\Framework\App\Action\Action
 {
     /**
      * @var \Magento\Customer\Model\Session
@@ -99,6 +99,10 @@ class LoggedInData
         return $signature;
     }
 
+    /**
+     * @param $customer
+     * @return string
+     */
     public function getUserJWTToken($customer){
 
         if(!$customer) {
