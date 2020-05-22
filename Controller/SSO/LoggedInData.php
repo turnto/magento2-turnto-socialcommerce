@@ -68,11 +68,6 @@ class LoggedInData  extends \Magento\Framework\App\Action\Action
 
         }
 
-        if (!is_null($customerData['payload']['user_auth_token'])) {
-            $customerData['signature'] = $this->getSignature($customerData['payload']);
-        }
-
-
         $resultJson = $this->resultFactory->create(ResultFactory::TYPE_JSON);
         $resultJson->setData(['jwt' => $this->getUserJWTToken($customerData['payload'])]);
 
