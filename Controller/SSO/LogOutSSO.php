@@ -40,7 +40,7 @@ class LogOutSSO extends \Magento\Customer\Controller\Account\Logout
         Session $customerSession
     ) {
         $this->session = $customerSession;
-        parent::__construct($context);
+        parent::__construct($context, $customerSession);
     }
 
     /**
