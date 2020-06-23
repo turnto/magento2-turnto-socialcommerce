@@ -40,6 +40,6 @@
     <type name="\Magento\ConfigurableProduct\Block\Product\View\Type\Configurable">
         <plugin name="turnto_socialcommerce_plugin_add_sku_to_product_images" type="TurnTo\SocialCommerce\Plugin\Product\View\Type\Configurable" />
     </type>
-    <preference for="Magento\Swatches\Controller\Ajax\Media" type="TurnTo\SocialCommerce\Controller\Ajax\Media"/>
+    <preference for="Magento\Swatches\Controller\Ajax\Media" type="TurnTo\SocialCommerce\Controller\Ajax\Media"/><type name="Magento\ConfigurableProduct\Block\Product\View\Type\Configurable"><plugin sortOrder="1" name="turnToSocialCommerceConfigurable" type="TurnTo\SocialCommerce\Plugin\Block\Product\View\Type\ConfigurablePlugin"/></type>
 </config>
 
