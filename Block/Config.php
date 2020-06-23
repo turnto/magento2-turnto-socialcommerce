@@ -76,16 +76,6 @@ class Config extends Template
     public function getProductSku()
     {
         $sku = $this->_product->getSku();
-
-        if ($this->config->getUseChildSku() && $this->_product->getTypeId() == Configurable::TYPE_CODE) {
-            $products = array_values($this->_product->getTypeInstance()->getUsedProducts($this->_product));
-            $firstChild = reset($products);
-
-            if ($firstChild) {
-                $sku = $firstChild->getSku();
-            }
-        }
-
         return $this->productHelper->turnToSafeEncoding($sku);
     }
 
