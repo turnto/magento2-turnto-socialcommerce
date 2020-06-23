@@ -41,12 +41,13 @@ define([
              */
             updateBaseImage: function (images, context, isInProductView) {
                 if (!this.options.useAjax && 0 in images && images[0].sku !== undefined) {
+                    //load child reviews
                     this.turntoProductReset(images[0].sku);
                 }else{
+                    //load parent product
                     this.turntoProductReset(this.options.jsonConfig.parentSku);
                 }
-
-
+                
                 this._super(images, context, isInProductView);
             },
 
