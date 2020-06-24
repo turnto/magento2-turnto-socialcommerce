@@ -202,14 +202,14 @@
                     </depends>
                 </field>
                 <field id="social_commerce_api_url" translate="label comment" type="text" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Scoial Commerce URL</label>
+                    <label>Social Commerce URL</label>
                     <comment>URL pulled by the configuration helper. Should not be changed, unless instructed by TurnTo.</comment>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
                 <field id="social_commerce_static_api_url" translate="label comment" type="text" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Scoial Commerce Static URL</label>
+                    <label>Social Commerce Static URL</label>
                     <comment>URL pulled by the configuration helper. Should not be changed, unless instructed by TurnTo.</comment>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
