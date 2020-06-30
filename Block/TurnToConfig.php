@@ -10,7 +10,6 @@ namespace TurnTo\SocialCommerce\Block;
 use Magento\Catalog\Helper\Data;
 use Magento\Framework\Locale\Resolver;
 use Magento\Framework\View\Element\Template;
-use Magento\Store\Model\StoreManagerInterface;
 use TurnTo\SocialCommerce\Api\TurnToConfigDataSourceInterface;
 use TurnTo\SocialCommerce\Helper\Config as TurnToConfigHelper;
 use TurnTo\SocialCommerce\Helper\Version;
@@ -25,16 +24,10 @@ class TurnToConfig extends Template implements TurnToConfigInterface
      * @var TurnToConfigHelper
      */
     protected $configHelper;
-
     /**
      * @var Resolver
      */
     protected $localeResolver;
-    /**
-     * @var StoreManagerInterface
-     */
-    private $storeManager;
-
     /**
      * @var Data
      */
@@ -44,24 +37,22 @@ class TurnToConfig extends Template implements TurnToConfigInterface
      */
     private $versionHelper;
 
-
     /**
      * TurnToConfig constructor.
      * @param Template\Context $context
      * @param TurnToConfigHelper $configHelper
-     * @param StoreManagerInterface $storeManager
      * @param Resolver $localeResolver
-     * @param array $data
      * @param Data $helper
+     * @param Version $versionHelper
+     * @param array $data
      */
     public function __construct(
         Template\Context $context,
         TurnToConfigHelper $configHelper,
-        StoreManagerInterface $storeManager,
         Resolver $localeResolver,
-        array $data = [],
         Data $helper,
-        Version $versionHelper
+        Version $versionHelper,
+        array $data = []
     )
     {
         // Set the template here so that it's easier to manually create a config block to place anywhere, such as widget
@@ -72,7 +63,6 @@ class TurnToConfig extends Template implements TurnToConfigInterface
 
         $this->configHelper = $configHelper;
         $this->localeResolver = $localeResolver;
-        $this->storeManager = $storeManager;
         $this->helper = $helper;
         $this->versionHelper = $versionHelper;
     }
@@ -88,7 +78,6 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         if ($configData instanceof TurnToConfigDataSourceInterface) {
             $configData = $configData->getData();
         }
-
 
         $additionalConfigData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
         $additionalConfigData['siteKey' ] = $this->configHelper->getSiteKey();
