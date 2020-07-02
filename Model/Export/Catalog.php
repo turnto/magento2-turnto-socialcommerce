@@ -320,7 +320,7 @@ class Catalog extends AbstractExport
         }
 
         $useChildUrl = true;
-        $productUrl = $this->getProductUrl($parent && !$useChildUrl ?: $product, $store->getId());
+        $productUrl = $this->getProductUrl(($parent && !$useChildUrl) ? $parent : $product, $store->getId());
         if (empty($productUrl)) {
             throw new \Exception('Product must have a valid store-product url');
         }
