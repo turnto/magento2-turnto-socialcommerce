@@ -319,7 +319,8 @@ class Catalog extends AbstractExport
             throw new \Exception('Product must have a valid sku');
         }
 
-        $productUrl = $this->getProductUrl($parent ?: $product, $store->getId());
+        $useChildUrl = true;
+        $productUrl = $this->getProductUrl($parent && !$useChildUrl ?: $product, $store->getId());
         if (empty($productUrl)) {
             throw new \Exception('Product must have a valid store-product url');
         }
