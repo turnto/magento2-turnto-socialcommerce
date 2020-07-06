@@ -417,9 +417,7 @@ class Catalog extends AbstractExport
         $entry->addChild('g:condition', 'new');
         $entry->addChild('g:price', $product->getPrice() . ' ' . $store->getBaseCurrencyCode());
         $itemGroupId = $this->getItemGroupId($product, $parent);
-        if ($parent) {
-            $entry->addChild('g:item_group_id', $itemGroupId);
-        }
+        $entry->addChild('g:item_group_id', $itemGroupId);
     }
 
     /**
@@ -514,9 +512,9 @@ class Catalog extends AbstractExport
     {
         if ($parent) {
             return $parent->getSku();
+        } else {
+            return $product->getSku();
         }
-
-        return false;
     }
 
 
