@@ -19,48 +19,44 @@ define([
     return function (original) {
         $.widget('mage.SwatchRenderer', original, {
 
-            /**
-             * Callback for product media
-             *
-             * @param {Object} $this
-             * @param {String} response
-             * @private
+            /*
+             * If use child sku is enabled, pass the child sku to TurnTo after a swatch change.
              */
-            _ProductMediaCallback: function ($this, response) {
-                this._super($this, response);
-
-                if (!this.options.jsonConfig.useChild) {
-                    this.turntoProductReset(response.sku)
+            _OnClick: function ($this, $widget) {
+                this._super($this, $widget);
+                if (this.options.jsonConfig.useChild) {
+                    this.selectedProduct();
                 }
+
             },
 
-            /**
-             * @param images
-             * @param context
-             * @param isInProductView
+            /*
+             * Get the product sku and pass it to TurnTo by using the selected swatch
              */
-            updateBaseImage: function (images, context, isInProductView) {
-                if (!this.options.useAjax && 0 in images && images[0].sku !== undefined) {
-                    //load child reviews
-                    this.turntoProductReset(images[0].sku);
-                }else{
-                    //load parent product
-                    this.turntoProductReset(this.options.jsonConfig.parentSku);
-                }
-                
-                this._super(images, context, isInProductView);
+            selectedProduct: function () {
+                var selected_options = {};
+                jQuery('div.swatch-attribute').each(function (k, v) {
+                    var attribute_id = jQuery(v).attr('attribute-id');
+                    var option_selected = jQuery(v).attr('option-selected');
+                    if (!attribute_id || !option_selected) {
+                        return;
+                    }
+                    selected_options[attribute_id] = option_selected;
+                });
+
+                var product_id_index = jQuery('[data-role=swatch-options]').data('mageSwatchRenderer').options.jsonConfig.index;
+                var self = this;
+                jQuery.each(product_id_index, function (product_id, attributes) {
+                    var productIsSelected = function (attributes, selected_options) {
+                        return _.isEqual(attributes, selected_options);
+                    }
+                    if (productIsSelected(attributes, selected_options)) {
+                        TurnToCmd('set', {"sku": self.options.jsonConfig.childSkuMap[product_id]});
+                        //break out of the loop
+                        return false;
+                    }
+                });
             },
-
-            /**
-             * @param sku
-             */
-            turntoProductReset: function(sku) {
-                if (TurnToCmd === void(0) || sku === void(0) || !this.options.jsonConfig.useChild) {
-                    return;
-                }
-
-                TurnToCmd('set', {"sku": sku});
-            }
         });
 
         return $.mage.SwatchRenderer;
