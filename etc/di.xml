@@ -44,5 +44,8 @@
     <type name="Magento\ConfigurableProduct\Block\Product\View\Type\Configurable">
         <plugin sortOrder="1" name="turnToSocialCommerceConfigurable" type="TurnTo\SocialCommerce\Plugin\Block\Product\View\Type\ConfigurablePlugin"/>
     </type>
+    <type name="Magento\Customer\Controller\Account\CreatePost">
+        <plugin sortOrder="1" name="turnToSocialCommerceCreatePost" type="TurnTo\SocialCommerce\Plugin\Controller\Account\CreatePostPlugin"/>
+    </type>
 </config>
 
