@@ -22,6 +22,7 @@ use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Filesystem\Io\File;
 use Magento\Framework\Intl\DateTimeFactory;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Api\ShipmentRepositoryInterface;
@@ -92,6 +93,10 @@ class Orders extends AbstractExport
      * @var Product
      */
     protected $turnToProductHelper;
+    /**
+     * @var File
+     */
+    private $fileSystem;    
 
     /**
      * Orders constructor.
@@ -111,6 +116,7 @@ class Orders extends AbstractExport
      * @param Product $productHelper
      * @param DirectoryList $directoryList
      * @param TurnToProductHelper $turnToProductHelper
+     * @param File $fileSystem
      */
     public function __construct(
         Config $config,
@@ -127,7 +133,8 @@ class Orders extends AbstractExport
         ProductRepository $productRepository,
         Product $productHelper,
         DirectoryList $directoryList,
-        TurnToProductHelper $turnToProductHelper
+        TurnToProductHelper $turnToProductHelper,
+        File $fileSystem
     )
     {
         parent::__construct(
@@ -149,6 +156,7 @@ class Orders extends AbstractExport
         $this->storeManager = $storeManager;
         $this->directoryList = $directoryList;
         $this->turnToProductHelper = $turnToProductHelper;
+        $this->fileSystem = $fileSystem;
     }
 
     /**
@@ -194,6 +202,9 @@ class Orders extends AbstractExport
         $searchCriteria = $this->getOrdersSearchCriteria($storeId, $fromDate, $toDate);
 
         try {
+            // create tmp folder if not exist
+            $this->fileSystem->checkAndCreateFolder($this->directoryList->getPath(DirectoryList::TMP));
+            
             $outputFile = $this->directoryList->getPath(DirectoryList::TMP) . '/tuntoexport.csv';
             $outputHandle = fopen($outputFile, 'w+');
             fputcsv(
