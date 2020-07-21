@@ -54,8 +54,8 @@ define([
                 if (!xhr.responseText) {
                     return;
                 }
-
                 this.reviewsData(JSON.parse(xhr.responseText));
+                this.populateReviewTabCount();
             }.bind(this));
             xhr.send();
         },
@@ -100,5 +100,11 @@ define([
             jQuery(this.tabsContainer).mage_tabs('activate', this.getTabIndex(tabAnchor));
             this.tabsContainer.scrollIntoView();
         },
+
+        populateReviewTabCount: function populateREviewTabCount(){
+            let reviewTab = document.getElementById('tab-label-reviews-title');
+            let reviewCount = this.reviewsData().reviews;
+            reviewTab.innerHTML = reviewTab.innerHTML + '<span class="counter">'+ reviewCount +'</span>';
+        }
     });
 });
