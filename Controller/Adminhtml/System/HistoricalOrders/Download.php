@@ -16,6 +16,7 @@
 namespace TurnTo\SocialCommerce\Controller\Adminhtml\System\HistoricalOrders;
 
 use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Controller\ResultFactory;
 use TurnTo\SocialCommerce\Model\Export\Orders;
 
 class Download extends \Magento\Backend\App\Action
@@ -24,7 +25,7 @@ class Download extends \Magento\Backend\App\Action
      * Filename used for the client side download file name
      */
     const DOWNLOAD_FILENAME = 'historical_orders.tsv';
-    
+
     /**
      * @var \Magento\Framework\Controller\Result\RawFactory|null
      */
@@ -103,13 +104,15 @@ class Download extends \Magento\Backend\App\Action
             ->add(new \DateInterval('P1D'))
             ->sub(new \DateInterval('PT1S'));
 
-        $feedData = $this->ordersModel->getOrdersFeed($storeId, $fromDate, $toDate, true);
+        try {
+            $feedData = $this->ordersModel->getOrdersFeed($storeId, $fromDate, $toDate, true, true);
+            $this->messageManager->addSuccessMessage('Orders exported successfully.');
+        } catch (\Exception $e) {
+            $this->messageManager->addErrorMessage('There was an issue processing your request. Please try again later.');
+            $this->logger->error($e->getMessage());
+        }
 
-        return $this->fileFactory->create(
-            self::DOWNLOAD_FILENAME,
-            $feedData,
-            DirectoryList::TMP,
-            Orders::FEED_MIME
-        );
+        $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
+        return $resultRedirect->setPath('*/*/');
     }
 }

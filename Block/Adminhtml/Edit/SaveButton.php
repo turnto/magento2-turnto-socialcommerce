@@ -40,7 +40,7 @@ class SaveButton implements \Magento\Framework\View\Element\UiComponent\Control\
 
 
         $data = [
-            'label' => __('Download'),
+            'label' => __('Export'),
             'class' => 'save primary',
             'on_click' => '',
         ];
