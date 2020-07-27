@@ -101,7 +101,7 @@ define([
             this.tabsContainer.scrollIntoView();
         },
 
-        populateReviewTabCount: function populateREviewTabCount(){
+        populateReviewTabCount: function populateReviewTabCount(){
             let reviewTab = document.getElementById('tab-label-reviews-title');
             let reviewCount = this.reviewsData().reviews;
             reviewTab.innerHTML = reviewTab.innerHTML + '<span class="counter">'+ reviewCount +'</span>';
