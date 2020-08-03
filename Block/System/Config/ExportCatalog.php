@@ -76,4 +76,3 @@ class ExportCatalog extends Field
         return $button->toHtml();
     }
 }
-?>
