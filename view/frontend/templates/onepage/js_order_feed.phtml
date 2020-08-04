@@ -10,12 +10,10 @@
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
-/** @var \TurnTo\SocialCommerce\Block\CheckoutComments $block */
+/** @var \TurnTo\SocialCommerce\Block\JSOrderFeed $block */
 /** @var TurnTo\SocialCommerce\Helper\Config $configHelper */
 ?>
 
 <script type="text/javascript">
     TurnToCmd('feed.send', <?= $block->getFeedPurchaseOrderData() ?>);
 </script>
-
-<div id="tt-comment-capture"></div>
