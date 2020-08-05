@@ -35,6 +35,7 @@ use TurnTo\SocialCommerce\Logger\Monolog;
 class CanceledOrders extends Orders
 {
     const CANCELED_FEED_NAME = 'canceled-orders-feed.tsv';
+    const FEED_STYLE = 'cancelled-order.txt';
 
     /**
      * @var OrderCollectionFactoryAlias
