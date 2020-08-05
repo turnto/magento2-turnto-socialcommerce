@@ -118,15 +118,22 @@
                 </field>
             </group>
             <group id="checkout_comments" translate="label" sortOrder="50" showInStore="1" showInWebsite="1" showInDefault="1">
-                <label>Checkout Comments</label>
-                <field id="enable_checkout_comments" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Enable Checkout Comments</label>
+                <label>JS Order Feed and Checkout Comments</label>
+                <field id="enable_js_order_feed" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Enable Javascript Order Feed</label>
                     <comment><![CDATA[
-                        Enable the checkout comments feature. Customers will be shown a list of products they purchased and will be given the opportunity to share why the decided to purchase each product.
+                        Enable the Javascript Order Feed. Order information will be sent to TurnTo on the Order Success page. Required for Checkout Comment Capture
+                    ]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="enable_checkout_comment_capture" translate="label comment" type="select" sortOrder="15" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Enable Checkout Comment Capture</label>
+                    <comment><![CDATA[
+                        Enable the Checkout Comment Capture feature. On the checkout success page customers will be shown a list of products they purchased and will be given the opportunity to share why the decided to purchase each product.
                     ]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
-                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/checkout_comments/enable_js_order_feed">1</field>
                     </depends>
                 </field>
                 <field id="enable_comments_pdp" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInStore="1" showInWebsite="1">
@@ -136,7 +143,7 @@
                     ]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
-                        <field id="turnto_socialcommerce_configuration/checkout_comments/enable_checkout_comments">1</field>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
                 <field id="enable_top_comments" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInStore="1" showInWebsite="1">
@@ -146,7 +153,7 @@
                     ]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
-                        <field id="turnto_socialcommerce_configuration/checkout_comments/enable_checkout_comments">1</field>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
                 <field id="enable_comments_teaser" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInStore="1" showInWebsite="1">
@@ -156,7 +163,7 @@
                     ]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
-                        <field id="turnto_socialcommerce_configuration/checkout_comments/enable_checkout_comments">1</field>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
             </group>
