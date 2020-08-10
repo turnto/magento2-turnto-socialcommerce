@@ -16,16 +16,18 @@
 -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
-        <container name="order.success.turnto" after="order.success.additional.info">
-            <block class="TurnTo\SocialCommerce\Block\TurnToConfig" name="turnto.config" ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_js_order_feed">
-                <arguments>
-                    <argument name="config_data" xsi:type="array">
-                        <item name="pageId" xsi:type="string">order-confirmation-page</item>
-                    </argument>
-                </arguments>
-                <block class="TurnTo\SocialCommerce\Block\JSOrderFeed" name="checkout.jsorderfeed" template="TurnTo_SocialCommerce::onepage/js_order_feed.phtml" cacheable="false"/>
-            </block>
-
-        </container>
+        <referenceContainer name="content">
+            <container name="order.success.turnto" after="checkout.success">
+                <block class="TurnTo\SocialCommerce\Block\TurnToConfig" name="turnto.config" ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_js_order_feed">
+                    <arguments>
+                        <argument name="config_data" xsi:type="array">
+                            <item name="pageId" xsi:type="string">order-confirmation-page</item>
+                        </argument>
+                    </arguments>
+                    <block class="TurnTo\SocialCommerce\Block\JSOrderFeed" name="checkout.jsorderfeed" template="TurnTo_SocialCommerce::onepage/js_order_feed.phtml" cacheable="false"  ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_js_order_feed"/>
+                    <block class="TurnTo\SocialCommerce\Block\JSOrderFeed" name="checkout.commentcapture" template="TurnTo_SocialCommerce::onepage/comment_capture.phtml" cacheable="false"  ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_checkout_comment_capture"/>
+                </block>
+            </container>
+        </referenceContainer>
     </body>
 </page>
