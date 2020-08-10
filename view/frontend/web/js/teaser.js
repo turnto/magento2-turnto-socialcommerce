@@ -62,12 +62,12 @@ define([
 
         getNumFullStars: function getFullStars() {
             //if the reviews are 4.8 or above return 5 else return the reviews
-            return Math.floor(this.reviewsData().avgRating) >= 4.8 ? 5 : Math.floor(this.reviewsData().avgRating);
+            return Math.floor(this.reviewsData().avgRating) >= 4.75 ? 5 : Math.floor(this.reviewsData().avgRating);
         },
 
         hasHalfStar: function hasHalfStar() {
-            let halfStarValue = (this.reviewsData().avgRating - this.getNumFullStars()).toFixed(1);
-            return halfStarValue >= 0.3 && halfStarValue <= .7;
+            let halfStarValue = (this.reviewsData().avgRating - this.getNumFullStars()).toFixed(2);
+            return halfStarValue > 0.25 && halfStarValue <= .75;
         },
 
         getNumEmptyStars: function getNumEmptyStars() {
