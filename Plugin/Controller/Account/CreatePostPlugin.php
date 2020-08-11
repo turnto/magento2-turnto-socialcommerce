@@ -23,19 +23,28 @@ class CreatePostPlugin
     private $messageManager;
 
     /**
+     * @var TurnTo\SocialCommerce\Helper\Config
+     */
+    protected $config;
+
+    /**
      * CreatePostPlugin constructor.
-     * @param \Magento\Customer\Model\Session $customerSession
+     *
+     * @param \Magento\Customer\Model\Session                      $customerSession
      * @param \Magento\Framework\Controller\Result\RedirectFactory $redirectFactory
-     * @param \Magento\Framework\Message\ManagerInterface $messageManager
+     * @param \Magento\Framework\Message\ManagerInterface          $messageManager
+     * @param TurnTo\SocialCommerce\Helper\Config                  $config
      */
     public function __construct(
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Framework\Controller\Result\RedirectFactory $redirectFactory,
-        \Magento\Framework\Message\ManagerInterface $messageManager
+        \Magento\Framework\Message\ManagerInterface $messageManager,
+        \TurnTo\SocialCommerce\Helper\Config $config
     ) {
         $this->customerSession = $customerSession;
         $this->redirectFactory = $redirectFactory;
         $this->messageManager = $messageManager;
+        $this->config = $config;
     }
 
     /**
@@ -48,7 +57,7 @@ class CreatePostPlugin
         //check for error message on account creation
         $collection = $this->messageManager->getMessages(false);
         $resultRedirectUrl = $this->customerSession->getPdpUrl();
-        if (count($collection->getErrors()) > 0 && $resultRedirectUrl) {
+        if (count($collection->getErrors()) > 0 || is_null($resultRedirectUrl) || !$this->config->getSsoEnabled()) {
             return $result;
         }
 
