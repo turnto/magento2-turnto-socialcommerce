@@ -194,8 +194,7 @@ class Orders extends AbstractExport
         $storeId,
         \DateTime $fromDate,
         \DateTime $toDate,
-        $forceIncludeAllItems = false,
-        $transmit = false
+        $forceIncludeAllItems = false
     ) {
         $csvData = null;
         $searchCriteria = $this->getOrdersSearchCriteria($storeId, $fromDate, $toDate);
@@ -226,10 +225,6 @@ class Orders extends AbstractExport
             rewind($outputHandle);
             $csvData = stream_get_contents($outputHandle);
 
-            if ($transmit) {
-                $store = $this->storeManager->getStore($storeId);
-                $this->transmitFeed($csvData, $store);
-            }
         } catch (\Exception $e) {
             $this->logger->error(
                 'An error occurred while processing Historical Orders Feed Cron',
@@ -272,7 +267,7 @@ class Orders extends AbstractExport
      *
      * @throws \Exception
      */
-    protected function transmitFeed($feedData, \Magento\Store\Api\Data\StoreInterface $store)
+    public function transmitFeed($feedData, \Magento\Store\Api\Data\StoreInterface $store)
     {
         $response = null;
 

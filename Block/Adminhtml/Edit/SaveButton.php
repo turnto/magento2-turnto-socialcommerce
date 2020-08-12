@@ -37,8 +37,6 @@ class SaveButton implements \Magento\Framework\View\Element\UiComponent\Control\
      */
     public function getButtonData()
     {
-
-
         $data = [
             'label' => __('Export'),
             'class' => 'save primary',

@@ -19,7 +19,7 @@ namespace TurnTo\SocialCommerce\Controller\Adminhtml\System\HistoricalOrders;
 use TurnTo\SocialCommerce\Model\Export\Orders;
 use Magento\Framework\Controller\ResultFactory;
 
-class Download extends \Magento\Backend\App\Action
+class Export extends \Magento\Backend\App\Action
 {
     /**
      * @var null|\TurnTo\SocialCommerce\Logger\Monolog
@@ -37,6 +37,11 @@ class Download extends \Magento\Backend\App\Action
     protected $ordersModel = null;
 
     /**
+     * @var Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManager = null;
+
+    /**
      * Download constructor.
      *
      * @param \Magento\Backend\App\Action\Context     $context
@@ -48,13 +53,15 @@ class Download extends \Magento\Backend\App\Action
         \Magento\Backend\App\Action\Context $context,
         \TurnTo\SocialCommerce\Model\Export\Orders $ordersModel,
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
-        \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory
+        \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         parent::__construct($context);
 
         $this->ordersModel = $ordersModel;
         $this->logger = $logger;
         $this->dateTimeFactory = $dateTimeFactory;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -77,7 +84,9 @@ class Download extends \Magento\Backend\App\Action
             ->sub(new \DateInterval('PT1S'));
 
         try {
-            $feedData = $this->ordersModel->getOrdersFeed($storeId, $fromDate, $toDate, true, true);
+            $feedData = $this->ordersModel->getOrdersFeed($storeId, $fromDate, $toDate, true);
+            $store = $this->storeManager->getStore($storeId);
+            $this->ordersModel->transmitFeed($feedData, $store);
             $this->messageManager->addSuccessMessage('Orders exported successfully.');
         } catch (\Exception $e) {
             $this->messageManager->addErrorMessage('There was an issue processing your request. Please try again later.');
