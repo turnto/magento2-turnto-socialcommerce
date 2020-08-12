@@ -49,13 +49,22 @@ define([
                 jQuery.each(product_id_index, function (product_id, attributes) {
                     var productIsSelected = function (attributes, selected_options) {
                         return _.isEqual(attributes, selected_options);
-                    }
+                    };
                     if (productIsSelected(attributes, selected_options)) {
-                        TurnToCmd('set', {"sku": self.options.jsonConfig.childSkuMap[product_id]});
+                        // Update the TurnTo SKU
+                        let sku_value = self.options.jsonConfig.childSkuMap[product_id];
+                        TurnToCmd('set', {"sku": sku_value});
+                        // Update Top Comment Widget
+                        let comments = document.getElementsByClassName('tt-top-comment')[0];
+                        comments.setAttribute('data-ttsku',sku_value);
+                        comments.setAttribute("data-ttprocessed", "");
+                        TurnToCmd('topComments.process');
                         //break out of the loop
                         return false;
                     }
                 });
+
+
             },
         });
 

@@ -233,7 +233,7 @@ class CanceledOrders extends Orders
      *
      * @throws \Exception
      */
-    protected function transmitFeed($feedData, \Magento\Store\Api\Data\StoreInterface $store)
+    public function transmitFeed($feedData, \Magento\Store\Api\Data\StoreInterface $store)
     {
         $response = null;
 
