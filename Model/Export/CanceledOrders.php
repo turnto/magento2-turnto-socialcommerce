@@ -22,6 +22,7 @@ use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Filesystem\Io\File;
 use Magento\Framework\Intl\DateTimeFactory;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Api\ShipmentRepositoryInterface;
@@ -60,6 +61,7 @@ class CanceledOrders extends Orders
      * @param Product                     $productHelper
      * @param DirectoryList               $directoryList
      * @param TurnToProductHelper         $turnToProductHelper
+     * @param File                        $fileSystem
      * @param OrderCollectionFactoryAlias $orderCollectionFactory
      */
     public function __construct(
@@ -78,6 +80,7 @@ class CanceledOrders extends Orders
         Product $productHelper,
         DirectoryList $directoryList,
         TurnToProductHelper $turnToProductHelper,
+        File $fileSystem,
         OrderCollectionFactoryAlias $orderCollectionFactory
     ) {
         parent::__construct(
@@ -95,7 +98,8 @@ class CanceledOrders extends Orders
             $productRepository,
             $productHelper,
             $directoryList,
-            $turnToProductHelper
+            $turnToProductHelper,
+            $fileSystem
         );
         $this->orderCollectionFactory = $orderCollectionFactory;
     }
@@ -118,6 +122,8 @@ class CanceledOrders extends Orders
         $canceledOrders = $this->getCanceledOrders($storeId, $fromDate, $toDate);
 
         try {
+            $this->fileSystem->checkAndCreateFolder($this->directoryList->getPath(DirectoryList::TMP));
+
             $outputFile = $this->directoryList->getPath(DirectoryList::TMP) . '/' . self::CANCELED_FEED_NAME;
             $outputHandle = fopen($outputFile, 'w+');
             fputcsv(
