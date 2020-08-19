@@ -40,9 +40,9 @@ This repository contains a Magento 2 extension that connects Magento 2 with Turn
 It is imperative that you add you your TurnTo site key and auth key. TurnTo Site keys allow the Magento extension to connect to your TurnTo account.
 You can find your Site Key and Auth Key in the [TurnTo portal](https://www.turnto.com/secure/login/auth) or by contacting your TurnTo Customer Success team.
 
-After installing the extension, login to the backend and configure the extension in **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration**. Here is a screenshot of the extension as of version 1.0.3 (click to zoom):
+After installing the extension, login to the backend and configure the extension in **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration**. Here is a screenshot of the extension as of version 3.2.2 (click to zoom):
 
-[<img alt="Magento 2 configuration page" src="README/turnto_socialcommerce_configuration.png" height="300"/>](https://raw.githubusercontent.com/turnto/magento2-turnto-socialcommerce/develop/README/turnto_socialcommerce_configuration.png)
+[<img alt="Magento 2 configuration page" src="https://user-images.githubusercontent.com/62255733/89666214-cfb62d80-d88e-11ea-807a-7d4e11e10eac.png" height="300"/>](https://user-images.githubusercontent.com/62255733/89666214-cfb62d80-d88e-11ea-807a-7d4e11e10eac.png)
 
 ## CRON Configuration
 

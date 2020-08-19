@@ -14,7 +14,7 @@ namespace TurnTo\SocialCommerce\Block;
 
 use TurnTo\SocialCommerce\Helper\Product;
 
-class CheckoutComments extends \Magento\Framework\View\Element\Template
+class JSOrderFeed extends \Magento\Framework\View\Element\Template
 {
     /**
      * @var \TurnTo\SocialCommerce\Helper\Config

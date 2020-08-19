@@ -54,7 +54,7 @@ class ExportCatalog extends Field
      */
     public function getAjaxUrl()
     {
-        return $this->getUrl('turnto_socialcommerce/system_exportcatalog/export');
+        return $this->getUrl('turnto/system_exportcatalog/export');
     }
 
     /**
@@ -76,4 +76,3 @@ class ExportCatalog extends Field
         return $button->toHtml();
     }
 }
-?>

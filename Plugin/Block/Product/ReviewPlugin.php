@@ -22,6 +22,12 @@ class ReviewPlugin
         $this->config = $config;
     }
 
+    /**
+     * @param \Magento\Review\Block\Product\Review $subject
+     * @param callable                             $proceed
+     *
+     * @return string
+     */
     public function aroundGetTemplate(\Magento\Review\Block\Product\Review $subject, callable $proceed)
     {
         if (!$this->config->getIsEnabled() || !$this->config->getReviewsEnabled()) {
@@ -29,5 +35,19 @@ class ReviewPlugin
         }
 
         return 'TurnTo_SocialCommerce::product/view/reviews-tab.phtml';
+    }
+
+    /**
+     * Used to insert the TurnTo review count
+     * rather then the native magento review count
+     *
+     * @param \Magento\Review\Block\Product\Review $subject
+     * @param                                      $result
+     */
+    public function afterSetTabTitle(\Magento\Review\Block\Product\Review $subject, $result)
+    {
+        if ($this->config->getIsEnabled()) {
+            $subject->setTitle(__('Reviews '));
+        }
     }
 }

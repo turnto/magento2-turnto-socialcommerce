@@ -47,9 +47,20 @@ class ConfigurablePlugin
         Configurable $subject,
         $result
     ) {
-        $result = json_decode($result, true);
+
+        $result = json_decode($result,true);
+        $parentProduct =  $this->product->getById($result['productId']);
         $result['useChild'] = (bool)$this->config->getUseChildSku();
-        $result['parentSku'] = $this->product->getById($result['productId'])->getSku();
+        $result['parentSku'] = $parentProduct->getSku();
+
+        $children = $parentProduct->getTypeInstance()->getUsedProducts($parentProduct);
+        if ($children) {
+            $result['childSkuMap'] = [];
+            foreach ($children as $child) {
+                $result['childSkuMap'][$child->getId()] = $child->getSku();
+            }
+        }
+
         return json_encode($result);
     }
 }
