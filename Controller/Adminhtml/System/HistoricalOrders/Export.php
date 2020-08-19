@@ -15,31 +15,12 @@
 
 namespace TurnTo\SocialCommerce\Controller\Adminhtml\System\HistoricalOrders;
 
-use Magento\Framework\App\Filesystem\DirectoryList;
+
 use TurnTo\SocialCommerce\Model\Export\Orders;
+use Magento\Framework\Controller\ResultFactory;
 
-class Download extends \Magento\Backend\App\Action
+class Export extends \Magento\Backend\App\Action
 {
-    /**
-     * Filename used for the client side download file name
-     */
-    const DOWNLOAD_FILENAME = 'historical_orders.tsv';
-    
-    /**
-     * @var \Magento\Framework\Controller\Result\RawFactory|null
-     */
-    protected $resultRawFactory = null;
-
-    /**
-     * @var \Magento\Framework\App\Response\Http\FileFactory|null
-     */
-    protected $fileFactory = null;
-
-    /**
-     * @var DirectoryList|null
-     */
-    protected $directoryList = null;
-
     /**
      * @var null|\TurnTo\SocialCommerce\Logger\Monolog
      */
@@ -56,32 +37,31 @@ class Download extends \Magento\Backend\App\Action
     protected $ordersModel = null;
 
     /**
-     * Get constructor.
-     * @param \Magento\Backend\App\Action\Context $context
-     * @param \Magento\Framework\Controller\Result\RawFactory $resultRawFactory
-     * @param \Magento\Framework\App\Response\Http\FileFactory $fileFactory
-     * @param DirectoryList $directoryList
-     * @param \TurnTo\SocialCommerce\Model\Export\Orders $ordersModel
-     * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
+     * @var Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManager = null;
+
+    /**
+     * Download constructor.
+     *
+     * @param \Magento\Backend\App\Action\Context     $context
+     * @param Orders                                  $ordersModel
+     * @param \TurnTo\SocialCommerce\Logger\Monolog   $logger
      * @param \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory
      */
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
-        \Magento\Framework\Controller\Result\RawFactory $resultRawFactory,
-        \Magento\Framework\App\Response\Http\FileFactory $fileFactory,
-        \Magento\Framework\App\Filesystem\DirectoryList $directoryList,
         \TurnTo\SocialCommerce\Model\Export\Orders $ordersModel,
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
-        \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory
+        \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         parent::__construct($context);
 
-        $this->resultRawFactory = $resultRawFactory;
-        $this->fileFactory = $fileFactory;
-        $this->directoryList = $directoryList;
         $this->ordersModel = $ordersModel;
         $this->logger = $logger;
         $this->dateTimeFactory = $dateTimeFactory;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -103,13 +83,17 @@ class Download extends \Magento\Backend\App\Action
             ->add(new \DateInterval('P1D'))
             ->sub(new \DateInterval('PT1S'));
 
-        $feedData = $this->ordersModel->getOrdersFeed($storeId, $fromDate, $toDate, true);
+        try {
+            $feedData = $this->ordersModel->getOrdersFeed($storeId, $fromDate, $toDate, true);
+            $store = $this->storeManager->getStore($storeId);
+            $this->ordersModel->transmitFeed($feedData, $store);
+            $this->messageManager->addSuccessMessage('Orders exported successfully.');
+        } catch (\Exception $e) {
+            $this->messageManager->addErrorMessage('There was an issue processing your request. Please try again later.');
+            $this->logger->error($e->getMessage());
+        }
 
-        return $this->fileFactory->create(
-            self::DOWNLOAD_FILENAME,
-            $feedData,
-            DirectoryList::TMP,
-            Orders::FEED_MIME
-        );
+        $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
+        return $resultRedirect->setPath('*/*/');
     }
 }

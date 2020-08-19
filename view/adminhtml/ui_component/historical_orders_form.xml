@@ -38,7 +38,7 @@
             <argument name="requestFieldName" xsi:type="string">code</argument>
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
-                    <item name="submit_url" xsi:type="url" path="turnto/system_historicalorders/download" />
+                    <item name="submit_url" xsi:type="url" path="turnto/system_historicalorders/export" />
                 </item>
             </argument>
         </argument>

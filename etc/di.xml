@@ -47,5 +47,8 @@
     <type name="Magento\Customer\Controller\Account\CreatePost">
         <plugin sortOrder="1" name="turnToSocialCommerceCreatePost" type="TurnTo\SocialCommerce\Plugin\Controller\Account\CreatePostPlugin"/>
     </type>
+    <type name="Magento\Review\Block\Product\Review">
+        <plugin sortOrder="1" name="turnToSocialCommerceReview" type="TurnTo\SocialCommerce\Plugin\Block\Product\ReviewPlugin"/>
+    </type>
 </config>
 

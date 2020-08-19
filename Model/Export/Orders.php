@@ -132,7 +132,7 @@ class Orders extends AbstractExport
         ShipmentRepositoryInterface $shipmentsService,
         ProductRepository $productRepository,
         Product $productHelper,
-        DirectoryList $directoryList,
+        DirectoryList $directoryList
         TurnToProductHelper $turnToProductHelper,
         File $fileSystem
     )
@@ -169,12 +169,15 @@ class Orders extends AbstractExport
                 && $this->config->getIsHistoricalOrdersFeedEnabled($store->getCode())
             ) {
                 try {
-                    $feedData = $this->getOrdersFeed(
+                    $this->getOrdersFeed(
                         $store->getId(),
                         $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P2D')),
-                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))
+                        $this->dateTimeFactory->create(
+                            'now',
+                            new \DateTimeZone('UTC'),
+                            true //transmit the data
+                        )
                     );
-                    $this->transmitFeed($feedData, $store);
                 } catch (\Exception $e) {
                     $this->logger->error(
                         'An error occurred while processing Historical Orders Feed Cron',
@@ -196,8 +199,12 @@ class Orders extends AbstractExport
      *
      * @return null|string
      */
-    public function getOrdersFeed($storeId, \DateTime $fromDate, \DateTime $toDate, $forceIncludeAllItems = false)
-    {
+    public function getOrdersFeed(
+        $storeId,
+        \DateTime $fromDate,
+        \DateTime $toDate,
+        $forceIncludeAllItems = false
+    ) {
         $csvData = null;
         $searchCriteria = $this->getOrdersSearchCriteria($storeId, $fromDate, $toDate);
 
@@ -223,11 +230,13 @@ class Orders extends AbstractExport
                     'PRICE',
                     'ITEMIMAGEURL',
                     'DELIVERYDATE'
-                ], "\t"
+                ],
+                "\t"
             );
             $this->writeOrdersFeed($searchCriteria, $outputHandle, $forceIncludeAllItems);
             rewind($outputHandle);
             $csvData = stream_get_contents($outputHandle);
+
         } catch (\Exception $e) {
             $this->logger->error(
                 'An error occurred while processing Historical Orders Feed Cron',
@@ -270,12 +279,12 @@ class Orders extends AbstractExport
      *
      * @throws \Exception
      */
-    protected function transmitFeed($feedData, \Magento\Store\Api\Data\StoreInterface $store)
+    public function transmitFeed($feedData, \Magento\Store\Api\Data\StoreInterface $store)
     {
         $response = null;
 
         try {
-            $zendClient = new \Magento\Framework\HTTP\ZendClient;
+            $zendClient = new \Magento\Framework\HTTP\ZendClient();
             $zendClient
                 ->setUri($this->config
                     ->getFeedUploadAddress($store->getCode()))
@@ -503,8 +512,7 @@ class Orders extends AbstractExport
         \Magento\Catalog\Model\Product $product,
         $lineItemNumber,
         $shipmentDate
-    )
-    {
+    ) {
         $row = [];
 
         $row[] = $order->getIncrementId();
