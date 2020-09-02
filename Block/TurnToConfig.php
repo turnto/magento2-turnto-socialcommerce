@@ -94,7 +94,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
             $additionalConfigData['sso'] = ['userDataFn' => null];
         }
 
-        if ($this->configHelper->getCheckoutCommentsEnabled() ) {
+        if ($this->configHelper->getCommentsPinboardTeaserEnabled() ) {
             $additionalConfigData['commentsPinboardTeaser'] = [];
         }
         if ($this->configHelper->getVisualContentGalleryRowWidget()) {
