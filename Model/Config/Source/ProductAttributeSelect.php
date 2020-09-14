@@ -83,7 +83,7 @@ class ProductAttributeSelect implements \Magento\Framework\Option\ArrayInterface
         // empty search criteria to get all product attributes
         $searchCriteria = $this->searchCriteriaBuilder->create();
         $attributeList = $this->productAttributeRepository->getList($searchCriteria);
-
+        
         foreach ($attributeList->getItems() as $attribute) {
             $attributeCode = $attribute->getAttributeCode();
 
