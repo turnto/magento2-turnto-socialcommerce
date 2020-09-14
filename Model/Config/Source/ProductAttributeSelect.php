@@ -15,6 +15,8 @@
 
 namespace TurnTo\SocialCommerce\Model\Config\Source;
 
+use Magento\Eav\Api\Data\AttributeInterface;
+
 /**
  * Class ProductAttributeSelect
  * @package TurnTo\SocialCommerce\Model\Config\Source
@@ -32,16 +34,37 @@ class ProductAttributeSelect implements \Magento\Framework\Option\ArrayInterface
     protected $productFactory = null;
 
     /**
+     * @var \Magento\Catalog\Model\Product\Attribute\Repository
+     */
+    protected $productAttributeRepository;
+
+    /**
+     * @var \Magento\Framework\Api\FilterBuilder
+     */
+    protected $filterBuilder;
+
+    /**
+     * @var \Magento\Framework\Api\SearchCriteriaBuilder
+     */
+    protected $searchCriteriaBuilder;
+
+    /**
      * ProductAttributeSelect constructor.
      * @param \Magento\Catalog\Model\ProductFactory $productFactory
      * @param \TurnTo\SocialCommerce\Helper\Config $config
      */
     public function __construct(
         \Magento\Catalog\Model\ProductFactory $productFactory,
-        \TurnTo\SocialCommerce\Helper\Config $config
+        \TurnTo\SocialCommerce\Helper\Config $config,
+        \Magento\Catalog\Model\Product\Attribute\Repository $productAttributeRepository,
+        \Magento\Framework\Api\FilterBuilder $filterBuilder,
+        \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
     ) {
         $this->config = $config;
         $this->productFactory = $productFactory;
+        $this->productAttributeRepository = $productAttributeRepository;
+        $this->filterBuilder = $filterBuilder;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
     }
 
     /**
@@ -57,14 +80,18 @@ class ProductAttributeSelect implements \Magento\Framework\Option\ArrayInterface
             ]
         ];
 
-        foreach ($this->productFactory->create()->getAttributes() as $attribute) {
+        // empty search criteria to get all product attributes
+        $searchCriteria = $this->searchCriteriaBuilder->create();
+        $attributeList = $this->productAttributeRepository->getList($searchCriteria);
+
+        foreach ($attributeList->getItems() as $attribute) {
             $attributeCode = $attribute->getAttributeCode();
 
             //Prevents exposing system only attributes to user like (created_at, entity_id, etc)
-            if ($attributeCode != $attribute->getFrontend()->getLabel()) {
+            if ($attributeCode) {
                 $optionArray[] = [
                     'value' => $attributeCode,
-                    'label' => $attribute->getFrontend()->getLocalizedLabel() . " ($attributeCode)"
+                    'label' => $attribute->getDefaultFrontendLabel() . " ($attributeCode)"
                     //not utilizing the translation function as this is already returning the Locale specific variant.
                 ];
             }
