@@ -15,6 +15,7 @@
 
 /** @var \Magento\Catalog\Block\Product\View $block */
 $configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
+$productHelper = $this->helper('TurnTo\SocialCommerce\Helper\Product');
 
 ?>
 <div id="tt-teaser" class="TTteaser" data-bind="scope:'teaser'">
@@ -28,7 +29,7 @@ $configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
                             "component": "TurnTo_SocialCommerce/js/teaser",
                             "config": {
                                 "siteKey": "<?= $configHelper->getSiteKey() ?>",
-                                "teaserSku": "<?= $block->getProduct()->getSku() ?>",
+                                "teaserSku": "<?= $productHelper->turnToSafeEncoding($block->getProduct()->getSku()) ?>",
                                 "reviewsEnabled": "<?= $configHelper->getReviewsEnabled() ? 'true' : 'false' ?>",
                                 "reviewsTeaserEnabled": "<?= $configHelper->getReviewsTeaserEnabled() ? 'true' : 'false' ?>",
                                 "qaEnabled": "<?= $configHelper->getQaEnabled() ? 'true' : 'false' ?>",
