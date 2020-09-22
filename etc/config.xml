@@ -22,7 +22,6 @@
                 <enabled>0</enabled>
                 <image_store_base>http://wac.edgecastcdn.net/001A39/prod</image_store_base>
                 <use_child_sku>0</use_child_sku>
-                <single_sign_on>0</single_sign_on>
             </general>
             <product_attribute_mappings>
                 <upc_attribute></upc_attribute>
@@ -65,7 +64,6 @@
                 <exclude_items_without_delivery_date>0</exclude_items_without_delivery_date>
             </historical_orders_feed>
             <sso>
-                <single_sign_on>0</single_sign_on>
                 <review_msg>We need to know who you are before we post your review. Please login or register to continue.</review_msg>
                 <review_msg_pur_req>To ensure authenticity you may only write reviews for items you've purchased. Please login or register so we can look up your purchases.</review_msg_pur_req>
                 <question_msg>Please login or register to complete your submission and have answers emailed to you.</question_msg>

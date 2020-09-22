@@ -45,8 +45,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const SOCIALCOMMERCE_STATIC_URL = 'turnto_socialcommerce_configuration/product_feed/social_commerce_static_api_url';
 
-    const SOCIALCOMMERCE_SINGLE_SIGN_ON = 'turnto_socialcommerce_configuration/general/single_sign_on';
-
     const WIDGET_URL = 'turnto_socialcommerce_configuration/product_feed/config_api_url';
 
     const TEASER_URL = 'turnto_socialcommerce_configuration/product_feed/teaser_api_url';
@@ -129,7 +127,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * SSO
      */
-    CONST XML_PATH_SOCIALCOMMERCE_SINGLE_SIGN_ON = 'turnto_socialcommerce_configuration/sso/single_sign_on';
 
     CONST XML_PATH_SOCIALCOMMERCE_REVIEW_MSG = 'turnto_socialcommerce_configuration/sso/review_msg';
 
@@ -339,17 +336,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
-    /**
-     * Gets the Enable Single Sign On configuration value
-     *
-     * @param null $store
-     *
-     * @return bool
-     */
-    public function getSingleSignOn($store = null)
-    {
-        return self::SOCIALCOMMERCE_SINGLE_SIGN_ON;
-    }
 
     /**
      * Gets the Static URL configuration value with the protocol removed
@@ -718,18 +704,5 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
-
-    /**
-     * @param null $store
-     * @return bool
-     */
-    public function getSsoEnabled($store = null)
-    {
-        return (bool)$this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_SINGLE_SIGN_ON,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
 
 }
