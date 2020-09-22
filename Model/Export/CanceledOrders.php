@@ -39,11 +39,6 @@ class CanceledOrders extends Orders
     const FEED_STYLE = 'cancelled-order.txt';
 
     /**
-     * @var OrderCollectionFactoryAlias
-     */
-    protected $orderCollectionFactory;
-
-    /**
      * CanceledOrders constructor.
      *
      * @param Config                      $config
@@ -99,9 +94,9 @@ class CanceledOrders extends Orders
             $productHelper,
             $directoryList,
             $turnToProductHelper,
-            $fileSystem
+            $fileSystem,
+            $orderCollectionFactory
         );
-        $this->orderCollectionFactory = $orderCollectionFactory;
     }
 
     /**

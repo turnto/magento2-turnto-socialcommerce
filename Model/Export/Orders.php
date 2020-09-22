@@ -26,6 +26,7 @@ use Magento\Framework\Filesystem\Io\File;
 use Magento\Framework\Intl\DateTimeFactory;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Api\ShipmentRepositoryInterface;
+use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactoryAlias;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\UrlRewrite\Model\UrlFinderInterface;
 use TurnTo\SocialCommerce\Helper\Config;
@@ -37,6 +38,8 @@ class Orders extends AbstractExport
     /**#@+
      * Field Id keys
      */
+    CONST MAIN_TABLE_PREFIX = 'main_table.';
+
     const UPDATED_AT_FIELD_ID = 'updated_at';
 
     const STORE_ID_FIELD_ID = 'store_id';
@@ -100,24 +103,30 @@ class Orders extends AbstractExport
     protected $fileSystem;
 
     /**
+     * @var OrderCollectionFactoryAlias
+     */
+    protected $orderCollection;
+
+    /**
      * Orders constructor.
      *
-     * @param Config $config
-     * @param CollectionFactory $productCollectionFactory
-     * @param Monolog $logger
-     * @param DateTimeFactory $dateTimeFactory
-     * @param SearchCriteriaBuilder $searchCriteriaBuilder
-     * @param FilterBuilder $filterBuilder
-     * @param SortOrderBuilder $sortOrderBuilder
-     * @param UrlFinderInterface $urlFinder
-     * @param StoreManagerInterface $storeManager
-     * @param OrderRepositoryInterface $orderRepositoryInterface
+     * @param Config                      $config
+     * @param CollectionFactory           $productCollectionFactory
+     * @param Monolog                     $logger
+     * @param DateTimeFactory             $dateTimeFactory
+     * @param SearchCriteriaBuilder       $searchCriteriaBuilder
+     * @param FilterBuilder               $filterBuilder
+     * @param SortOrderBuilder            $sortOrderBuilder
+     * @param UrlFinderInterface          $urlFinder
+     * @param StoreManagerInterface       $storeManager
+     * @param OrderRepositoryInterface    $orderRepositoryInterface
      * @param ShipmentRepositoryInterface $shipmentsService
-     * @param ProductRepository $productRepository
-     * @param Product $productHelper
-     * @param DirectoryList $directoryList
-     * @param TurnToProductHelper $turnToProductHelper,
-     * @param File $fileSystem
+     * @param ProductRepository           $productRepository
+     * @param Product                     $productHelper
+     * @param DirectoryList               $directoryList
+     * @param TurnToProductHelper         $turnToProductHelper
+     * @param File                        $fileSystem
+     * @param OrderCollectionFactoryAlias $orderCollection
      */
     public function __construct(
         Config $config,
@@ -135,7 +144,8 @@ class Orders extends AbstractExport
         Product $productHelper,
         DirectoryList $directoryList,
         TurnToProductHelper $turnToProductHelper,
-        File $fileSystem
+        File $fileSystem,
+        OrderCollectionFactoryAlias $orderCollection
     ) {
         parent::__construct(
             $config,
@@ -157,6 +167,7 @@ class Orders extends AbstractExport
         $this->directoryList = $directoryList;
         $this->turnToProductHelper = $turnToProductHelper;
         $this->fileSystem = $fileSystem;
+        $this->orderCollection = $orderCollection;
     }
 
     /**
@@ -169,15 +180,16 @@ class Orders extends AbstractExport
                 && $this->config->getIsHistoricalOrdersFeedEnabled($store->getCode())
             ) {
                 try {
-                    $this->getOrdersFeed(
+                    $orderFeed =$this->getOrdersFeed(
                         $store->getId(),
                         $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P2D')),
                         $this->dateTimeFactory->create(
                             'now',
-                            new \DateTimeZone('UTC'),
-                            true //transmit the data
+                            new \DateTimeZone('UTC')
+
                         )
                     );
+                    $this->transmitFeed($orderFeed,$store);
                 } catch (\Exception $e) {
                     $this->logger->error(
                         'An error occurred while processing Historical Orders Feed Cron',
@@ -206,8 +218,6 @@ class Orders extends AbstractExport
         $forceIncludeAllItems = false
     ) {
         $csvData = null;
-        $searchCriteria = $this->getOrdersSearchCriteria($storeId, $fromDate, $toDate);
-
         try {
 	        $this->fileSystem->checkAndCreateFolder($this->directoryList->getPath(DirectoryList::TMP));
 
@@ -232,7 +242,8 @@ class Orders extends AbstractExport
                 ],
                 "\t"
             );
-            $this->writeOrdersFeed($searchCriteria, $outputHandle, $forceIncludeAllItems);
+            $orderFeed = $this->getOrders($storeId, $fromDate, $toDate);
+            $this->writeOrdersFeed($orderFeed, $outputHandle, $forceIncludeAllItems);
             rewind($outputHandle);
             $csvData = stream_get_contents($outputHandle);
 
@@ -251,25 +262,6 @@ class Orders extends AbstractExport
         }
 
         return $csvData;
-    }
-
-    /**
-     * @param           $storeId
-     * @param \DateTime $fromDate
-     * @param \DateTime $toDate
-     *
-     * @return \Magento\Framework\Api\SearchCriteria
-     */
-    public function getOrdersSearchCriteria($storeId, \DateTime $fromDate, \DateTime $toDate)
-    {
-        return $this->getSearchCriteria(
-            $this->getSortOrder(self::UPDATED_AT_FIELD_ID),
-            [
-                $this->getFilter(self::STORE_ID_FIELD_ID, $storeId, 'eq'),
-                $this->getFilter(self::UPDATED_AT_FIELD_ID, $fromDate->format(DATE_ATOM), 'gteq'),
-                $this->getFilter(self::UPDATED_AT_FIELD_ID, $toDate->format(DATE_ATOM), 'lteq')
-            ]
-        );
     }
 
     /**
@@ -326,10 +318,8 @@ class Orders extends AbstractExport
      * @param                                       $outputHandle
      * @param bool $forceIncludeAllItems
      */
-    public function writeOrdersFeed(\Magento\Framework\Api\SearchCriteria $searchCriteria, $outputHandle, $forceIncludeAllItems)
+    public function writeOrdersFeed($orderList, $outputHandle, $forceIncludeAllItems)
     {
-        $orderList = $this->orderService->getList($searchCriteria);
-
         $pageLimit = $orderList->getLastPageNumber();
         $pageSize = $orderList->getPageSize();
         for ($i = 1; $i <= $pageLimit; $i++) {
@@ -548,5 +538,33 @@ class Orders extends AbstractExport
         }
 
         return $postCode;
+    }
+
+    protected function getOrders($storeId, $fromDate, $toDate){
+        $orderList = $this->orderCollection->create();
+
+        $select = $orderList->getSelect();
+        $select->joinLeft(
+            ["shipment" => "sales_shipment"],
+            'main_table.entity_id = shipment.order_id',
+            []
+        )->joinLeft(
+            ["shipment_track" => "sales_shipment_track"],
+            'shipment.entity_id = shipment_track.parent_id',
+            ['ship_updated_at' => 'shipment_track.updated_at']
+        );
+
+        $orderList->addFieldToFilter(self::MAIN_TABLE_PREFIX . self::STORE_ID_FIELD_ID, ['eq' => $storeId]);
+        $orderList->addFieldToFilter(
+            [self::MAIN_TABLE_PREFIX . self::UPDATED_AT_FIELD_ID, 'shipment_track.updated_at'], [
+                ['gteq' => $fromDate->format(DATE_ATOM)],
+                ['gteq' => $fromDate->format(DATE_ATOM)]
+            ]
+        );
+        $orderList->addFieldToFilter(
+            self::MAIN_TABLE_PREFIX . self::UPDATED_AT_FIELD_ID,
+            ['lteq' => $toDate->format(DATE_ATOM)]
+        );
+        return $orderList;
     }
 }

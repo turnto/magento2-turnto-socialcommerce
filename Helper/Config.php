@@ -113,6 +113,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     const XML_PATH_SOCIALCOMMERCE_ENABLE_CHECKOUT_COMMENTS = 'turnto_socialcommerce_configuration/checkout_comments/enable_checkout_comments';
 
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_PINBOARD_TEASER = 'turnto_socialcommerce_configuration/checkout_comments/enable_comments_pinboard_teaser';
+
     const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_PDP = 'turnto_socialcommerce_configuration/checkout_comments/enable_comments_pdp';
 
     const XML_PATH_SOCIALCOMMERCE_ENABLE_TOP_COMMENTS = 'turnto_socialcommerce_configuration/checkout_comments/enable_top_comments';
@@ -566,6 +568,20 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return (bool)$this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_CHECKOUT_COMMENTS,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * Gets the Checkout Comments Pinboard Teaser Enabled configuration value
+     * @param null $store
+     * @return bool
+     */
+    public function getCommentsPinboardTeaserEnabled($store = null)
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_PINBOARD_TEASER,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );
