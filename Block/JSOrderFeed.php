@@ -71,6 +71,9 @@ class JSOrderFeed extends \Magento\Framework\View\Element\Template
         $firstName = $order->getCustomerFirstname();
         $lastName = $order->getCustomerLastname();
 
+        // Determine which store the order was made from
+        $storeId = $order->getStoreId();
+
         if (null === $order->getCustomer()) {
             $address = $order->getShippingAddress();
 
@@ -87,6 +90,7 @@ class JSOrderFeed extends \Magento\Framework\View\Element\Template
         /** @var \Magento\Sales\Model\Order\Item $item */
         foreach ($order->getAllVisibleItems() as $item) {
             $product = $item->getProduct();
+            $product->setStoreId($storeId);
 
             if ($product === null) {
                 continue;
