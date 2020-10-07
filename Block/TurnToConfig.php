@@ -91,7 +91,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
             $additionalConfigData['qa'] = [];
         }
 
-        if ($this->configHelper->getCheckoutCommentsEnabled() ) {
+        if ($this->configHelper->getCommentsPinbaordTeaserEnabled() ) {
             $additionalConfigData['commentsPinboardTeaser'] = [];
         }
         if ($this->configHelper->getVisualContentGalleryRowWidget()) {
