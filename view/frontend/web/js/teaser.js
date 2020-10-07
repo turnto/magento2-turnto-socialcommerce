@@ -61,7 +61,7 @@ define([
 
         getNumFullStars: function getFullStars() {
             //if the reviews are 4.8 or above return 5 else return the reviews
-            return (this.reviewsData().avgRating >= 4.75) ? 5 : Math.floor(this.reviewsData().avgRating);
+            return (this.reviewsData().avgRating >= 4.75) ? 5 : Math.round(this.reviewsData().avgRating);
         },
 
         hasHalfStar: function hasHalfStar() {
