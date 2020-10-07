@@ -565,6 +565,8 @@ class Orders extends AbstractExport
             self::MAIN_TABLE_PREFIX . self::UPDATED_AT_FIELD_ID,
             ['lteq' => $toDate->format(DATE_ATOM)]
         );
+        $orderList->getSelect()->group('main_table.entity_id');
+
         return $orderList;
     }
 }
