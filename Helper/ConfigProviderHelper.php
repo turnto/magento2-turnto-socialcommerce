@@ -38,6 +38,10 @@ class ConfigProviderHelper
      */
     public function getSingleSignOnConfig()
     {
+        if (!$this->configHelper->getSingleSignOn()) {
+            return [];
+        }
+
         return [
             'registration' => [
                 'localGetLoginStatusFunction' => new \Zend_Json_Expr('localGetLoginStatusFunction'),

@@ -525,6 +525,7 @@ class Catalog extends AbstractExport
      * @param \Magento\Store\Api\Data\StoreInterface $store
      * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
      */
+
     public function getProducts(\Magento\Store\Api\Data\StoreInterface $store, $page = null, $pageCount = 10000)
     {
 
