@@ -318,20 +318,18 @@ class Orders extends AbstractExport
      * @param                                       $outputHandle
      * @param bool $forceIncludeAllItems
      */
-    public function writeOrdersFeed($orderList, $outputHandle, $forceIncludeAllItems)
+    public function writeOrdersFeed($orderList, $outputHandle, $forceIncludeAllItems, $pageSize = 5000)
     {
+        $orderList->setPageSize($pageSize);
         $pageLimit = $orderList->getLastPageNumber();
-        $pageSize = $orderList->getPageSize();
-        for ($i = 1; $i <= $pageLimit; $i++) {
-            $paginatedCollection = clone $orderList;
-            $paginatedCollection->clear();
-            $paginatedCollection->setPageSize($pageSize)->setCurPage($i);
-            $paginatedCollection->load();
+        $page = 1;
 
-            if ($paginatedCollection->count() > 0) {
-                $this->writeOrdersToFeed($outputHandle, $paginatedCollection, $forceIncludeAllItems);
-            }
+        while ($pageLimit < $page){
+            $orders = $orderList->setPage($page,$pageSize);
+            $this->writeOrdersToFeed($outputHandle, $orders, $forceIncludeAllItems);
+            $page++;
         }
+
     }
 
     /**
@@ -410,15 +408,13 @@ class Orders extends AbstractExport
                     $items[$key] = [
                         self::LINE_ITEM_FIELD_ID => $item,
                         self::PRODUCT_FIELD_ID => $this->productRepository->getById($item->getProductId()),
-                        self::SHIP_DATE_FIELD_ID => ''
+                        self::SHIP_DATE_FIELD_ID => $order->getShipCreatedAt()
                     ];
                 }
             } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
                 // Do nothing
             }
         }
-
-        $items = $this->addShipDateToItemData($items, $orderId, $order->getStoreId());
         if (
             !$forceIncludeAllItems
             && $this->config->getExcludeItemsWithoutDeliveryDate($order->getStore()->getCode())
@@ -431,59 +427,6 @@ class Orders extends AbstractExport
         }
 
         return $items;
-    }
-
-    /**
-     * @param $itemData
-     * @param $orderId
-     * @param $storeId
-     *
-     * @return mixed
-     */
-    protected function addShipDateToItemData($itemData, $orderId, $storeId)
-    {
-        $searchCriteria = $this->getShipmentSearchCriteriaForOrder($orderId, $storeId);
-        $shipmentsList = $this->shipmentsService->getList($searchCriteria);
-        $pageLimit = $shipmentsList->getLastPageNumber();
-        $pageSize = $shipmentsList->getPageSize();
-
-        for ($i = 1; $i <= $pageLimit; $i++) {
-            $paginatedCollection = clone $shipmentsList;
-            $paginatedCollection->clear();
-            $paginatedCollection->setPageSize($pageSize)->setCurPage($i);
-            $paginatedCollection->load();
-
-            if ($paginatedCollection->count() > 0) {
-                foreach ($paginatedCollection->getItems() as $shipment) {
-                    foreach ($shipment->getItems() as $shipmentItem) {
-                        $itemId = $shipmentItem->getOrderItemId();
-                        $key = "$orderId.$itemId";
-                        if (isset($itemData[$key])) {
-                            $itemData[$key][self::SHIP_DATE_FIELD_ID] = $shipment->getCreatedAt();
-                        }
-                    }
-                }
-            }
-        }
-
-        return $itemData;
-    }
-
-    /**
-     * @param $orderId
-     * @param $storeId
-     *
-     * @return \Magento\Framework\Api\SearchCriteria
-     */
-    public function getShipmentSearchCriteriaForOrder($orderId, $storeId)
-    {
-        return $this->getSearchCriteria(
-            $this->getSortOrder(self::ORDER_ID_FIELD_ID),
-            [
-                $this->getFilter(self::STORE_ID_FIELD_ID, $storeId, 'eq'),
-                $this->getFilter(self::ORDER_ID_FIELD_ID, $orderId, 'eq')
-            ]
-        );
     }
 
     /**
@@ -547,12 +490,13 @@ class Orders extends AbstractExport
         $select->joinLeft(
             ["shipment" => "sales_shipment"],
             'main_table.entity_id = shipment.order_id',
-            []
+            ['ship_created_at'=>'created_at']
         )->joinLeft(
             ["shipment_track" => "sales_shipment_track"],
             'shipment.entity_id = shipment_track.parent_id',
             ['ship_updated_at' => 'shipment_track.updated_at']
         );
+
 
         $orderList->addFieldToFilter(self::MAIN_TABLE_PREFIX . self::STORE_ID_FIELD_ID, ['eq' => $storeId]);
         $orderList->addFieldToFilter(
