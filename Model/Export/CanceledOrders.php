@@ -189,9 +189,9 @@ class CanceledOrders extends Orders
     {
         return $this->orderCollectionFactory->create()
             ->addAttributeToFilter('status', ['eq' => 'canceled'])
-            ->addAttributeToFilter(self::STORE_ID_FIELD_ID, $storeId, 'eq')
-            ->addAttributeToFilter(self::UPDATED_AT_FIELD_ID, $fromDate->format(DATE_ATOM), 'gteq')
-            ->addAttributeToFilter(self::UPDATED_AT_FIELD_ID, $toDate->format(DATE_ATOM), 'lteq');
+            ->addAttributeToFilter(self::STORE_ID_FIELD_ID, ['eq' => $storeId])
+            ->addAttributeToFilter(self::UPDATED_AT_FIELD_ID, ['gteq' => $fromDate->format(DATE_ATOM)])
+            ->addAttributeToFilter(self::UPDATED_AT_FIELD_ID, ['lteq' => $toDate->format(DATE_ATOM)]);
     }
 
     /**
