@@ -105,7 +105,7 @@ class Orders extends AbstractExport
     /**
      * @var OrderCollectionFactoryAlias
      */
-    protected $orderCollection;
+    protected $orderCollectionFactory;
 
     /**
      * Orders constructor.
@@ -167,7 +167,7 @@ class Orders extends AbstractExport
         $this->directoryList = $directoryList;
         $this->turnToProductHelper = $turnToProductHelper;
         $this->fileSystem = $fileSystem;
-        $this->orderCollection = $orderCollection;
+        $this->orderCollectionFactory = $orderCollection;
     }
 
     /**
@@ -541,7 +541,7 @@ class Orders extends AbstractExport
     }
 
     protected function getOrders($storeId, $fromDate, $toDate){
-        $orderList = $this->orderCollection->create();
+        $orderList = $this->orderCollectionFactory->create();
 
         $select = $orderList->getSelect();
         $select->joinLeft(
