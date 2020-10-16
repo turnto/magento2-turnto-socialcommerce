@@ -574,6 +574,8 @@ class Catalog extends AbstractExport
         }
 
         $collection->addStoreFilter($store);
+        // Make sure configurable/parent products are last
+        $collection->setOrder('type_id', \Magento\Framework\DB\Select::SQL_DESC);
 
         return $collection;
     }
