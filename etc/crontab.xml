@@ -17,13 +17,13 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
     <group id="turnto_socialcommerce">
         <job name="socialcommerce_exportcatalog" instance="TurnTo\SocialCommerce\Model\Export\Catalog" method="cronUploadFeed">
-             <schedule>55 16 * * *</schedule>
+             <schedule>0 1 * * *</schedule>
         </job>
         <job name="socialcommerce_exportorders" instance="TurnTo\SocialCommerce\Model\Export\Orders" method="cronUploadFeed">
             <schedule>0 1 * * *</schedule>
         </job>
         <job name="socialcommerce_export_canceled_orders" instance="TurnTo\SocialCommerce\Model\Export\CanceledOrders" method="cronUploadFeed">
-            <schedule>20 16 * * *</schedule>
+            <schedule>0 1 * * *</schedule>
         </job>
         <!-- TurnTo generates the SKU feed at 3AM EST and 11AM EST every day. The import runs every hour and only updates product attributes that have changed. -->
         <job name="socialcommerce_importratings" instance="TurnTo\SocialCommerce\Model\Import\Ratings" method="cronDownloadFeed">
