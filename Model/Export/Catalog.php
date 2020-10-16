@@ -244,7 +244,7 @@ class Catalog extends AbstractExport
                             continue;
                         }
                         // If we've come across a "magic" product, make it the child of the actual parent product
-                        if (str_contains($product->getSku(), "-magic-")) {
+                        if (strpos($product->getSku(), "-magic-") !== false) {
                             $result_sku = "";
                             preg_match('/(\d*)-magic-*/', $product->getSku(), $output_array);
                             if ($output_array[1]) {
