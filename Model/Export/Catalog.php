@@ -13,6 +13,7 @@
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
+use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use TurnTo\SocialCommerce\Helper\Config;
 use TurnTo\SocialCommerce\Helper\Product;
@@ -60,6 +61,11 @@ class Catalog extends AbstractExport
     protected $totalPages;
 
     /**
+     * @var ProductRepositoryInterface
+     */
+    private $productRepository;
+
+    /**
      * Catalog constructor.
      *
      * @param Config                                                             $config
@@ -74,6 +80,7 @@ class Catalog extends AbstractExport
      * @param \Magento\Catalog\Helper\Image                                      $imageHelper
      * @param \Magento\CatalogInventory\Model\Spi\StockRegistryProviderInterface $stockRegistryProvider
      * @param Product                                                            $productHelper
+     * @param ProductRepositoryInterface                                         $productRepository
      */
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
@@ -87,7 +94,8 @@ class Catalog extends AbstractExport
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Catalog\Helper\Image $imageHelper,
         \Magento\CatalogInventory\Model\Spi\StockRegistryProviderInterface $stockRegistryProvider,
-        Product $productHelper
+        Product $productHelper,
+        ProductRepositoryInterface $productRepository
     )
     {
         parent::__construct(
@@ -106,6 +114,7 @@ class Catalog extends AbstractExport
         $this->storeManager = $storeManager;
         $this->stockRegistryProvider = $stockRegistryProvider;
         $this->productHelper = $productHelper;
+        $this->productRepository = $productRepository;
     }
 
     /**
@@ -224,16 +233,41 @@ class Catalog extends AbstractExport
                 // development time, this simpler approach is being taken and if it proves to not scale well, can be
                 // refactored in the future to use a query that loads all child products for all configurable products
                 // at one time.
+
+                // A custom change for Filson due to their non-standard setup - if the product contains "magic" in the
+                // SKU, it should not be used as a parent product. It should be set as a child for the actual parent
+                $actualParents = [];
+
                 if ($this->config->getUseChildSku($store->getId())) {
                     foreach ($products as $product) {
                         if ($product->getTypeId() !== Configurable::TYPE_CODE) {
                             continue;
                         }
+                        // If we've come across a "magic" product, make it the child of the actual parent product
+                        if (str_contains($product->getSku(), "-magic-")) {
+                            $result_sku = "";
+                            preg_match('/(\d*)-magic-*/', $product->getSku(), $output_array);
+                            if ($output_array[1]) {
+                                $result_sku = $output_array[1];
 
-                        $children = $product->getTypeInstance()->getUsedProducts($product);
-                        foreach ($children as $child) {
-                            $childProducts[$child->getSku()] = $product;
+                                // To avoid fetching it more than we need, check if we've fetched the actual parent already
+                                if (!isset($actualParents[$result_sku])) {
+                                    $actualParent = $this->productRepository->get($result_sku);
+                                    $actualParents[$result_sku] = $actualParent;
+                                } else {
+                                    $actualParent = $actualParents[$result_sku];
+                                }
+
+                                // Set the "magic" product as the child of its parent
+                                $childProducts[$product->getSku()] = $actualParent;
+                            }
+                        } else {
+                            $children = $product->getTypeInstance()->getUsedProducts($product);
+                            foreach ($children as $child) {
+                                $childProducts[$child->getSku()] = $product;
+                            }
                         }
+
                     }
                 }
 
