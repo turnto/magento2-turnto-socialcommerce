@@ -41,7 +41,15 @@
             </parameter>
             <parameter name="skus" xsi:type="text" required="false" visible="true" sort_order="40">
                 <label>Filter by SKUs</label>
-                <description>Pinboard will filter products by the SKUs provided in this field. Separate SKUs by commmas. e.g. "CATEGORY1, SKU1, SKU2"</description>
+                <description>Pinboard will filter products by the SKUs provided in this field. Separate SKUs by commmas. e.g. "SKU1, SKU2"</description>
+            </parameter>
+            <parameter name="brands" xsi:type="text" required="false" visible="true" sort_order="40">
+                <label>Filter by Brands</label>
+                <description>Pinboard will filter products by the Brands provided in this field. Separate Brands by commmas. e.g. "BRAND1, BRAND2"</description>
+            </parameter>
+            <parameter name="tags" xsi:type="text" required="false" visible="true" sort_order="40">
+                <label>Filter by Tags</label>
+                <description>Pinboard will filter products by the Tags provided in this field. Separate Tags by commmas. e.g. "TAG1, TAG2"</description>
             </parameter>
         </parameters>
     </widget>
