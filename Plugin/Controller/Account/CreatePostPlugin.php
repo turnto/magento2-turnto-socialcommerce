@@ -57,7 +57,7 @@ class CreatePostPlugin
         //check for error message on account creation
         $collection = $this->messageManager->getMessages(false);
         $resultRedirectUrl = $this->customerSession->getPdpUrl();
-        if (count($collection->getErrors()) > 0 || is_null($resultRedirectUrl) || !$this->config->getSsoEnabled()) {
+        if (count($collection->getErrors()) > 0 || is_null($resultRedirectUrl)) {
             return $result;
         }
 
