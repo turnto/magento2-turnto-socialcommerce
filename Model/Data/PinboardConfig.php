@@ -25,6 +25,16 @@ class PinboardConfig implements TurnToConfigDataSourceInterface
     protected $pinboardBlock;
 
     /**
+     * Used to fetch the proper page ID based on the pinboard type
+     *
+     * @var array
+     */
+    protected $pageIdTranslation = [
+      'vcPinboard' => 'vc-pinboard-page',
+      'commentsPinboard' => 'comments-pinboard-page'
+    ];
+
+    /**
      * @param TurnToConfigHelper $configHelper
      * @param PinboardBlock      $pinboardBlock
      */
@@ -46,13 +56,22 @@ class PinboardConfig implements TurnToConfigDataSourceInterface
             $pinboardType = $this->pinboardBlock->getContentType();
             $config = [];
 
-            if ($pinboardType === 'vcPinboard') {
-                $config['pageId'] = 'vc-pinboard-page';
-                $config['vcPinboard']= $this->pinboardBlock->getProductSkus() ? ['skus' => $this->pinboardBlock->getProductSkus()] : new \stdClass();
-            } else {
-                $config['pageId'] = 'comments-pinboard-page';
-                $config['commentsPinboard'] = $this->pinboardBlock->getProductSkus() ? ['skus' => $this->pinboardBlock->getProductSkus()] : new \stdClass();
+            // Set 'skus', 'tags', 'brands' config options if they exist in the pinboard widget
+            $pinboardConfig = [];
+
+            if ($skus = $this->pinboardBlock->getProductSkus()) {
+                $pinboardConfig['skus'] = $skus;
             }
+            if ($brands = $this->pinboardBlock->getProductBrands()) {
+                $pinboardConfig['brands'] = $brands;
+            }
+            if ($tags = $this->pinboardBlock->getProductTags()) {
+                $pinboardConfig['tags'] = $tags;
+            }
+            $config[$pinboardType] = $pinboardConfig;
+
+            // set pageId in config
+            $config['pageId'] = $this->pageIdTranslation[$pinboardType];
 
             return $config;
         } catch (LocalizedException $localizedException) {
