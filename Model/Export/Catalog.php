@@ -494,7 +494,6 @@ class Catalog extends AbstractExport
                while($feed=$this->generateProductFeed($store,$page)){
                    $this->transmitFeed($feed, $store,$page);
                    $page++;
-
                }
             }
         }
@@ -510,11 +509,7 @@ class Catalog extends AbstractExport
      */
     public function getItemGroupId($product, $parent)
     {
-        if ($parent) {
-            return $parent->getSku();
-        } else {
-            return $product->getSku();
-        }
+        $product->getCustomAttribute('style_group')->getValue();
     }
 
 
