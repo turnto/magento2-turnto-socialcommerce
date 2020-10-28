@@ -60,8 +60,11 @@ define([
         },
 
         getNumFullStars: function getFullStars() {
-            //if the reviews are 4.8 or above return 5 else return the reviews
-            return (this.reviewsData().avgRating >= 4.75) ? 5 : Math.round(this.reviewsData().avgRating);
+            // this ends up being oddly complicated because we essentially want to do rounding, but also round to the
+            //    nearest half
+            return (this.reviewsData().avgRating - Math.floor(this.reviewsData().avgRating).toFixed(2)) >= 0.75 ?
+                Math.round(this.reviewsData().avgRating) :
+                Math.floor(this.reviewsData().avgRating);
         },
 
         hasHalfStar: function hasHalfStar() {
