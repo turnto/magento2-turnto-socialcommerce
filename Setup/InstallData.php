@@ -72,6 +72,11 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
     protected $storeManager = null;
 
     /**
+     * @var \Magento\Framework\App\Config\Storage\WriterInterface
+     */
+    protected $configWriter;
+
+    /**
      * InstallData constructor.
      *
      * @param \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory
@@ -81,11 +86,13 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
     public function __construct(
         \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory,
         \Psr\Log\LoggerInterface $logger,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Framework\App\Config\Storage\WriterInterface $configWriter
     ) {
         $this->eavSetupFactory = $eavSetupFactory;
         $this->logger = $logger;
         $this->storeManager = $storeManager;
+        $this->configWriter = $configWriter;
     }
 
     /**
@@ -131,7 +138,7 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
                 'star_rating_5' => 0
             ]
         ];
-        
+
         $eavSetup->addAttribute(
             Product::ENTITY,
             self::REVIEW_COUNT_ATTRIBUTE_CODE,
@@ -188,6 +195,9 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
                     'note' => 'Do not edit, this value is replaced nightly.'
                 ]
             );
+
+       // use turnto's remote teaser code rather then local code for new installs
+        $this->configWriter->save('turnto_socialcommerce_configuration/teaser/use_local_teaser_code', 0);
 
         $setup->endSetup();
     }

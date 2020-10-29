@@ -42,6 +42,9 @@
                 <enable_qa_teaser>1</enable_qa_teaser>
                 <setup_type>dynamicEmbed</setup_type>
             </qa>
+            <teaser>
+                <use_local_teaser_code>1</use_local_teaser_code>
+            </teaser>
             <reviews>
                 <enable_reviews>1</enable_reviews>
                 <enable_reviews_teaser>1</enable_reviews_teaser>
