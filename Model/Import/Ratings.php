@@ -37,6 +37,11 @@ class Ratings extends AbstractImport
     /**#@-*/
 
     /**
+     * @var \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory
+     */
+    protected $productCollectionFactory;
+
+    /**
      * @param \TurnTo\SocialCommerce\Helper\Config                 $config
      * @param \TurnTo\SocialCommerce\Logger\Monolog                $logger
      * @param \Magento\Catalog\Model\ProductFactory                $productFactory
@@ -50,11 +55,13 @@ class Ratings extends AbstractImport
         \Magento\Catalog\Model\ProductFactory $productFactory,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Catalog\Model\Indexer\Product\Eav\Processor $productEavIndexProcessor,
+        \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
         Product $productHelper
     )
     {
         parent::__construct($config, $logger, $productFactory, $storeManager, $productEavIndexProcessor);
 
+        $this->productCollectionFactory = $productCollectionFactory;
         $this->productHelper = $productHelper;
     }
 
@@ -119,11 +126,17 @@ class Ratings extends AbstractImport
         $product->getResource()->saveAttribute($product, InstallData::REVIEW_COUNT_ATTRIBUTE_CODE);
         $product->setData(InstallData::RATING_ATTRIBUTE_CODE, $averageRating);
         $product->getResource()->saveAttribute($product, InstallData::RATING_ATTRIBUTE_CODE);
+
+        // Set "3 stars and above" tags
         $filterValues = [];
-        foreach ($this->getRatingFilterAttributeValuesFromAverage($averageRating) as $optionText) {
-            $filterValues[] = $product->getResource()->getAttribute(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE)->getSource()->getOptionId($optionText);
+        if ($averageRating == 0) {
+            $product->setData(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE, "0");
+        } else {
+            foreach ($this->getRatingFilterAttributeValuesFromAverage($averageRating) as $optionText) {
+                $filterValues[] = $product->getResource()->getAttribute(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE)->getSource()->getOptionId($optionText);
+            }
+            $product->setData(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE, implode(',', $filterValues));
         }
-        $product->setData(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE, implode(',', $filterValues));
         $product->getResource()->saveAttribute($product, InstallData::AVERAGE_RATING_ATTRIBUTE_CODE);
 
         // Ensure product gets reindexed
@@ -156,14 +169,21 @@ class Ratings extends AbstractImport
     public function cronDownloadFeed()
     {
         try {
+            // Use this to record all products found in the feed. Later, we'll reset all products' Avg Rating/Review Count
+            //    if it _isn't_ found in the feed
+            $feedProducts = [];
             foreach ($this->storeManager->getStores() as $store) {
                 $feedAddress = 'UNK';
                 if (!$this->config->getIsEnabled($store->getCode()) || !$this->config->getReviewsEnabled($store->getCode())) {
                     continue;
                 }
+                // Create an array for reach store
+                $feedProducts[$store->getId()] = [];
+
                 try {
                     $feedAddress = $this->getAggregateRatingsFeedAddress($store);
                     $xmlFeed = simplexml_load_file($feedAddress);
+                    // Take each product in the feed and update it's info
                     foreach ($xmlFeed->products->product as $turnToProduct) {
                         try {
                             if (!isset($turnToProduct[self::TURNTO_FEED_KEY_SKU])
@@ -181,6 +201,9 @@ class Ratings extends AbstractImport
                             if (empty($sku)) {
                                 continue;
                             }
+
+                            // Save a record of the product
+                            $feedProducts[$store->getId()][$sku] = true;
 
                             $reviewCount = (int)$turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT];
                             if ($reviewCount > 0) {
@@ -214,6 +237,9 @@ class Ratings extends AbstractImport
                     );
                 }
             }
+
+            // Now reset all products not in the feed
+            $this->resetProducts($feedProducts);
         } catch (\Exception $exception) {
             $this->logger->error(
                 'Failed to download feed',
@@ -221,6 +247,50 @@ class Ratings extends AbstractImport
                     'exception' => $exception
                 ]
             );
+        }
+    }
+
+    /**
+     * After updating ratings/review counts, we want to reset any products that might have had reviews removed
+     *
+     * @param $feedProducts
+     */
+    private function resetProducts($feedProducts) {
+
+        // Go through each store and get all products with an average rating/review count
+        foreach ($this->storeManager->getStores() as $store) {
+
+            $collection = $this->productCollectionFactory->create()
+                ->addAttributeToSelect('id')
+                ->addAttributeToSelect('name')
+                ->addAttributeToSelect('sku')
+                ->addAttributeToSelect('url_path')
+                ->addAttributeToSelect('url_key')
+                ->addAttributeToSelect('url_in_store')
+                ->addAttributeToSelect('image')
+                ->addAttributeToSelect('quantity_and_stock_status')
+                ->addAttributeToSelect('price')
+                ->addAttributeToSelect('status')
+                ->addAttributeToFilter(
+                    [
+                        [
+                            'attribute' => \TurnTo\SocialCommerce\Setup\InstallData::AVERAGE_RATING_ATTRIBUTE_CODE,
+                            'notnull' => true
+                        ],
+                        [
+                            'attribute' => \TurnTo\SocialCommerce\Setup\InstallData::REVIEW_COUNT_ATTRIBUTE_CODE,
+                            'notnull' => true
+                        ],
+                    ]
+                );
+            $collection->addStoreFilter($store);
+
+            // Loop over products and reset data if not found in $feedProducts
+            foreach ($collection as $item) {
+                if (!isset($feedProducts[$store->getId()][$item->getSku()])) {
+                    $this->updateProduct($store, $item->getSku(), 0, 0);
+                }
+            }
         }
     }
 }
