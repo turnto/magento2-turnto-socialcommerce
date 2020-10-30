@@ -15,7 +15,7 @@
 
 namespace TurnTo\SocialCommerce\Plugin\Catalog\Model\Layer\Filter\Item;
 
-use TurnTo\SocialCommerce\Setup\InstallData;
+use TurnTo\SocialCommerce\Setup\InstallHelper;
 use TurnTo\SocialCommerce\Plugin\Review\Block\Product\ReviewRenderer;
 
 class DataBuilder
@@ -47,7 +47,7 @@ class DataBuilder
      */
     protected function getRatingLabel($label)
     {
-        $idx = array_search($label, InstallData::RATING_FILTER_VALUES);
+        $idx = array_search($label, InstallHelper::RATING_FILTER_VALUES);
         if ($idx === false) {
             return $label;
         }
