@@ -117,6 +117,16 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
+             <group id="teaser" translate="label" sortOrder="45" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>Teaser</label>
+                <field id="use_local_teaser_code" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>"Use Local Teaser Code" vs "Use Teaser Widget"</label>
+                    <comment><![CDATA[
+                       Do not modify this value unless you have implemented a custom teaser
+                    ]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
             <group id="checkout_comments" translate="label" sortOrder="50" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>JS Order Feed and Checkout Comments</label>
                 <field id="enable_js_order_feed" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">

@@ -33,7 +33,7 @@
         <!-- Review Teaser Content -->
         <referenceBlock name="product.info.review">
             <action method="setTemplate">
-                <argument name="template" xsi:type="string">TurnTo_SocialCommerce::product/view/teaser.phtml</argument>
+                <argument name="template" xsi:type="string">TurnTo_SocialCommerce::product/view/default-teaser.phtml</argument>
             </action>
         </referenceBlock>
 

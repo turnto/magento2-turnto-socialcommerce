@@ -1,0 +1,15 @@
+<?php
+/** @var \Magento\Catalog\Block\Product\View $block */
+$configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
+$productHelper = $this->helper('TurnTo\SocialCommerce\Helper\Product');
+
+?>
+
+<?php if( $configHelper->getUseLocalTeaserCode() ): ?>
+    <!--    using the local teaser code-->
+   <?php  include($block->getTemplateFile('TurnTo_SocialCommerce::product/view/teaser.phtml')) ?>
+<?php else: ?>
+    <div id="tt-teaser-widget"></div>
+<?php endif; ?>
+
+
