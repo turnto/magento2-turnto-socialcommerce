@@ -47,7 +47,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const WIDGET_URL = 'turnto_socialcommerce_configuration/product_feed/config_api_url';
 
-    const TEASER_URL = 'turnto_socialcommerce_configuration/product_feed/teaser_api_url';
+    const REVIEW_URL = 'turnto_socialcommerce_configuration/product_feed/teaser_api_url';
 
 
     const SOCIALCOMMERCE_MOBILE_TITLE_PAGE = 'TurnTo - Social Commerce';
@@ -295,10 +295,10 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return mixed
      */
-    public function getTeaserUrl($scopeCode = null)
+    public function getReviewUrl($scopeCode = null)
     {
         return $this->scopeConfig->getValue(
-            self::TEASER_URL,
+            self::REVIEW_URL,
             ScopeInterface::SCOPE_STORE,
             $scopeCode ?: $this->getCurrentStoreCode()
         );
