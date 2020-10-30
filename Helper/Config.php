@@ -47,7 +47,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const WIDGET_URL = 'turnto_socialcommerce_configuration/product_feed/config_api_url';
 
-    const REVIEW_URL = 'turnto_socialcommerce_configuration/product_feed/teaser_api_url';
+    const REVIEW_URL = 'turnto_socialcommerce_configuration/product_feed/review_api_url';
 
 
     const SOCIALCOMMERCE_MOBILE_TITLE_PAGE = 'TurnTo - Social Commerce';

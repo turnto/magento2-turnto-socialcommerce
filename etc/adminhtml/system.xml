@@ -214,9 +214,9 @@
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
-                <field id="teaser_api_url" translate="label comment" type="text" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Teaser URL</label>
-                    <comment>URL pulled by teaser.js Should not be changed, unless instructed by TurnTo.</comment>
+                <field id="review_api_url" translate="label comment" type="text" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Rwview URL</label>
+                    <comment>URL pulled by teaser.js and reviews-tab.js Should not be changed, unless instructed by TurnTo.</comment>
                     <depends>
                           <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
