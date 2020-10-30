@@ -36,6 +36,8 @@ $productHelper = $this->helper('TurnTo\SocialCommerce\Helper\Product');
                                 "siteKey": "<?= $configHelper->getSiteKey() ?>",
                                 "reviewSku": "<?= $productHelper->turnToSafeEncoding($productHelper->getProductSku()) ?>",
                                 "reviewsEnabled": "<?= $configHelper->getReviewsEnabled() ? 'true' : 'false' ?>",
+                                "reviewsUrl": "<?= $configHelper->getTeaserUrl()?>"
+
                             }
                         }
                     }

@@ -16,6 +16,8 @@ define([
             reviewSku: null,
             reviewsData: {},
             reviewsEnabled: null,
+            reviewsUrl: null
+
         },
         //
         /**
@@ -24,12 +26,13 @@ define([
          * @returns {Component} Chainable.
          */
         initialize: function initialize() {
+            console.log('it')
             this._super();
 
             this.observe(['reviewsData']);
 
             if (this.reviewSku !== null && this.reviewsEnabled === "true") {
-                this.loadTeaserCounts(this.reviewSku);
+                this.loadReviewCount(this.reviewSku);
             }
 
             // Map bridge the tabs widget to something we can manually call
@@ -39,10 +42,10 @@ define([
             return this;
         },
 
-        RatingCounts: function loadTeaserCounts(sku) {
+        loadReviewCount: function loadTeaserCounts(sku) {
             var xhr = new XMLHttpRequest();
 
-            xhr.open('GET', this.teaserUrl + this.siteKey + '/' + sku + '/d/ugc/counts/en_US', true);
+            xhr.open('GET', this.reviewsUrl + this.siteKey + '/' + sku + '/d/ugc/counts/en_US', true);
             xhr.addEventListener('load', function () {
                 if (!xhr.responseText) {
                     return;
