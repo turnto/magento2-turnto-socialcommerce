@@ -73,7 +73,6 @@ define([
 
             return tabIndex;
         },
-
         openTab: function openTab(tabAnchor) {
             jQuery(this.tabsContainer).mage_tabs('activate', this.getTabIndex(tabAnchor));
             this.tabsContainer.scrollIntoView();
@@ -86,6 +85,9 @@ define([
             if( ! /\d/.test(reviewTab.innerHTML)){
                 reviewTab.innerHTML = reviewTab.innerHTML + '<span class="counter">'+ reviewCount +'</span>';
             }
+        },
+        writeReview: function writeReview() {
+            window.TurnToCmd('reviewsList.writeReview');
         }
     });
 });
