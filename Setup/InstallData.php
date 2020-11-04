@@ -33,6 +33,11 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
     protected $storeManager = null;
 
     /**
+     * @var \Magento\Framework\App\Config\Storage\WriterInterface
+     */
+    protected $configWriter;
+
+    /**
      * @var \TurnTo\SocialCommerce\Setup\InstallHelper|null
      */
     protected $installHelper = null;
@@ -49,11 +54,13 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
         \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory,
         \Psr\Log\LoggerInterface $logger,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Framework\App\Config\Storage\WriterInterface $configWriter,
         InstallHelper $installHelper
     ) {
         $this->eavSetupFactory = $eavSetupFactory;
         $this->logger = $logger;
         $this->storeManager = $storeManager;
+        $this->configWriter = $configWriter;
         $this->installHelper = $installHelper;
     }
 
@@ -115,6 +122,9 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
                 'note'      => 'Setting this will disable the product in TurnTo regardless of status in Magento.'
             ]
         );
+
+       // use turnto's remote teaser code rather then local code for new installs
+        $this->configWriter->save('turnto_socialcommerce_configuration/teaser/use_local_teaser_code', 0);
 
         $setup->endSetup();
     }

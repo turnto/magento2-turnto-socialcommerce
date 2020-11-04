@@ -42,6 +42,9 @@
                 <enable_qa_teaser>1</enable_qa_teaser>
                 <setup_type>dynamicEmbed</setup_type>
             </qa>
+            <teaser>
+                <use_local_teaser_code>1</use_local_teaser_code>
+            </teaser>
             <reviews>
                 <enable_reviews>1</enable_reviews>
                 <enable_reviews_teaser>1</enable_reviews_teaser>
@@ -54,7 +57,7 @@
                 <enable_automatic_submission>1</enable_automatic_submission>
                 <product_feed_url>http://static.www.turnto.com/static/export/</product_feed_url>
                 <feed_submission_url>https://www.turnto.com/feedUpload/postfile</feed_submission_url>
-                <teaser_api_url>https://cdn-ws.turnto.com/v5/sitedata/</teaser_api_url>
+                <review_api_url>https://cdn-ws.turnto.com/v5/sitedata/</review_api_url>
                 <config_api_url>https://widgets.turnto.com/</config_api_url>
                 <social_commerce_api_url>http://www.turnto.com</social_commerce_api_url>
                 <social_commerce_static_api_url>http://static.www.turnto.com</social_commerce_static_api_url>

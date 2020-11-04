@@ -47,7 +47,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const WIDGET_URL = 'turnto_socialcommerce_configuration/product_feed/config_api_url';
 
-    const TEASER_URL = 'turnto_socialcommerce_configuration/product_feed/teaser_api_url';
+    const REVIEW_URL = 'turnto_socialcommerce_configuration/product_feed/review_api_url';
 
 
     const SOCIALCOMMERCE_MOBILE_TITLE_PAGE = 'TurnTo - Social Commerce';
@@ -139,6 +139,11 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     CONST XML_PATH_SOCIALCOMMERCE_ANSWER_MSG = 'turnto_socialcommerce_configuration/sso/answer_msg';
 
     CONST XML_PATH_SOCIALCOMMERCE_REPLY_MSG = 'turnto_socialcommerce_configuration/sso/reply_msg';
+
+    /**
+     *  Teaser
+     */
+    CONST XML_PATH_USE_LOCAL_TEASER_CODE= 'turnto_socialcommerce_configuration/teaser/use_local_teaser_code';
 
 
 
@@ -290,10 +295,10 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return mixed
      */
-    public function getTeaserUrl($scopeCode = null)
+    public function getReviewUrl($scopeCode = null)
     {
         return $this->scopeConfig->getValue(
-            self::TEASER_URL,
+            self::REVIEW_URL,
             ScopeInterface::SCOPE_STORE,
             $scopeCode ?: $this->getCurrentStoreCode()
         );
@@ -690,6 +695,20 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
             $store ?: $this->getCurrentStoreCode()
         );
     }
+
+    /**
+     * @param null $store
+     * @return bool
+     */
+    public function getUseLocalTeaserCode($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_USE_LOCAL_TEASER_CODE,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
 
     /**
      * @param null $store
