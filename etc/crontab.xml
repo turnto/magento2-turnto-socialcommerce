@@ -17,7 +17,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
     <group id="turnto_socialcommerce">
         <job name="socialcommerce_exportcatalog" instance="TurnTo\SocialCommerce\Model\Export\Catalog" method="cronUploadFeed">
-             <schedule>02 23 * * *</schedule>
+             <schedule>10 23 * * *</schedule>
         </job>
         <job name="socialcommerce_exportorders" instance="TurnTo\SocialCommerce\Model\Export\Orders" method="cronUploadFeed">
             <schedule>0 1 * * *</schedule>

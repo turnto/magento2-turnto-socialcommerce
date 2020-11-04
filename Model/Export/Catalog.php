@@ -428,7 +428,7 @@ class Catalog extends AbstractExport
 
         if ($product->getSku() == 'WB03-XL-Green' || $product->getSku() == 'MS02-XL-Black' ) {
             $logger->info("TurnTo Disabled Attribute: ". \GuzzleHttp\json_encode($product->getCustomAttribute('turnto_disabled')));
-            $logger->info("TurnTo Disabled Attribute value: ". isnull($product->getCustomAttribute('turnto_disabled')) ? 'nothing' : $product->getCustomAttribute('turnto_disabled')->getValue());
+            $logger->info("TurnTo Disabled Attribute value: ". is_null($product->getCustomAttribute('turnto_disabled')) ? 'nothing' : $product->getCustomAttribute('turnto_disabled')->getValue());
             $logger->info("TurnTo Disabled Attribute Result: ".($product->getCustomAttribute('turnto_disabled') ?
                     $product->getCustomAttribute('turnto_disabled')->getValue():
                     false));
