@@ -26,7 +26,6 @@ define([
          * @returns {Component} Chainable.
          */
         initialize: function initialize() {
-            console.log('it')
             this._super();
 
             this.observe(['reviewsData']);
