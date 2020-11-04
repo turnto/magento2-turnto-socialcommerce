@@ -411,10 +411,32 @@ class Catalog extends AbstractExport
         // Restore the "current store"
         $this->storeManager->setCurrentStore($currentStore);
 
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/templog-newest.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+
+        $logger->info("Start");
+
+
+
+
+
         // Availability is normally determined by status, but can be overridden by custom "turnto_disabled" attribute
         $turntoDisable = $product->getCustomAttribute('turnto_disabled') ?
             $product->getCustomAttribute('turnto_disabled')->getValue():
             false;
+
+        if ($product->getSku() == 'WB03-XL-Green' || $product->getSku() == 'MS02-XL-Black' ) {
+            $logger->info("TurnTo Disabled Attribute: ". \GuzzleHttp\json_encode($product->getCustomAttribute('turnto_disabled')));
+            $logger->info("TurnTo Disabled Attribute value: ".$product->getCustomAttribute('turnto_disabled')->getValue());
+            $logger->info("TurnTo Disabled Attribute Result: ".($product->getCustomAttribute('turnto_disabled') ?
+                    $product->getCustomAttribute('turnto_disabled')->getValue():
+                    false));
+            $logger->info("TurnTo Disabled Attribute Status: ".($product->getStatus() == 1));
+            $logger->info("TurnTo Disabled Attribute Final: ".($turntoDisable ? 'out of stock' :
+                    (($product->getStatus() == 1) ? 'in stock' : 'out of stock')));
+        }
+
         $availability = $turntoDisable ? 'out of stock' :
             (($product->getStatus() == 1) ? 'in stock' : 'out of stock');
 
