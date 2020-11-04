@@ -411,8 +411,14 @@ class Catalog extends AbstractExport
         // Restore the "current store"
         $this->storeManager->setCurrentStore($currentStore);
 
+        // Availability is normally determined by status, but can be overridden by custom "turnto_disabled" attribute
+        $turntoDisable = $product->getCustomAttribute('turnto_disabled') ?
+            $product->getCustomAttribute('turnto_disabled')->getValue():
+            false;
+        $availability = $turntoDisable ? 'out of stock' :
+            (($product->getStatus() == 1) ? 'in stock' : 'out of stock');
 
-        $entry->addChild('g:availability', ($product->getStatus() == 1) ? 'in stock' : 'out of stock');
+        $entry->addChild('g:availability', $availability);
         $entry->addChild('g:image_link', $this->sanitizeData($productImageUrl));
         $entry->addChild('g:condition', 'new');
         $entry->addChild('g:price', $product->getPrice() . ' ' . $store->getBaseCurrencyCode());
@@ -540,6 +546,7 @@ class Catalog extends AbstractExport
             ->addAttributeToSelect('quantity_and_stock_status')
             ->addAttributeToSelect('price')
             ->addAttributeToSelect('status')
+            ->addAttributeToSelect('turnto_disabled')
             ->setPage($page,$pageCount);
 
 

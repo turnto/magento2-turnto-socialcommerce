@@ -16,7 +16,7 @@
 namespace TurnTo\SocialCommerce\Model\Import;
 
 use TurnTo\SocialCommerce\Helper\Product;
-use TurnTo\SocialCommerce\Setup\InstallData;
+use TurnTo\SocialCommerce\Setup\InstallHelper;
 
 class Ratings extends AbstractImport
 {
@@ -104,9 +104,9 @@ class Ratings extends AbstractImport
                 \Magento\Catalog\Model\Product::SKU,
                 $sku,
                 [
-                    InstallData::RATING_ATTRIBUTE_CODE,
-                    InstallData::REVIEW_COUNT_ATTRIBUTE_CODE,
-                    InstallData::AVERAGE_RATING_ATTRIBUTE_CODE
+                    InstallHelper::RATING_ATTRIBUTE_CODE,
+                    InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE,
+                    InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE
                 ]
             );
 
@@ -116,28 +116,28 @@ class Ratings extends AbstractImport
 
         // Only proceed if product needs to be updated
         if (
-            $product->getData(InstallData::REVIEW_COUNT_ATTRIBUTE_CODE) == $reviewCount
-            && $product->getData(InstallData::RATING_ATTRIBUTE_CODE) == $averageRating
+            $product->getData(InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE) == $reviewCount
+            && $product->getData(InstallHelper::RATING_ATTRIBUTE_CODE) == $averageRating
         ) {
             return false;
         }
 
-        $product->setData(InstallData::REVIEW_COUNT_ATTRIBUTE_CODE, $reviewCount);
-        $product->getResource()->saveAttribute($product, InstallData::REVIEW_COUNT_ATTRIBUTE_CODE);
-        $product->setData(InstallData::RATING_ATTRIBUTE_CODE, $averageRating);
-        $product->getResource()->saveAttribute($product, InstallData::RATING_ATTRIBUTE_CODE);
+        $product->setData(InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE, $reviewCount);
+        $product->getResource()->saveAttribute($product, InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE);
+        $product->setData(InstallHelper::RATING_ATTRIBUTE_CODE, $averageRating);
+        $product->getResource()->saveAttribute($product, InstallHelper::RATING_ATTRIBUTE_CODE);
 
         // Set "3 stars and above" tags
         $filterValues = [];
         if ($averageRating == 0) {
-            $product->setData(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE, "0");
+            $product->setData(InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE, "0");
         } else {
             foreach ($this->getRatingFilterAttributeValuesFromAverage($averageRating) as $optionText) {
-                $filterValues[] = $product->getResource()->getAttribute(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE)->getSource()->getOptionId($optionText);
+                $filterValues[] = $product->getResource()->getAttribute(InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE)->getSource()->getOptionId($optionText);
             }
-            $product->setData(InstallData::AVERAGE_RATING_ATTRIBUTE_CODE, implode(',', $filterValues));
+            $product->setData(InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE, implode(',', $filterValues));
         }
-        $product->getResource()->saveAttribute($product, InstallData::AVERAGE_RATING_ATTRIBUTE_CODE);
+        $product->getResource()->saveAttribute($product, InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE);
 
         // Ensure product gets reindexed
         $product->afterSave();
@@ -157,7 +157,7 @@ class Ratings extends AbstractImport
         $floorValue = floor($averageRating);
         $filterValues = [];
         for ($i = 0; $i < $floorValue; $i++) {
-            $filterValues[] = InstallData::RATING_FILTER_VALUES[$i];
+            $filterValues[] = InstallHelper::RATING_FILTER_VALUES[$i];
         }
 
         return $filterValues;
@@ -274,11 +274,11 @@ class Ratings extends AbstractImport
                 ->addAttributeToFilter(
                     [
                         [
-                            'attribute' => \TurnTo\SocialCommerce\Setup\InstallData::AVERAGE_RATING_ATTRIBUTE_CODE,
+                            'attribute' => \TurnTo\SocialCommerce\Setup\InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE,
                             'notnull' => true
                         ],
                         [
-                            'attribute' => \TurnTo\SocialCommerce\Setup\InstallData::REVIEW_COUNT_ATTRIBUTE_CODE,
+                            'attribute' => \TurnTo\SocialCommerce\Setup\InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE,
                             'notnull' => true
                         ],
                     ]
