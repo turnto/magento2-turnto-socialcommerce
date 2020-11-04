@@ -415,19 +415,15 @@ class Catalog extends AbstractExport
         $logger = new \Zend\Log\Logger();
         $logger->addWriter($writer);
 
-        $logger->info("Start");
-
-
-
-
-
         // Availability is normally determined by status, but can be overridden by custom "turnto_disabled" attribute
         $turntoDisable = $product->getCustomAttribute('turnto_disabled') ?
             $product->getCustomAttribute('turnto_disabled')->getValue():
             false;
 
         if ($product->getSku() == 'WB03-XL-Green' || $product->getSku() == 'MS02-XL-Black' ) {
+            $logger->info("SKU: ".$product->getSku());
             $logger->info("TurnTo Disabled Attribute: ". \GuzzleHttp\json_encode($product->getCustomAttribute('turnto_disabled')));
+            $logger->info("TurnTo Disabled Attribute Null?: ". is_null($product->getCustomAttribute('turnto_disabled')));
             $logger->info("TurnTo Disabled Attribute value: ". is_null($product->getCustomAttribute('turnto_disabled')) ? 'nothing' : $product->getCustomAttribute('turnto_disabled')->getValue());
             $logger->info("TurnTo Disabled Attribute Result: ".($product->getCustomAttribute('turnto_disabled') ?
                     $product->getCustomAttribute('turnto_disabled')->getValue():
