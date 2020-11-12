@@ -104,6 +104,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const XML_PATH_SOCIALCOMMERCE_EXCLUDE_ITEMS_WITHOUT_DELIVERY_DATE = 'turnto_socialcommerce_configuration/historical_orders_feed/exclude_items_without_delivery_date';
 
+    const XML_PATH_SOCIALCOMMERCE_EXCLUDE_DELIVERY_DATE_ON_PARTIAL_SHIPMENT = 'turnto_socialcommerce_configuration/historical_orders_feed/exclude_delivery_date_until_all_items_shipped';
+
     const XML_PATH_EXPORT_FEED_URL = 'turnto_socialcommerce_configuration/product_feed/product_feed_url';
 
     const XML_PATH_PRODUCT_GROUP = 'turnto_socialcommerce_configuration/product_attribute_mappings/';
@@ -557,6 +559,20 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_EXCLUDE_ITEMS_WITHOUT_DELIVERY_DATE,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param $store
+     *
+     * @return mixed
+     */
+    public function getExcludeDeliveryDateUntilAllItemsShipped($store)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_EXCLUDE_DELIVERY_DATE_ON_PARTIAL_SHIPMENT,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );

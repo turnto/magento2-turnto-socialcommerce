@@ -338,6 +338,15 @@
                         <field id="turnto_socialcommerce_configuration/historical_orders_feed/enable_historical_feed">1</field>
                     </depends>
                 </field>
+                <field id="exclude_delivery_date_until_all_items_shipped" type="select" translate="label" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Delivery Date on Full Shipment</label>
+                    <comment>Default is "No". If set to "No", Delivery Date will be populated normally. If set to "Yes", Delivery Date will only be populated if all the items in the order have shipped</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/historical_orders_feed/enable_historical_feed">1</field>
+                    </depends>
+                </field>
             </group>
             <group id="sso" translate="label" sortOrder="90" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Single Sign On</label>

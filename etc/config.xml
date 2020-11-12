@@ -65,6 +65,7 @@
             <historical_orders_feed>
                 <enable_historical_feed>1</enable_historical_feed>
                 <exclude_items_without_delivery_date>0</exclude_items_without_delivery_date>
+                <exclude_delivery_date_until_all_items_shipped>0</exclude_delivery_date_until_all_items_shipped>
             </historical_orders_feed>
             <sso>
                 <review_msg>We need to know who you are before we post your review. Please login or register to continue.</review_msg>

@@ -447,6 +447,15 @@ class Orders extends AbstractExport
         $pageLimit = $shipmentsList->getLastPageNumber();
         $pageSize = $shipmentsList->getPageSize();
 
+        // If this setting is on, we only send shipment data if the whole order has shipped
+        $configExcludeDeliveryDateUntilAllItemsShipped = $this->config->getExcludeDeliveryDateUntilAllItemsShipped($storeId);
+        $allItemsShipped = false;
+        if ($configExcludeDeliveryDateUntilAllItemsShipped) {
+            $allItemsShipped = $this->getAllOrdersShipped($orderId);
+        }
+        // TRUE if: "Exclude Delivery Date..." is off, OR if it's on and all items have shipped
+        $includeShipped = ($configExcludeDeliveryDateUntilAllItemsShipped && $allItemsShipped) || !$configExcludeDeliveryDateUntilAllItemsShipped;
+
         for ($i = 1; $i <= $pageLimit; $i++) {
             $paginatedCollection = clone $shipmentsList;
             $paginatedCollection->clear();
@@ -458,7 +467,7 @@ class Orders extends AbstractExport
                     foreach ($shipment->getItems() as $shipmentItem) {
                         $itemId = $shipmentItem->getOrderItemId();
                         $key = "$orderId.$itemId";
-                        if (isset($itemData[$key])) {
+                        if (isset($itemData[$key]) && $includeShipped) {
                             $itemData[$key][self::SHIP_DATE_FIELD_ID] = $shipment->getCreatedAt();
                         }
                     }
@@ -568,5 +577,24 @@ class Orders extends AbstractExport
         $orderList->getSelect()->group('main_table.entity_id');
 
         return $orderList;
+    }
+
+    /**
+     * @param $orderId
+     * @return bool
+     */
+    protected function getAllOrdersShipped($orderId) {
+        $items = $this->orderService->get($orderId)->getItems();
+        $allItemsShipped = true;
+        foreach ($items as $item) {
+            $qtyOrdered = $item->getQtyOrdered();
+            $qtyHandled = $item->getQtyCanceled() + $item->getQtyRefunded() + $item->getQtyReturned() + $item->getQtyShipped();
+            $qtyRemaining = $qtyOrdered - $qtyHandled;
+            if ($qtyRemaining) {
+                $allItemsShipped = false;
+            }
+        }
+
+        return $allItemsShipped;
     }
 }
