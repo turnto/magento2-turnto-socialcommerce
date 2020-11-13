@@ -84,9 +84,6 @@ define([
             if( ! /\d/.test(reviewTab.innerHTML)){
                 reviewTab.innerHTML = reviewTab.innerHTML + '<span class="counter">'+ reviewCount +'</span>';
             }
-        },
-        writeReview: function writeReview() {
-            window.TurnToCmd('reviewsList.writeReview');
         }
     });
 });
