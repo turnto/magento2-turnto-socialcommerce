@@ -584,11 +584,19 @@ class Orders extends AbstractExport
      * @return bool
      */
     protected function getAllOrdersShipped($orderId) {
+
         $items = $this->orderService->get($orderId)->getItems();
+
         $allItemsShipped = true;
         foreach ($items as $item) {
+            // If the item has a parent item, that means it's just the associated Simple product, which doesn't actually
+            //   track shipping and such, so we want to skip it.
+            if ($item->getParentItem()) {
+                continue;
+            }
+
             $qtyOrdered = $item->getQtyOrdered();
-            $qtyHandled = $item->getQtyCanceled() + $item->getQtyRefunded() + $item->getQtyReturned() + $item->getQtyShipped();
+            $qtyHandled = ($item->getQtyCanceled() + $item->getQtyRefunded() + $item->getQtyReturned() + $item->getQtyShipped());
             $qtyRemaining = $qtyOrdered - $qtyHandled;
             if ($qtyRemaining) {
                 $allItemsShipped = false;
