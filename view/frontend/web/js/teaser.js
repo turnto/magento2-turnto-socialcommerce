@@ -63,7 +63,9 @@ define([
         getNumEmptyStars: function getNumEmptyStars() {
             return (5 - (this.getNumFullStars() + (this.hasHalfStar() ? 1 : 0)));
         },
-
+        writeReview: function writeReview() {
+            window.TurnToCmd('reviewsList.writeReview');
+        }
 
     });
 });
