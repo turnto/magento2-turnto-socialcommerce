@@ -124,49 +124,61 @@ class Reviews extends AbstractExport
     {
         $handle = fopen($filePath, 'w');
         try {
+            $handle = fopen($filePath, 'w');
+
             fputcsv(
                 $handle,
                 ['SKU', 'ID', 'TITLE', 'TEXT', 'SUBMISSION TIME', 'USER EMAIL ADDRESS', 'RATING', 'USER NAME'],
                 "\t"
             );
+
             $reviews = $this->getReviews();
 
             foreach ($reviews as $review) {
-                $sku = null;
-                $reviewId = null;
-                $title = null;
-                $detail = null;
-                $createdAt = null;
-                $userEmail = null;
-                $userName = null;
+                try {
+                    $sku = null;
+                    $reviewId = null;
+                    $title = null;
+                    $detail = null;
+                    $createdAt = null;
+                    $userEmail = null;
+                    $userName = null;
 
-                $reviewId = $review->getReviewId();
-                $ratingInformation = $this->getRatingInformation($reviewId);
-                if ($ratingInformation['count'] === 0) {
-                    continue;
+                    $reviewId = $review->getReviewId();
+                    $ratingInformation = $this->getRatingInformation($reviewId);
+                    if ($ratingInformation['count'] === 0) {
+                        continue;
+                    }
+                    $averageRating = (int)round($ratingInformation['rating'] / $ratingInformation['count']);
+
+                    $productEntityId = $review->getEntityPkValue();
+                    $sku = $this->productHelper->turnToSafeEncoding(
+                        $this->productFactory->create()->load($productEntityId)->getSku()
+                    );
+
+                    if (empty($sku)) {
+                        continue;
+                    }
+
+                    $user = $this->getCustomerInformationFromReview($review);
+
+                    $title = $review->getTitle();
+                    $detail = $review->getDetail();
+                    $createdAt = $review->getCreatedAt();
+
+                    fputcsv(
+                        $handle,
+                        [$sku, $reviewId, $title, $detail, $createdAt, $user['email'], $averageRating, $user['name']],
+                        "\t"
+                    );
+                } catch (\Exception $e) {
+                    $this->logger->error(
+                        "TurnTo Review export Error: An exception was triggered when exporting review with an ID of $reviewId. Exception: ",
+                        [
+                            'exception' => $e
+                        ]
+                    );
                 }
-                $averageRating = (int)round($ratingInformation['rating'] / $ratingInformation['count']);
-
-                $productEntityId = $review->getEntityPkValue();
-                $sku = $this->productHelper->turnToSafeEncoding(
-                    $this->productFactory->create()->load($productEntityId)->getSku()
-                );
-
-                if (empty($sku)) {
-                    continue;
-                }
-
-                $user = $this->getCustomerInformationFromReview($review);
-
-                $title = $review->getTitle();
-                $detail = $review->getDetail();
-                $createdAt = $review->getCreatedAt();
-
-                fputcsv(
-                    $handle,
-                    [$sku, $reviewId, $title, $detail, $createdAt, $user['email'], $averageRating, $user['name']],
-                    "\t"
-                );
             }
         } catch (\Exception $e) {
             $this->logger->error('An error occurred while generating the review export for TurnTo', ['error' => $e]);

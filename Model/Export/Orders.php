@@ -323,13 +323,23 @@ class Orders extends AbstractExport
         $pageLimit = $orderList->getLastPageNumber();
         $pageSize = $orderList->getPageSize();
         for ($i = 1; $i <= $pageLimit; $i++) {
-            $paginatedCollection = clone $orderList;
-            $paginatedCollection->clear();
-            $paginatedCollection->setPageSize($pageSize)->setCurPage($i);
-            $paginatedCollection->load();
+            try {
 
-            if ($paginatedCollection->count() > 0) {
-                $this->writeOrdersToFeed($outputHandle, $paginatedCollection, $forceIncludeAllItems);
+                $paginatedCollection = clone $orderList;
+                $paginatedCollection->clear();
+                $paginatedCollection->setPageSize($pageSize)->setCurPage($i);
+                $paginatedCollection->load();
+
+                if ($paginatedCollection->count() > 0) {
+                    $this->writeOrdersToFeed($outputHandle, $paginatedCollection, $forceIncludeAllItems);
+                }
+            } catch (\Exception $e) {
+                $this->logger->error(
+                    "TurnTo Orders Export Exception: An exception was triggered on page $i of $pageLimit.",
+                    [
+                        'exception' => $e
+                    ]
+                );
             }
         }
     }
