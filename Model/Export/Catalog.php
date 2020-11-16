@@ -497,11 +497,26 @@ class Catalog extends AbstractExport
                 )) {
 
                $page =1;
-               while($feed=$this->generateProductFeed($store,$page)){
-                   $this->transmitFeed($feed, $store,$page);
-                   $page++;
 
-               }
+                $feed = $this->generateProductFeed($store, $page);
+                while ($feed) {
+                    try {
+                        $this->transmitFeed($feed, $store, $page);
+                        $page++;
+                        $feed = $this->generateProductFeed($store, $page);
+                    } catch (\Exception $e) {
+                        $this->logger->error(
+                            "TurnTo catalog export error on page number $page.",
+                            [
+                                'exception' => $e
+                            ]
+                        );
+                        $page++;
+                        $feed = $this->generateProductFeed($store, $page);
+                    }
+                }
+
+
             }
         }
     }
