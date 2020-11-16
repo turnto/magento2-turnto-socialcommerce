@@ -31,7 +31,8 @@ class PinboardConfig implements TurnToConfigDataSourceInterface
      */
     protected $pageIdTranslation = [
       'vcPinboard' => 'vc-pinboard-page',
-      'commentsPinboard' => 'comments-pinboard-page'
+      'commentsPinboard' => 'comments-pinboard-page',
+      'commentsPinboardTeaser' => 'comments-pinboard-teaser-page'
     ];
 
     /**
