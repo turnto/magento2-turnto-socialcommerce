@@ -122,7 +122,6 @@ class Reviews extends AbstractExport
      */
     public function exportReviewsToFile($filePath)
     {
-        $handle = fopen($filePath, 'w');
         try {
             $handle = fopen($filePath, 'w');
 
