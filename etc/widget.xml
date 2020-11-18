@@ -29,6 +29,9 @@
                     <option name="vcPinboard" value="vcPinboard">
                         <label>Visual Content Pinboard</label>
                     </option>
+                    <option name="commentsPinboardTeaser" value="commentsPinboardTeaser">
+                        <label>Checkout Comment Pinboard Teaser</label>
+                    </option>
                 </options>
             </parameter>
             <parameter name="template" xsi:type="select" required="true" visible="false" sort_order="30">
