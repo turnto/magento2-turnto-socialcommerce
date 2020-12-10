@@ -120,11 +120,12 @@
              <group id="teaser" translate="label" sortOrder="45" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Teaser</label>
                 <field id="use_local_teaser_code" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>"Use Local Teaser Code" vs "Use Teaser Widget"</label>
+                    <label>Teaser Type</label>
                     <comment><![CDATA[
-                       Do not modify this value unless you have implemented a custom teaser
+                       "Use Local Teaser Code" means the teaser is generated using code local to the extension.
+                       "Use Teaser Widget" means a simple div will be added to the page, but the code will be served from TurnTo's servers.
                     ]]></comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\TeaserType</source_model>
                 </field>
             </group>
             <group id="checkout_comments" translate="label" sortOrder="50" showInStore="1" showInWebsite="1" showInDefault="1">
