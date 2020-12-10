@@ -31,11 +31,11 @@ class TeaserType implements \Magento\Framework\Option\ArrayInterface
         $optionArray = [
             [
                 'value' => '0',
-                'label' => __('Use Local Teaser Code')
+                'label' => __('Use Teaser Widget')
             ],
             [
                 'value' => '1',
-                'label' => __('Use Teaser Widget')
+                'label' => __('Use Local Teaser Code')
             ]
         ];
 
