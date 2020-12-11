@@ -39,15 +39,16 @@
             </checkout_comments>
             <qa>
                 <enable_qa>1</enable_qa>
-                <enable_qa_teaser>1</enable_qa_teaser>
                 <setup_type>dynamicEmbed</setup_type>
             </qa>
             <teaser>
                 <use_local_teaser_code>1</use_local_teaser_code>
+                <enable_reviews_teaser>1</enable_reviews_teaser>
+                <enable_qa_teaser>0</enable_qa_teaser>
+                <enable_comments_teaser>0</enable_comments_teaser>
             </teaser>
             <reviews>
                 <enable_reviews>1</enable_reviews>
-                <enable_reviews_teaser>1</enable_reviews_teaser>
                 <reviews_setup_type>dynamicEmbed</reviews_setup_type>
             </reviews>
             <gallery>

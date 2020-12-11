@@ -72,16 +72,6 @@
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
-                <field id="enable_qa_teaser" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Enable Questions &amp; Answers Teaser</label>
-                    <comment><![CDATA[
-                        Show the Q&A teaser below the product name on the product details page.
-                    ]]></comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="turnto_socialcommerce_configuration/qa/enable_qa">1</field>
-                    </depends>
-                </field>
             </group>
             <group id="reviews" translate="label" sortOrder="40" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Reviews</label>
@@ -94,16 +84,6 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
-                    </depends>
-                </field>
-                <field id="enable_reviews_teaser" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Enable Reviews Teaser</label>
-                    <comment><![CDATA[
-                        Enable the reviews teaser below the product name on the product details page.
-                    ]]></comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="turnto_socialcommerce_configuration/reviews/enable_reviews">1</field>
                     </depends>
                 </field>
             </group>
@@ -127,6 +107,39 @@
                     ]]></comment>
                     <source_model>TurnTo\SocialCommerce\Model\Config\Source\TeaserType</source_model>
                 </field>
+                 <field id="enable_reviews_teaser" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Enable Reviews Teaser</label>
+                    <comment><![CDATA[
+                       Enable the reviews teaser below the product name on the product details page.
+                    ]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/reviews/enable_reviews">1</field>
+                        <field id="turnto_socialcommerce_configuration/teaser/use_local_teaser_code">1</field>
+                    </depends>
+                 </field>
+                 <field id="enable_qa_teaser" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Enable Questions &amp; Answers Teaser</label>
+                    <comment><![CDATA[
+                       Show the Q&A teaser below the product name on the product details page.
+                    ]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/qa/enable_qa">1</field>
+                        <field id="turnto_socialcommerce_configuration/teaser/use_local_teaser_code">1</field>
+                    </depends>
+                 </field>
+                 <field id="enable_comments_teaser" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInStore="1" showInWebsite="1">
+                     <label>Enable Comments Teaser</label>
+                     <comment><![CDATA[
+                        Enable comment count in teaser on product details page.
+                    ]]></comment>
+                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                     <depends>
+                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                         <field id="turnto_socialcommerce_configuration/teaser/use_local_teaser_code">1</field>
+                     </depends>
+                 </field>
             </group>
             <group id="checkout_comments" translate="label" sortOrder="50" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>JS Order Feed and Checkout Comments</label>
@@ -171,16 +184,6 @@
                     <label>Enable Top Comments</label>
                     <comment><![CDATA[
                         Enable comments pinboard teaser block on the product details page
-                    ]]></comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
-                    </depends>
-                </field>
-                <field id="enable_comments_teaser" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Enable Comments Teaser</label>
-                    <comment><![CDATA[
-                        Enable comment count in teaser on product details page.
                     ]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
