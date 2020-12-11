@@ -51,7 +51,7 @@
 <!-- /ko -->
 
 <!-- ko if: reviewsData().comments > 0 && commentsTeaserEnabled === "true"-->
-    <!-- ko if: reviewsTeaserEnabled === "true" && reviewsEnabled === "true" -->
+    <!-- ko if: reviewsTeaserEnabled === "true" && reviewsEnabled === "true"  && reviewsData().reviews > 0-->
         <span> | </span>
     <!-- /ko -->
     <a href="javascript:void(0)" class="TTteaser__read-comments"
@@ -59,7 +59,7 @@
 <!-- /ko -->
 
 <!-- ko if: reviewsData().questions > 0 && qaTeaserEnabled === "true" && qaEnabled === "true" -->
-    <!-- ko if: (reviewsTeaserEnabled === "true" && reviewsEnabled === "true") || (commentsTeaserEnabled === "true" && reviewsData().comments > 0) -->
+    <!-- ko if: (reviewsTeaserEnabled === "true" && reviewsData.reviews > 0) || (commentsTeaserEnabled === "true" && reviewsData().comments > 0) -->
         <span> | </span>
     <!-- /ko -->
     <a href="javascript:void(0)" class="TTteaser__read-comments"
