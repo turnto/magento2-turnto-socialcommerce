@@ -155,7 +155,7 @@ class CanceledOrders extends Orders
     public function cronUploadFeed()
     {
         foreach ($this->storeManager->getStores() as $store) {
-            if ($this->config->getIsEnabled($store->getCode()) && $this->config->getIsHistoricalOrdersFeedEnabled(
+            if ($this->config->getIsEnabled($store->getCode()) && $this->config->getIsCancelledOrdersFeedEnabled(
                 $store->getCode()
             )) {
                 try {
