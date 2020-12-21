@@ -283,7 +283,7 @@ class Ratings extends AbstractImport
                         ],
                     ]
                 );
-            $collection->addStoreFilter($store);
+            $collection->addStoreFilter($store)->setFlag('has_stock_status_filter', false)->load();
 
             // Loop over products and reset data if not found in $feedProducts
             foreach ($collection as $item) {
