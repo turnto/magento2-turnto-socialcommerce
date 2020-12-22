@@ -148,7 +148,7 @@ class Catalog extends AbstractExport
             }
         } catch (\Exception $e) {
             $this->logger->error(
-                'An error occurred while transmitting the catalog feed to TurnTo',
+                'An error occurred while transmitting the catalog feed to TurnTo. Error:',
                 [
                     'exception' => $e,
                     'response' => $response ? $response->getBody() : 'null'
@@ -191,7 +191,6 @@ class Catalog extends AbstractExport
         $feed = null;
         $progressCounter = 0;
         $products = [];
-
         try {
 
 
@@ -266,7 +265,7 @@ class Catalog extends AbstractExport
         } catch (\Exception $feedException) {
             if ($feed) {
                 $this->logger->error(
-                    'An exception occurred while creating the catalog feed',
+                    'An exception occurred while generating the catalog feed',
                     [
                         'exception' => $feedException,
                         'productCount' => count($products),
@@ -275,7 +274,7 @@ class Catalog extends AbstractExport
                 );
             } else if ($products) {
                 $this->logger->error(
-                    'An exception occurred that prevented the creation of the catalog feed',
+                    'An exception occurred that prevented the creation of the catalog feed due to invalid product data.',
                     [
                         'exception' => $feedException,
                         'productCount' => count($products),
@@ -284,7 +283,7 @@ class Catalog extends AbstractExport
                 );
             } else {
                 $this->logger->error(
-                    'An exception occured while retrieving the products for the catalog feed',
+                    'An exception occurred while retrieving the products for the catalog feed',
                     [
                         'exception' => $feedException,
                         'productsProcessed' => $progressCounter
@@ -411,14 +410,8 @@ class Catalog extends AbstractExport
         // Restore the "current store"
         $this->storeManager->setCurrentStore($currentStore);
 
-        // Availability is normally determined by status, but can be overridden by custom "turnto_disabled" attribute
-        $turntoDisable = $product->getCustomAttribute('turnto_disabled') ?
-            $product->getCustomAttribute('turnto_disabled')->getValue():
-            false;
-        $availability = $turntoDisable ? 'out of stock' :
-            (($product->getStatus() == 1) ? 'in stock' : 'out of stock');
 
-        $entry->addChild('g:availability', $availability);
+        $entry->addChild('g:availability', ($product->getStatus() == 1) ? 'in stock' : 'out of stock');
         $entry->addChild('g:image_link', $this->sanitizeData($productImageUrl));
         $entry->addChild('g:condition', 'new');
         $entry->addChild('g:price', $product->getPrice() . ' ' . $store->getBaseCurrencyCode());
@@ -506,7 +499,7 @@ class Catalog extends AbstractExport
                         $feed = $this->generateProductFeed($store, $page);
                     } catch (\Exception $e) {
                         $this->logger->error(
-                            "TurnTo catalog export error on page number $page.",
+                            "TurnTo catalog export error. Failed to create or send the feed with page number $page.",
                             [
                                 'exception' => $e
                             ]
@@ -561,7 +554,6 @@ class Catalog extends AbstractExport
             ->addAttributeToSelect('quantity_and_stock_status')
             ->addAttributeToSelect('price')
             ->addAttributeToSelect('status')
-            ->addAttributeToSelect('turnto_disabled')
             ->setPage($page,$pageCount);
 
 

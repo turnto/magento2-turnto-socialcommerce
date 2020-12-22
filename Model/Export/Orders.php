@@ -192,7 +192,7 @@ class Orders extends AbstractExport
                     $this->transmitFeed($orderFeed,$store);
                 } catch (\Exception $e) {
                     $this->logger->error(
-                        'An error occurred while processing Historical Orders Feed Cron',
+                        'An error occurred while sending the Historical Orders Feed report to TurnTo. Error:',
                         [
                             'storeId' => $store->getId(),
                             'exception' => $e
@@ -249,7 +249,7 @@ class Orders extends AbstractExport
 
         } catch (\Exception $e) {
             $this->logger->error(
-                'An error occurred while processing Historical Orders Feed Cron',
+                'An error occurred while creating or writing data to the Historical Orders Feed export file. Error:',
                 [
                     'storeId' => $storeId,
                     'exception' => $e
@@ -303,7 +303,7 @@ class Orders extends AbstractExport
             }
         } catch (\Exception $e) {
             $this->logger->error(
-                'An error occurred while transmitting the order feed to TurnTo',
+                'An error occurred while transmitting the order feed to TurnTo. Error:',
                 [
                     'exception' => $e,
                     'response' => $response ? $response->getBody() : 'null'
@@ -335,7 +335,7 @@ class Orders extends AbstractExport
                 }
             } catch (\Exception $e) {
                 $this->logger->error(
-                    "TurnTo Orders Export Exception: An exception was triggered on page $i of $pageLimit.",
+                    "TurnTo Orders Export Exception: An exception was triggered writing orders to the orders feed on page $i of $pageLimit.",
                     [
                         'exception' => $e
                     ]
@@ -363,7 +363,7 @@ class Orders extends AbstractExport
                 $this->writeOrderToFeed($outputHandle, $order, $forceIncludeAllItems);
             } catch (\Exception $e) {
                 $this->logger->error(
-                    'An error occurred while writing the historical orders feed',
+                    'An error occurred while writing order data to the historical orders feed. Error:',
                     [
                         'exception' => $e,
                     ]
@@ -457,15 +457,6 @@ class Orders extends AbstractExport
         $pageLimit = $shipmentsList->getLastPageNumber();
         $pageSize = $shipmentsList->getPageSize();
 
-        // If this setting is on, we only send shipment data if the whole order has shipped
-        $configExcludeDeliveryDateUntilAllItemsShipped = $this->config->getExcludeDeliveryDateUntilAllItemsShipped($storeId);
-        $allItemsShipped = false;
-        if ($configExcludeDeliveryDateUntilAllItemsShipped) {
-            $allItemsShipped = $this->getAllOrdersShipped($orderId);
-        }
-        // TRUE if: "Exclude Delivery Date..." is off, OR if it's on and all items have shipped
-        $includeShipped = ($configExcludeDeliveryDateUntilAllItemsShipped && $allItemsShipped) || !$configExcludeDeliveryDateUntilAllItemsShipped;
-
         for ($i = 1; $i <= $pageLimit; $i++) {
             $paginatedCollection = clone $shipmentsList;
             $paginatedCollection->clear();
@@ -477,7 +468,7 @@ class Orders extends AbstractExport
                     foreach ($shipment->getItems() as $shipmentItem) {
                         $itemId = $shipmentItem->getOrderItemId();
                         $key = "$orderId.$itemId";
-                        if (isset($itemData[$key]) && $includeShipped) {
+                        if (isset($itemData[$key])) {
                             $itemData[$key][self::SHIP_DATE_FIELD_ID] = $shipment->getCreatedAt();
                         }
                     }
@@ -587,32 +578,5 @@ class Orders extends AbstractExport
         $orderList->getSelect()->group('main_table.entity_id');
 
         return $orderList;
-    }
-
-    /**
-     * @param $orderId
-     * @return bool
-     */
-    protected function getAllOrdersShipped($orderId) {
-
-        $items = $this->orderService->get($orderId)->getItems();
-
-        $allItemsShipped = true;
-        foreach ($items as $item) {
-            // If the item has a parent item, that means it's just the associated Simple product, which doesn't actually
-            //   track shipping and such, so we want to skip it.
-            if ($item->getParentItem()) {
-                continue;
-            }
-
-            $qtyOrdered = $item->getQtyOrdered();
-            $qtyHandled = ($item->getQtyCanceled() + $item->getQtyRefunded() + $item->getQtyReturned() + $item->getQtyShipped());
-            $qtyRemaining = $qtyOrdered - $qtyHandled;
-            if ($qtyRemaining) {
-                $allItemsShipped = false;
-            }
-        }
-
-        return $allItemsShipped;
     }
 }
