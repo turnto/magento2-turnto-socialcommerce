@@ -467,7 +467,7 @@ class Orders extends AbstractExport
                     foreach ($shipment->getItems() as $shipmentItem) {
                         $itemId = $shipmentItem->getOrderItemId();
                         $key = "$orderId.$itemId";
-                        if (isset($itemData[$key])) {
+                        if (isset($itemData[$key]) && $includeShipped) {
                             $itemData[$key][self::SHIP_DATE_FIELD_ID] = $shipment->getCreatedAt();
                         }
                     }
