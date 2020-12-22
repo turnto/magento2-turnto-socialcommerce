@@ -148,7 +148,7 @@ class Catalog extends AbstractExport
             }
         } catch (\Exception $e) {
             $this->logger->error(
-                'An error occurred while transmitting the catalog feed to TurnTo',
+                'An error occurred while transmitting the catalog feed to TurnTo. Error:',
                 [
                     'exception' => $e,
                     'response' => $response ? $response->getBody() : 'null'
@@ -266,7 +266,7 @@ class Catalog extends AbstractExport
         } catch (\Exception $feedException) {
             if ($feed) {
                 $this->logger->error(
-                    'An exception occurred while creating the catalog feed',
+                    'An exception occurred while generating the catalog feed',
                     [
                         'exception' => $feedException,
                         'productCount' => count($products),
@@ -275,7 +275,7 @@ class Catalog extends AbstractExport
                 );
             } else if ($products) {
                 $this->logger->error(
-                    'An exception occurred that prevented the creation of the catalog feed',
+                    'An exception occurred that prevented the creation of the catalog feed due to invalid product data.',
                     [
                         'exception' => $feedException,
                         'productCount' => count($products),
@@ -284,7 +284,7 @@ class Catalog extends AbstractExport
                 );
             } else {
                 $this->logger->error(
-                    'An exception occured while retrieving the products for the catalog feed',
+                    'An exception occurred while retrieving the products for the catalog feed',
                     [
                         'exception' => $feedException,
                         'productsProcessed' => $progressCounter
