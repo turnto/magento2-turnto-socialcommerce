@@ -228,7 +228,7 @@ class Ratings extends AbstractImport
                     }
                 } catch (\Exception $feedRetrievalException) {
                     $this->logger->error(
-                        'Failed to retrieve TurnTo aggregate rating feed for store',
+                        'Failed to retrieve TurnTo aggregate rating feed for store from TurnTo',
                         [
                             'exception' => $feedRetrievalException,
                             'storeCode' => $store->getCode(),
@@ -242,7 +242,7 @@ class Ratings extends AbstractImport
             $this->resetProducts($feedProducts);
         } catch (\Exception $exception) {
             $this->logger->error(
-                'Failed to download feed',
+                'Failed to download ratings feed',
                 [
                     'exception' => $exception
                 ]

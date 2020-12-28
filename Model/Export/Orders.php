@@ -192,7 +192,7 @@ class Orders extends AbstractExport
                     $this->transmitFeed($orderFeed,$store);
                 } catch (\Exception $e) {
                     $this->logger->error(
-                        'An error occurred while processing Historical Orders Feed Cron',
+                        'An error occurred while sending the Historical Orders Feed report to TurnTo. Error:',
                         [
                             'storeId' => $store->getId(),
                             'exception' => $e
@@ -249,7 +249,7 @@ class Orders extends AbstractExport
 
         } catch (\Exception $e) {
             $this->logger->error(
-                'An error occurred while processing Historical Orders Feed Cron',
+                'An error occurred while creating or writing data to the Historical Orders Feed export file. Error:',
                 [
                     'storeId' => $storeId,
                     'exception' => $e
@@ -303,7 +303,7 @@ class Orders extends AbstractExport
             }
         } catch (\Exception $e) {
             $this->logger->error(
-                'An error occurred while transmitting the order feed to TurnTo',
+                'An error occurred while transmitting the order feed to TurnTo. Error:',
                 [
                     'exception' => $e,
                     'response' => $response ? $response->getBody() : 'null'
@@ -363,7 +363,7 @@ class Orders extends AbstractExport
                 $this->writeOrderToFeed($outputHandle, $order, $forceIncludeAllItems);
             } catch (\Exception $e) {
                 $this->logger->error(
-                    'An error occurred while writing the historical orders feed',
+                    'An error occurred while writing order data to the historical orders feed. Error:',
                     [
                         'exception' => $e,
                     ]
