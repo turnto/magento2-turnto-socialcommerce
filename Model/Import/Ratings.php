@@ -275,11 +275,13 @@ class Ratings extends AbstractImport
                     [
                         [
                             'attribute' => \TurnTo\SocialCommerce\Setup\InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE,
-                            'notnull' => true
+                            'notnull' => true,
+                            'left'
                         ],
                         [
                             'attribute' => \TurnTo\SocialCommerce\Setup\InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE,
-                            'notnull' => true
+                            'notnull' => true,
+                            'left'
                         ],
                     ]
                 );
