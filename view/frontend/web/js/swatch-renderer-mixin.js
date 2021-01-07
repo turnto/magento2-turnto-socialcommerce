@@ -56,9 +56,13 @@ define([
                         TurnToCmd('set', {"sku": sku_value});
                         // Update Top Comment Widget
                         let comments = document.getElementsByClassName('tt-top-comment')[0];
-                        comments.setAttribute('data-ttsku',sku_value);
-                        comments.setAttribute("data-ttprocessed", "");
-                        TurnToCmd('topComments.process');
+                        if (typeof comments !== 'undefined') {
+                            comments.setAttribute('data-ttsku',sku_value);
+                            comments.setAttribute("data-ttprocessed", "");
+                            comments.innerHTML = "";
+                            TurnToCmd('topComments.process');
+                        }
+
                         //break out of the loop
                         return false;
                     }
