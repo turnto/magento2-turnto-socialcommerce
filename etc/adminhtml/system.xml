@@ -388,6 +388,33 @@
             </group>
 
         </section>
+        <section id="turnto_socialcommerce_cron_schedule" translate="label" sortOrder="500" showInStore="1" showInWebsite="1" showInDefault="1">
+            <label>Cron Schedule</label>
+            <tab>turnto_socialcommerce</tab>
+            <resource>TurnTo_SocialCommerce::socialcommerce_cron_schedule_config</resource>
+            <group id="cron_schedule" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>Cron Schedule</label>
+                <field id="export_catalog_cron_time" canRestore="1" type="text" translate="label comment" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Export Catalog Cron Time</label>
+                    <comment>Enter a valid cron schedule expression for ie. 0 1 * * *</comment>
+                </field>
+                <field id="export_orders_cron_time" canRestore="1" type="text" translate="label comment" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Export Orders Cron Time</label>
+                    <comment>Enter a valid cron schedule expression ie. 0 1 * * *</comment>
+                </field>
+                <field id="export_canceled_orders_cron_time" canRestore="1" type="text" translate="label comment" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Export Cancled Orders Cron Time</label>
+                    <comment>Enter a valid cron schedule expression ie. 0 1 * * *</comment>
+                </field>
+                <field id="import_ratings_cron_time" canRestore="1" type="text" translate="label comment" sortOrder="40" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Import Ratings Cron Time</label>
+                    <comment>Enter a valid cron schedule expression ie. 0 1 * * *</comment>
+                </field>
+
+            </group>
+
+        </section>
+
     </system>
 </config>
 

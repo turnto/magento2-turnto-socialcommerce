@@ -77,6 +77,14 @@
                 <reply_msg>Please login or register to complete your submission.</reply_msg>
             </sso>
         </turnto_socialcommerce_configuration>
+        <turnto_socialcommerce_cron_schedule>
+            <cron_schedule>
+                <export_catalog_cron_time>0 1 * * *</export_catalog_cron_time>
+                <export_orders_cron_time>0 1 * * *</export_orders_cron_time>
+                <export_canceled_orders_cron_time>0 1 * * *</export_canceled_orders_cron_time>
+                <import_ratings_cron_time>0 * * * *</import_ratings_cron_time>
+            </cron_schedule>
+        </turnto_socialcommerce_cron_schedule>
     </default>
 </config>
 
