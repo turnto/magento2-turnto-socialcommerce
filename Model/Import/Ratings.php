@@ -283,7 +283,9 @@ class Ratings extends AbstractImport
                             'notnull' => true,
                             'left'
                         ],
-                    ]
+                    ],
+                    "",
+                    "left"
                 );
             $collection->addStoreFilter($store)->setFlag('has_stock_status_filter', false)->load();
 
