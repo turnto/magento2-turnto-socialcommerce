@@ -212,7 +212,7 @@ class Ratings extends AbstractImport
                                 $reviewCount = (int)$turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT] +
                                     $turnToProduct[self::TURNTO_FEED_KEY_RELATED_REVIEW_COUNT];
                             } else {
-                                $reviewCount = (int)$turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT]
+                                $reviewCount = (int)$turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT];
                             }
 
                             if ($reviewCount > 0) {
