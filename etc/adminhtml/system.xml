@@ -359,6 +359,25 @@
                     </depends>
                 </field>
             </group>
+            <group id="average-rating-import" translate="label" sortOrder="90" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>Average Rating Feed Import</label>
+                <comment>If enabled, Magento imports a feed of review counts and average ratings on an hourly basis. TurnTo uses this order feed data to populate Average Rating and Review Count data used to display PLP ratings.</comment>
+                <field id="enable_average_rating" type="select" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Enable Automated Feed Import</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="import_aggregate_data" type="select" translate="label" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Aggregate Related Review Count</label>
+                    <comment>Default is "No". If set to "No", the Review Count attribute will be populated with the number of reviews, NOT including related reviews. If set to "Yes", the Review Count attribute will be populated based on the number of review AND related reviews</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+            </group>
             <group id="sso" translate="label" sortOrder="90" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Single Sign On</label>
                 <field id="review_msg" canRestore="1" type="textarea" translate="label comment" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
