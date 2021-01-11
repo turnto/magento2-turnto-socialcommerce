@@ -30,6 +30,8 @@ class Ratings extends AbstractImport
     const TURNTO_FEED_KEY_SKU = 'sku';
 
     const TURNTO_FEED_KEY_REVIEW_COUNT = 'review_count';
+
+    const TURNTO_FEED_KEY_RELATED_REVIEW_COUNT = 'related_review_count';
     /**
      * @var Product
      */
@@ -174,7 +176,7 @@ class Ratings extends AbstractImport
             $feedProducts = [];
             foreach ($this->storeManager->getStores() as $store) {
                 $feedAddress = 'UNK';
-                if (!$this->config->getIsEnabled($store->getCode()) || !$this->config->getReviewsEnabled($store->getCode())) {
+                if (!$this->config->getIsEnabled($store->getCode()) || !$this->config->getAverageRatingImportEnabled($store->getCode())) {
                     continue;
                 }
                 // Create an array for reach store
@@ -205,7 +207,14 @@ class Ratings extends AbstractImport
                             // Save a record of the product
                             $feedProducts[$store->getId()][$sku] = true;
 
-                            $reviewCount = (int)$turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT];
+                            // If the Import Average Rating Aggregate Data setting is on, include related reviews
+                            if ($this->config->getAverageRatingImportAggregateData()) {
+                                $reviewCount = (int)$turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT] +
+                                    $turnToProduct[self::TURNTO_FEED_KEY_RELATED_REVIEW_COUNT];
+                            } else {
+                                $reviewCount = (int)$turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT];
+                            }
+
                             if ($reviewCount > 0) {
                                 $averageRating = (float)$turnToProduct;
                                 if ($averageRating > 0.0) {

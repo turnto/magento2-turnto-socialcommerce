@@ -102,6 +102,10 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_ENABLED = 'turnto_socialcommerce_configuration/historical_orders_feed/enable_historical_feed';
 
+    const XML_PATH_SOCIALCOMMERCE_AVERAGE_RATING_IMPORT_ENABLED = 'turnto_socialcommerce_configuration/average-rating-import/enable_average_rating';
+
+    const XML_PATH_SOCIALCOMMERCE_AVERAGE_RATING_IMPORT_AGGREGATE_DATA = 'turnto_socialcommerce_configuration/average-rating-import/import_aggregate_data';
+
     const XML_PATH_SOCIALCOMMERCE_CANCELLED_FEED_ENABLED = 'turnto_socialcommerce_configuration/historical_orders_feed/enable_cancelled_feed';
 
     const XML_PATH_SOCIALCOMMERCE_EXCLUDE_ITEMS_WITHOUT_DELIVERY_DATE = 'turnto_socialcommerce_configuration/historical_orders_feed/exclude_items_without_delivery_date';
@@ -308,9 +312,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
 
     }
-
-
-
 
     /**
      * Gets the URL configuration value
@@ -561,6 +562,34 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_CANCELLED_FEED_ENABLED,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     *
+     * @return mixed
+     */
+    public function getAverageRatingImportEnabled($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_AVERAGE_RATING_IMPORT_ENABLED,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     *
+     * @return mixed
+     */
+    public function getAverageRatingImportAggregateData($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_AVERAGE_RATING_IMPORT_AGGREGATE_DATA,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );
