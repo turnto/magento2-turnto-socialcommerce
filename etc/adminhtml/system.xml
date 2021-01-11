@@ -407,7 +407,7 @@
             </group>
 
         </section>
-        <section id="turnto_socialcommerce_cron_schedule" translate="label" sortOrder="500" showInStore="1" showInWebsite="1" showInDefault="1">
+        <section id="turnto_socialcommerce_cron_schedule" translate="label" sortOrder="510" showInStore="1" showInWebsite="1" showInDefault="1">
             <label>Cron Schedule</label>
             <tab>turnto_socialcommerce</tab>
             <resource>TurnTo_SocialCommerce::socialcommerce_cron_schedule_config</resource>
