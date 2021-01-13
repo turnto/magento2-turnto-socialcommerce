@@ -119,6 +119,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Checkout Comments
      */
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_CAPTURE = 'turnto_socialcommerce_configuration/checkout_comments/enable_checkout_comment_capture';
+
     const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_PINBOARD_TEASER = 'turnto_socialcommerce_configuration/checkout_comments/enable_comments_pinboard_teaser';
 
     const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_PDP = 'turnto_socialcommerce_configuration/checkout_comments/enable_comments_pdp';
@@ -618,6 +620,20 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_EXCLUDE_DELIVERY_DATE_ON_PARTIAL_SHIPMENT,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * Gets the Checkout Comments Captured Enabled configuration value
+     * @param null $store
+     * @return bool
+     */
+    public function getCommentsCaptureEnabled($store = null)
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_CAPTURE,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );
