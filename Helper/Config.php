@@ -129,6 +129,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_TEASER = 'turnto_socialcommerce_configuration/teaser/enable_comments_teaser';
 
+    const XML_PATH_SOCIALCOMMERCE_CUSTOMER_NAME_FALLBACK = 'turnto_socialcommerce_configuration/checkout_comments/js_order_feed_customer_name_fallback';
+
     /**
      * Visual Content
      */
@@ -690,6 +692,20 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return (bool)$this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_TEASER,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * Gets the Comments Teaser Enabled configuration value
+     * @param null $store
+     * @return bool
+     */
+    public function getJSOrderFeedCustomerNameFallback($store = null)
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_CUSTOMER_NAME_FALLBACK,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );
