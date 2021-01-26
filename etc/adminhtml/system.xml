@@ -190,6 +190,19 @@
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
+                <field id="js_order_feed_customer_name_fallback" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Customer Name Fallback</label>
+                    <comment><![CDATA[
+                        TurnTo will attempt to get the customer's name from their account. If the customer does not have
+                         an account, this setting determines if TurnTo should retrieve the user's name from their
+                         Billing Address or their Shipping Address
+                    ]]></comment>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\AddressFallback</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/checkout_comments/enable_js_order_feed">1</field>
+                    </depends>
+                </field>
             </group>
             <group id="product_feed" translate="label" sortOrder="70" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Product Feed</label>
