@@ -32,8 +32,11 @@
 
         <!-- Review Teaser Content -->
         <referenceBlock name="product.info.review">
-            <action method="setTemplate">
-                <argument name="template" xsi:type="string">TurnTo_SocialCommerce::product/view/default-teaser.phtml</argument>
+            <action method="setTemplate" ifconfig="turnto_socialcommerce_configuration/teaser/use_local_teaser_code" condition="1">
+                <argument name="template" xsi:type="string">TurnTo_SocialCommerce::product/view/teaser-local.phtml</argument>
+            </action>
+            <action method="setTemplate" ifconfig="turnto_socialcommerce_configuration/teaser/use_local_teaser_code" condition="2">
+                <argument name="template" xsi:type="string">TurnTo_SocialCommerce::product/view/teaser-widget.phtml</argument>
             </action>
         </referenceBlock>
 
