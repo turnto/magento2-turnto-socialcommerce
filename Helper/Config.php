@@ -816,5 +816,4 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
-
 }

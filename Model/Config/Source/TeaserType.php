@@ -28,9 +28,11 @@ class TeaserType implements \Magento\Framework\Option\ArrayInterface
      */
     public function toOptionArray()
     {
+        // Options are 1 and 2 because the ifconfig values for the teaser template in catalog_product_view
+        // wasn't responding to 0 and 1
         $optionArray = [
             [
-                'value' => '0',
+                'value' => '2',
                 'label' => __('Use Teaser Widget')
             ],
             [
