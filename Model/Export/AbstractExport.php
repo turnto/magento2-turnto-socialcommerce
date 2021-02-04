@@ -207,8 +207,9 @@ class AbstractExport
         );
 
         if ($customUrlOverride) {
-            $productSku = $product->getSku();
-            return $this->getAbsoluteUrl($productSku, $storeId);
+            $productUrlKey = $product->getUrlKey();
+            $productUrlEnding = 'pd/'.$productUrlKey;
+            return $this->getAbsoluteUrl($productUrlEnding, $storeId);
         } elseif (isset($urlRewrite)) {
             return $this->getAbsoluteUrl($urlRewrite->getRequestPath(), $storeId);
         } else {
