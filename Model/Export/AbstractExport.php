@@ -193,6 +193,9 @@ class AbstractExport
      */
     protected function getProductUrl(\Magento\Catalog\Model\Product $product, $storeId)
     {
+        // We're going to use a custom format
+        $customUrlOverride = true;
+
         // Due to core bug, it is necessary to retrieve url using this method (see https://github.com/magento/magento2/issues/3074)
         $urlRewrite = $this->urlFinder->findOneByData(
             [
@@ -203,7 +206,10 @@ class AbstractExport
             ]
         );
 
-        if (isset($urlRewrite)) {
+        if ($customUrlOverride) {
+            $productSku = $product->getSku();
+            return $this->getAbsoluteUrl($productSku, $storeId);
+        } elseif (isset($urlRewrite)) {
             return $this->getAbsoluteUrl($urlRewrite->getRequestPath(), $storeId);
         } else {
             return $product->getProductUrl();
