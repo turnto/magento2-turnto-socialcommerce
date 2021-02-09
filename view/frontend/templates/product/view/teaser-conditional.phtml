@@ -17,7 +17,7 @@
 $configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
 $productHelper = $this->helper('TurnTo\SocialCommerce\Helper\Product');
 
-if ($configHelper->getUseLocalTeaserCode()):
+if ($configHelper->getUseLocalTeaserCode() == 1):
 ?>
     <div id="tt-teaser" class="TTteaser" data-bind="scope:'teaser'">
         <!-- ko template: getTemplate() --><!-- /ko -->
