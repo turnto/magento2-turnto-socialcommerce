@@ -339,41 +339,25 @@ class Catalog extends AbstractExport
 
         if (!empty($gtinMap)) {
             if (isset($gtinMap[Config::MPN_ATTRIBUTE])) {
-                $mpn = $product->getResource()->getAttribute($gtinMap[Config::MPN_ATTRIBUTE])->getFrontend()->getValue(
-                    $product
-                );
+                $mpn = $product->getData($gtinMap[Config::MPN_ATTRIBUTE]);
             }
             if (isset($gtinMap[Config::BRAND_ATTRIBUTE])) {
-                $brand = $product->getResource()->getAttribute(
-                    $gtinMap[\TurnTo\SocialCommerce\Helper\Config::BRAND_ATTRIBUTE]
-                )->getFrontend()->getValue($product);
+                $brand = $product->getData($gtinMap[Config::BRAND_ATTRIBUTE]);
             }
             if (empty($gtin) && isset($gtinMap[Config::UPC_ATTRIBUTE])) {
-                $gtin = $product->getResource()->getAttribute($gtinMap[Config::UPC_ATTRIBUTE])->getFrontend()->getValue(
-                    $product
-                );
+                $gtin = $product->getData($gtinMap[Config::UPC_ATTRIBUTE]);
             }
             if (empty($gtin) && isset($gtinMap[Config::ISBN_ATTRIBUTE])) {
-                $gtin = $product->getResource()
-                    ->getAttribute($gtinMap[Config::ISBN_ATTRIBUTE])
-                    ->getFrontend()
-                    ->getValue($product);
+                $gtin = $product->getData($gtinMap[Config::ISBN_ATTRIBUTE]);
             }
             if (empty($gtin) && isset($gtinMap[Config::EAN_ATTRIBUTE])) {
-                $gtin = $product->getResource()->getAttribute($gtinMap[Config::EAN_ATTRIBUTE])->getFrontend()->getValue(
-                    $product
-                );
+                $gtin = $product->getData($gtinMap[Config::EAN_ATTRIBUTE]);
             }
             if (empty($gtin) && isset($gtinMap[Config::JAN_ATTRIBUTE])) {
-                $gtin = $product->getResource()->getAttribute($gtinMap[Config::JAN_ATTRIBUTE])->getFrontend()->getValue(
-                    $product
-                );
+                $gtin = $product->getData($gtinMap[Config::JAN_ATTRIBUTE]);
             }
             if (empty($gtin) && isset($gtinMap[Config::ASIN_ATTRIBUTE])) {
-                $gtin = $product->getResource()
-                    ->getAttribute($gtinMap[Config::ASIN_ATTRIBUTE])
-                    ->getFrontend()
-                    ->getValue($product);
+                $gtin = $product->getData($gtinMap[Config::ASIN_ATTRIBUTE]);
             }
             if (!empty($gtin)) {
                 $entry->addChild('g:gtin', $this->sanitizeData($gtin));
