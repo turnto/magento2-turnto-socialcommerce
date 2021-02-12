@@ -102,9 +102,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_ENABLED = 'turnto_socialcommerce_configuration/historical_orders_feed/enable_historical_feed';
 
-    const XML_PATH_SOCIALCOMMERCE_AVERAGE_RATING_IMPORT_ENABLED = 'turnto_socialcommerce_configuration/average-rating-import/enable_average_rating';
+    const XML_PATH_SOCIALCOMMERCE_AVERAGE_RATING_IMPORT_ENABLED = 'turnto_socialcommerce_configuration/average_rating_import/enable_average_rating';
 
-    const XML_PATH_SOCIALCOMMERCE_AVERAGE_RATING_IMPORT_AGGREGATE_DATA = 'turnto_socialcommerce_configuration/average-rating-import/import_aggregate_data';
+    const XML_PATH_SOCIALCOMMERCE_AVERAGE_RATING_IMPORT_AGGREGATE_DATA = 'turnto_socialcommerce_configuration/average_rating_import/import_aggregate_data';
 
     const XML_PATH_SOCIALCOMMERCE_CANCELLED_FEED_ENABLED = 'turnto_socialcommerce_configuration/historical_orders_feed/enable_cancelled_feed';
 
