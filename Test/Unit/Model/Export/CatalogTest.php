@@ -31,7 +31,7 @@ class CatalogTest extends  \PHPUnit\Framework\TestCase
          $this->createMock(\Magento\Store\Model\StoreManagerInterface::class),
          $this->createMock(\Magento\Catalog\Helper\Image::class),
          $this->createMock(\Magento\CatalogInventory\Model\Spi\StockRegistryProviderInterface::class),
-         $this->createMock(\TurnTo\SocialCommerce\Helper\Product::class)->
+         $this->createMock(\TurnTo\SocialCommerce\Helper\Product::class)
         );
     }
 
