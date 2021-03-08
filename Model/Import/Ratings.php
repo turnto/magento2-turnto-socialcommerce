@@ -176,6 +176,14 @@ class Ratings extends AbstractImport
             $feedProducts = [];
             foreach ($this->storeManager->getStores() as $store) {
                 $feedAddress = 'UNK';
+
+                $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/templog.log');
+                $logger = new \Zend\Log\Logger();
+                $logger->addWriter($writer);
+
+                $logger->info("Start download");
+                $logger->info("Config state: ". \GuzzleHttp\json_encode($this->config->getAverageRatingImportEnabled($store->getCode())));
+
                 if (!$this->config->getIsEnabled($store->getCode()) || !$this->config->getAverageRatingImportEnabled($store->getCode())) {
                     continue;
                 }
@@ -185,6 +193,7 @@ class Ratings extends AbstractImport
                 try {
                     $feedAddress = $this->getAggregateRatingsFeedAddress($store);
                     $xmlFeed = simplexml_load_file($feedAddress);
+                    $logger->info("Get Feed");
                     // Take each product in the feed and update it's info
                     foreach ($xmlFeed->products->product as $turnToProduct) {
                         try {
@@ -207,6 +216,10 @@ class Ratings extends AbstractImport
                             // Save a record of the product
                             $feedProducts[$store->getId()][$sku] = true;
 
+                            $logger->info("Get Review Count");
+                            $logger->info("Get Review Count setting: ".$this->config->getAverageRatingImportAggregateData());
+
+
                             // If the Import Average Rating Aggregate Data setting is on, include related reviews
                             if ($this->config->getAverageRatingImportAggregateData()) {
                                 $reviewCount = (int)$turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT] +
@@ -215,9 +228,12 @@ class Ratings extends AbstractImport
                                 $reviewCount = (int)$turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT];
                             }
 
+                            $logger->info("Get Review Count value: ".$reviewCount);
+
                             if ($reviewCount > 0) {
                                 $averageRating = (float)$turnToProduct;
                                 if ($averageRating > 0.0) {
+                                    $logger->info("Updating Product: [SKU:".$sku."] - [ReviewCount:".$reviewCount."] - [AverageRating:".$averageRating."]");
                                     $this->updateProduct($store, $sku, $reviewCount, $averageRating);
                                 } else {
                                     throw new \UnexpectedValueException('Average rating is a non-positive '
@@ -246,6 +262,7 @@ class Ratings extends AbstractImport
                     );
                 }
             }
+            $logger->info("Done with update");
 
             // Now reset all products not in the feed
             $this->resetProducts($feedProducts);
@@ -265,9 +282,13 @@ class Ratings extends AbstractImport
      * @param $feedProducts
      */
     private function resetProducts($feedProducts) {
-
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
         // Go through each store and get all products with an average rating/review count
         foreach ($this->storeManager->getStores() as $store) {
+
+            $logger->info("Resetting - [Store:".$store->getName()."]");
 
             $collection = $this->productCollectionFactory->create()
                 ->addAttributeToSelect('id')
@@ -298,9 +319,14 @@ class Ratings extends AbstractImport
                 );
             $collection->addStoreFilter($store)->setFlag('has_stock_status_filter', false)->load();
 
+
+            foreach($feedProducts[$store->getId()] as $sku => $product) {
+                $logger->info("All products in feed file: SKU - ".$sku);
+            }
             // Loop over products and reset data if not found in $feedProducts
             foreach ($collection as $item) {
                 if (!isset($feedProducts[$store->getId()][$item->getSku()])) {
+                    $logger->info("Resetting - [Store:".$store->getName()."] [SKU:".$item->getSku()."]");
                     $this->updateProduct($store, $item->getSku(), 0, 0);
                 }
             }
