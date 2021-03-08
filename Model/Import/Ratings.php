@@ -234,6 +234,8 @@ class Ratings extends AbstractImport
                                 ]
                             );
                         }
+                        // Now reset all products not in the feed
+                        $this->resetProducts($feedProducts);
                     }
                 } catch (\Exception $feedRetrievalException) {
                     $this->logger->error(
@@ -247,8 +249,8 @@ class Ratings extends AbstractImport
                 }
             }
 
-            // Now reset all products not in the feed
-            $this->resetProducts($feedProducts);
+
+
         } catch (\Exception $exception) {
             $this->logger->error(
                 'Failed to download ratings feed',
@@ -263,46 +265,42 @@ class Ratings extends AbstractImport
      * After updating ratings/review counts, we want to reset any products that might have had reviews removed
      *
      * @param $feedProducts
+     * @param $store
      */
-    private function resetProducts($feedProducts) {
-
-        // Go through each store and get all products with an average rating/review count
-        foreach ($this->storeManager->getStores() as $store) {
-
-            $collection = $this->productCollectionFactory->create()
-                ->addAttributeToSelect('id')
-                ->addAttributeToSelect('name')
-                ->addAttributeToSelect('sku')
-                ->addAttributeToSelect('url_path')
-                ->addAttributeToSelect('url_key')
-                ->addAttributeToSelect('url_in_store')
-                ->addAttributeToSelect('image')
-                ->addAttributeToSelect('quantity_and_stock_status')
-                ->addAttributeToSelect('price')
-                ->addAttributeToSelect('status')
-                ->addAttributeToFilter(
+    private function resetProducts($feedProducts, $store) {
+        $collection = $this->productCollectionFactory->create()
+            ->addAttributeToSelect('id')
+            ->addAttributeToSelect('name')
+            ->addAttributeToSelect('sku')
+            ->addAttributeToSelect('url_path')
+            ->addAttributeToSelect('url_key')
+            ->addAttributeToSelect('url_in_store')
+            ->addAttributeToSelect('image')
+            ->addAttributeToSelect('quantity_and_stock_status')
+            ->addAttributeToSelect('price')
+            ->addAttributeToSelect('status')
+            ->addAttributeToFilter(
+                [
                     [
-                        [
-                            'attribute' => \TurnTo\SocialCommerce\Setup\InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE,
-                            'notnull' => true,
-                            'left'
-                        ],
-                        [
-                            'attribute' => \TurnTo\SocialCommerce\Setup\InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE,
-                            'notnull' => true,
-                            'left'
-                        ],
+                        'attribute' => \TurnTo\SocialCommerce\Setup\InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE,
+                        'notnull' => true,
+                        'left'
                     ],
-                    "",
-                    "left"
-                );
-            $collection->addStoreFilter($store)->setFlag('has_stock_status_filter', false)->load();
+                    [
+                        'attribute' => \TurnTo\SocialCommerce\Setup\InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE,
+                        'notnull' => true,
+                        'left'
+                    ],
+                ],
+                "",
+                "left"
+            );
+        $collection->addStoreFilter($store)->setFlag('has_stock_status_filter', false)->load();
 
-            // Loop over products and reset data if not found in $feedProducts
-            foreach ($collection as $item) {
-                if (!isset($feedProducts[$store->getId()][$item->getSku()])) {
-                    $this->updateProduct($store, $item->getSku(), 0, 0);
-                }
+        // Loop over products and reset data if not found in $feedProducts
+        foreach ($collection as $item) {
+            if (!isset($feedProducts[$store->getId()][$item->getSku()])) {
+                $this->updateProduct($store, $item->getSku(), 0, 0);
             }
         }
     }
