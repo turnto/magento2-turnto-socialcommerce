@@ -25,7 +25,7 @@
                         <item name="pageId" xsi:type="string">pdp-page</item>
                         <item name="chatter" xsi:type="array"/>
                     </argument>
-                </arguments>
+                </arguments>Magento\Catalog\Block\Product\View
                 <block class="TurnTo\SocialCommerce\Block\Config" name="turnto.pdp" template="TurnTo_SocialCommerce::product/view/config.phtml" />
             </block>
         </referenceContainer>
@@ -33,7 +33,7 @@
         <!-- Review Teaser Content -->
         <referenceBlock name="product.info.review">
             <action method="setTemplate">
-                <argument name="template" xsi:type="string">TurnTo_SocialCommerce::product/view/default-teaser.phtml</argument>
+                <argument name="template" xsi:type="string">TurnTo_SocialCommerce::product/view/teaser-conditional.phtml</argument>
             </action>
         </referenceBlock>
 

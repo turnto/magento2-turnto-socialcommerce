@@ -39,15 +39,16 @@
             </checkout_comments>
             <qa>
                 <enable_qa>1</enable_qa>
-                <enable_qa_teaser>1</enable_qa_teaser>
                 <setup_type>dynamicEmbed</setup_type>
             </qa>
             <teaser>
                 <use_local_teaser_code>1</use_local_teaser_code>
+                <enable_reviews_teaser>1</enable_reviews_teaser>
+                <enable_qa_teaser>0</enable_qa_teaser>
+                <enable_comments_teaser>0</enable_comments_teaser>
             </teaser>
             <reviews>
                 <enable_reviews>1</enable_reviews>
-                <enable_reviews_teaser>1</enable_reviews_teaser>
                 <reviews_setup_type>dynamicEmbed</reviews_setup_type>
             </reviews>
             <gallery>
@@ -76,6 +77,14 @@
                 <reply_msg>Please login or register to complete your submission.</reply_msg>
             </sso>
         </turnto_socialcommerce_configuration>
+        <turnto_socialcommerce_cron_schedule>
+            <cron_schedule>
+                <export_catalog_cron_time>0 1 * * *</export_catalog_cron_time>
+                <export_orders_cron_time>0 1 * * *</export_orders_cron_time>
+                <export_canceled_orders_cron_time>0 1 * * *</export_canceled_orders_cron_time>
+                <import_ratings_cron_time>0 * * * *</import_ratings_cron_time>
+            </cron_schedule>
+        </turnto_socialcommerce_cron_schedule>
     </default>
 </config>
 

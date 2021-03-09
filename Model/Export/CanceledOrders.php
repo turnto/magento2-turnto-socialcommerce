@@ -134,7 +134,7 @@ class CanceledOrders extends Orders
             $csvData = stream_get_contents($outputHandle);
         } catch (\Exception $e) {
             $this->logger->error(
-                'An error occurred while processing Historical Orders Feed Cron',
+                'An error occurred while creating or writing to the Historical Orders Feed export file',
                 [
                     'storeId' => $storeId,
                     'exception' => $e
@@ -155,7 +155,7 @@ class CanceledOrders extends Orders
     public function cronUploadFeed()
     {
         foreach ($this->storeManager->getStores() as $store) {
-            if ($this->config->getIsEnabled($store->getCode()) && $this->config->getIsHistoricalOrdersFeedEnabled(
+            if ($this->config->getIsEnabled($store->getCode()) && $this->config->getIsCancelledOrdersFeedEnabled(
                 $store->getCode()
             )) {
                 try {
@@ -167,7 +167,7 @@ class CanceledOrders extends Orders
                     $this->transmitFeed($feedData, $store);
                 } catch (\Exception $e) {
                     $this->logger->error(
-                        'An error occurred while processing canceled Orders Feed Cron',
+                        'An error occurred while processing or transmitting canceled Orders Feed Cron',
                         [
                             'storeId' => $store->getId(),
                             'exception' => $e
@@ -219,7 +219,7 @@ class CanceledOrders extends Orders
                 }
             } catch (\Exception $e) {
                 $this->logger->error(
-                    'An error occurred while writing the canceled orders feed',
+                    'An error occurred while writing order data to the canceled orders feed',
                     [
                         'exception' => $e,
                     ]

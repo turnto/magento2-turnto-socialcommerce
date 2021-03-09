@@ -101,6 +101,12 @@ class TurnToConfig extends Template implements TurnToConfigInterface
                 $additionalConfigData['gallery'] = ['skus' => $skus];
             }
         }
+
+        // Remove comment capture if disabled
+        if (!$this->configHelper->getCommentsCaptureEnabled()) {
+            $additionalConfigData['commentCapture'] = ['suppress' => true];
+        }
+
         $configData = array_merge($additionalConfigData, $configData);
 
         /*

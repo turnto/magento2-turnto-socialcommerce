@@ -20,6 +20,9 @@
         <arguments>
             <argument name="contentType" xsi:type="string">reviews</argument>
         </arguments>
-    </type><type name="Magento\Review\Block\Product\Review"><plugin sortOrder="1" name="turnToSocialCommerceReview" type="TurnTo\SocialCommerce\Plugin\Block\Product\ReviewPlugin"/></type>
+    </type>
+    <type name="Magento\Review\Block\Product\Review">
+        <plugin sortOrder="1" name="turnToSocialCommerceReview" type="TurnTo\SocialCommerce\Plugin\Block\Product\ReviewPlugin"/>
+    </type>
 </config>
 

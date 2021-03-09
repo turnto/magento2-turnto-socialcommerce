@@ -85,14 +85,14 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     const XML_PATH_SOCIALCOMMERCE_ENABLE_QA = 'turnto_socialcommerce_configuration/qa/enable_qa';
 
-    const XML_PATH_SOCIALCOMMERCE_ENABLE_QA_TEASER = 'turnto_socialcommerce_configuration/qa/enable_qa_teaser';
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_QA_TEASER = 'turnto_socialcommerce_configuration/teaser/enable_qa_teaser';
 
     /**
      * Reviews
      */
     const XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS = 'turnto_socialcommerce_configuration/reviews/enable_reviews';
 
-    const XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS_TEASER = 'turnto_socialcommerce_configuration/reviews/enable_reviews_teaser';
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS_TEASER = 'turnto_socialcommerce_configuration/teaser/enable_reviews_teaser';
 
     const XML_PATH_SOCIALCOMMERCE_MOBILE_PAGE_TITLE = 'turnto_socialcommerce_configuration/mobile/mobile_page_title';
 
@@ -101,6 +101,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_PATH_SOCIALCOMMERCE_FEED_SUBMISSION_URL = 'turnto_socialcommerce_configuration/product_feed/feed_submission_url';
 
     const XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_ENABLED = 'turnto_socialcommerce_configuration/historical_orders_feed/enable_historical_feed';
+
+    const XML_PATH_SOCIALCOMMERCE_AVERAGE_RATING_IMPORT_ENABLED = 'turnto_socialcommerce_configuration/average_rating_import/enable_average_rating';
+
+    const XML_PATH_SOCIALCOMMERCE_AVERAGE_RATING_IMPORT_AGGREGATE_DATA = 'turnto_socialcommerce_configuration/average_rating_import/import_aggregate_data';
+
+    const XML_PATH_SOCIALCOMMERCE_CANCELLED_FEED_ENABLED = 'turnto_socialcommerce_configuration/historical_orders_feed/enable_cancelled_feed';
 
     const XML_PATH_SOCIALCOMMERCE_EXCLUDE_ITEMS_WITHOUT_DELIVERY_DATE = 'turnto_socialcommerce_configuration/historical_orders_feed/exclude_items_without_delivery_date';
 
@@ -113,13 +119,17 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Checkout Comments
      */
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_CAPTURE = 'turnto_socialcommerce_configuration/checkout_comments/enable_checkout_comment_capture';
+
     const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_PINBOARD_TEASER = 'turnto_socialcommerce_configuration/checkout_comments/enable_comments_pinboard_teaser';
 
     const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_PDP = 'turnto_socialcommerce_configuration/checkout_comments/enable_comments_pdp';
 
     const XML_PATH_SOCIALCOMMERCE_ENABLE_TOP_COMMENTS = 'turnto_socialcommerce_configuration/checkout_comments/enable_top_comments';
 
-    const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_TEASER = 'turnto_socialcommerce_configuration/checkout_comments/enable_comments_teaser';
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_TEASER = 'turnto_socialcommerce_configuration/teaser/enable_comments_teaser';
+
+    const XML_PATH_SOCIALCOMMERCE_CUSTOMER_NAME_FALLBACK = 'turnto_socialcommerce_configuration/checkout_comments/js_order_feed_customer_name_fallback';
 
     /**
      * Visual Content
@@ -306,9 +316,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
 
     }
-
-
-
 
     /**
      * Gets the URL configuration value
@@ -551,6 +558,48 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * @param null $store
+     *
+     * @return mixed
+     */
+    public function getIsCancelledOrdersFeedEnabled($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_CANCELLED_FEED_ENABLED,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     *
+     * @return mixed
+     */
+    public function getAverageRatingImportEnabled($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_AVERAGE_RATING_IMPORT_ENABLED,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param null $store
+     *
+     * @return mixed
+     */
+    public function getAverageRatingImportAggregateData($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_AVERAGE_RATING_IMPORT_AGGREGATE_DATA,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
      * @param $store
      *
      * @return mixed
@@ -573,6 +622,20 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_EXCLUDE_DELIVERY_DATE_ON_PARTIAL_SHIPMENT,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * Gets the Checkout Comments Captured Enabled configuration value
+     * @param null $store
+     * @return bool
+     */
+    public function getCommentsCaptureEnabled($store = null)
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_CAPTURE,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );
@@ -629,6 +692,20 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return (bool)$this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_TEASER,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * Gets the Comments Teaser Enabled configuration value
+     * @param null $store
+     * @return bool
+     */
+    public function getJSOrderFeedCustomerNameFallback($store = null)
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_CUSTOMER_NAME_FALLBACK,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );
@@ -738,6 +815,5 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
             $store ?: $this->getCurrentStoreCode()
         );
     }
-
 
 }

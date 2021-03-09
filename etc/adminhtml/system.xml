@@ -72,16 +72,6 @@
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
-                <field id="enable_qa_teaser" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Enable Questions &amp; Answers Teaser</label>
-                    <comment><![CDATA[
-                        Show the Q&A teaser below the product name on the product details page.
-                    ]]></comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="turnto_socialcommerce_configuration/qa/enable_qa">1</field>
-                    </depends>
-                </field>
             </group>
             <group id="reviews" translate="label" sortOrder="40" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Reviews</label>
@@ -94,16 +84,6 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
-                    </depends>
-                </field>
-                <field id="enable_reviews_teaser" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Enable Reviews Teaser</label>
-                    <comment><![CDATA[
-                        Enable the reviews teaser below the product name on the product details page.
-                    ]]></comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="turnto_socialcommerce_configuration/reviews/enable_reviews">1</field>
                     </depends>
                 </field>
             </group>
@@ -120,12 +100,46 @@
              <group id="teaser" translate="label" sortOrder="45" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>Teaser</label>
                 <field id="use_local_teaser_code" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>"Use Local Teaser Code" vs "Use Teaser Widget"</label>
+                    <label>Teaser Type</label>
                     <comment><![CDATA[
-                       Do not modify this value unless you have implemented a custom teaser
+                       "Use Local Teaser Code" means the teaser is generated using code local to the extension.<br/>
+                       "Use Teaser Widget" means a simple div will be added to the page, but the code will be served from TurnTo's servers.
+                    ]]></comment>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\TeaserType</source_model>
+                </field>
+                 <field id="enable_reviews_teaser" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Enable Reviews Teaser</label>
+                    <comment><![CDATA[
+                       Enable the reviews teaser below the product name on the product details page.
                     ]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/reviews/enable_reviews">1</field>
+                        <field id="turnto_socialcommerce_configuration/teaser/use_local_teaser_code">1</field>
+                    </depends>
+                 </field>
+                 <field id="enable_qa_teaser" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Enable Questions &amp; Answers Teaser</label>
+                    <comment><![CDATA[
+                       Show the Q&A teaser below the product name on the product details page.
+                    ]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/qa/enable_qa">1</field>
+                        <field id="turnto_socialcommerce_configuration/teaser/use_local_teaser_code">1</field>
+                    </depends>
+                 </field>
+                 <field id="enable_comments_teaser" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInStore="1" showInWebsite="1">
+                     <label>Enable Comments Teaser</label>
+                     <comment><![CDATA[
+                        Enable comment count in teaser on product details page.
+                    ]]></comment>
+                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                     <depends>
+                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                         <field id="turnto_socialcommerce_configuration/teaser/use_local_teaser_code">1</field>
+                     </depends>
+                 </field>
             </group>
             <group id="checkout_comments" translate="label" sortOrder="50" showInStore="1" showInWebsite="1" showInDefault="1">
                 <label>JS Order Feed and Checkout Comments</label>
@@ -176,14 +190,17 @@
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
-                <field id="enable_comments_teaser" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Enable Comments Teaser</label>
+                <field id="js_order_feed_customer_name_fallback" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInStore="1" showInWebsite="1">
+                    <label>Customer Name Fallback</label>
                     <comment><![CDATA[
-                        Enable comment count in teaser on product details page.
+                        TurnTo will attempt to get the customer's name from their account. If the customer does not have
+                         an account, this setting determines if TurnTo should retrieve the user's name from their
+                         Billing Address or their Shipping Address
                     ]]></comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\AddressFallback</source_model>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/checkout_comments/enable_js_order_feed">1</field>
                     </depends>
                 </field>
             </group>
@@ -215,7 +232,7 @@
                     </depends>
                 </field>
                 <field id="review_api_url" translate="label comment" type="text" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Rwview URL</label>
+                    <label>Review URL</label>
                     <comment>URL pulled by teaser.js and reviews-tab.js Should not be changed, unless instructed by TurnTo.</comment>
                     <depends>
                           <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
@@ -329,6 +346,13 @@
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
+                <field id="enable_cancelled_feed" type="select" translate="label" sortOrder="12" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Enable Cancelled Order Feed Submission</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
                 <field id="exclude_items_without_delivery_date" type="select" translate="label" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Exclude Items Without a Delivery Date</label>
                     <comment>Default is "No". If set to "No", all order items whose orders have been modified in the previous two days will be sent during each nightly CRON job (which means many order items will have a blank value for "DELIVERYDATE"). If set to "Yes", only the order items who have been shipped will get sent (which means all order items will have a "DELIVERYDATE" value).</comment>
@@ -345,6 +369,25 @@
                     <depends>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                         <field id="turnto_socialcommerce_configuration/historical_orders_feed/enable_historical_feed">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="average_rating_import" translate="label" sortOrder="90" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>Average Rating Feed Import</label>
+                <comment>If enabled, Magento imports a feed of review counts and average ratings on an hourly basis. TurnTo uses this order feed data to populate Average Rating and Review Count data used to display PLP ratings.</comment>
+                <field id="enable_average_rating" type="select" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Enable Automated Feed Import</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="import_aggregate_data" type="select" translate="label" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Aggregate Related Review Count</label>
+                    <comment>Default is "No". If set to "No", the Review Count attribute will be populated with the number of reviews, NOT including related reviews. If set to "Yes", the Review Count attribute will be populated based on the number of review AND related reviews</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
             </group>
@@ -377,6 +420,33 @@
             </group>
 
         </section>
+        <section id="turnto_socialcommerce_cron_schedule" translate="label" sortOrder="510" showInStore="1" showInWebsite="1" showInDefault="1">
+            <label>Cron Schedule</label>
+            <tab>turnto_socialcommerce</tab>
+            <resource>TurnTo_SocialCommerce::socialcommerce_cron_schedule_config</resource>
+            <group id="cron_schedule" translate="label" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
+                <label>Cron Schedule</label>
+                <field id="export_catalog_cron_time" canRestore="1" type="text" translate="label comment" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Export Catalog Cron Time</label>
+                    <comment>Enter a valid cron schedule expression for ie. 0 1 * * *</comment>
+                </field>
+                <field id="export_orders_cron_time" canRestore="1" type="text" translate="label comment" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Export Orders Cron Time</label>
+                    <comment>Enter a valid cron schedule expression ie. 0 1 * * *</comment>
+                </field>
+                <field id="export_canceled_orders_cron_time" canRestore="1" type="text" translate="label comment" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Export Cancled Orders Cron Time</label>
+                    <comment>Enter a valid cron schedule expression ie. 0 1 * * *</comment>
+                </field>
+                <field id="import_ratings_cron_time" canRestore="1" type="text" translate="label comment" sortOrder="40" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Import Ratings Cron Time</label>
+                    <comment>Enter a valid cron schedule expression ie. 0 1 * * *</comment>
+                </field>
+
+            </group>
+
+        </section>
+
     </system>
 </config>
 

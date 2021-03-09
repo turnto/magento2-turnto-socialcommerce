@@ -67,6 +67,7 @@ class JSOrderFeed extends \Magento\Framework\View\Element\Template
      */
     public function getFeedPurchaseOrderData()
     {
+        // Get the customer's first and last name from their account if possible
         $order = $this->checkoutSession->getLastRealOrder();
         $firstName = $order->getCustomerFirstname();
         $lastName = $order->getCustomerLastname();
@@ -74,11 +75,21 @@ class JSOrderFeed extends \Magento\Framework\View\Element\Template
         // Determine which store the order was made from
         $storeId = $order->getStoreId();
 
+        // If client doesn't have an account, fallback...
         if (null === $order->getCustomer()) {
-            $address = $order->getShippingAddress();
+            // Depending on setting, fallback to Shipping Address name or Billing Address name first
+            $fallback = $this->config->getJSOrderFeedCustomerNameFallback();
 
-            if (null === $address) {
+            if ($fallback == \TurnTo\SocialCommerce\Model\Config\Source\AddressFallback::BILLING_ADDRESS_VALUE) {
                 $address = $order->getBillingAddress();
+                if (null === $address) {
+                    $address = $order->getShippingAddress();
+                }
+            } else {
+                $address = $order->getShippingAddress();
+                if (null === $address) {
+                    $address = $order->getBillingAddress();
+                }
             }
 
             $firstName = $address->getFirstname();

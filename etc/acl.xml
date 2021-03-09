@@ -22,6 +22,7 @@
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">
                             <resource id="TurnTo_SocialCommerce::socialcommerce_general_config" title="TurnTo Social Commerce Section"/>
+                            <resource id="TurnTo_SocialCommerce::socialcommerce_cron_schedule_config" title="TurnTo Social Commerce Section"/>
                         </resource>
                     </resource>
                 </resource>
