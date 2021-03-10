@@ -8,7 +8,7 @@
 namespace TurnTo\SocialCommerce\Test\Unit\Model\Export;
 
 use TurnTo\SocialCommerce\Helper\Product;
-use TurnTo\SocialCommerce\Model\Export\Catalog;
+use TurnTo\SocialCommerce\Model\Manager\Export\Catalog as CatalogExportManager;
 
 class CatalogTest extends  \PHPUnit\Framework\TestCase
 {
@@ -19,7 +19,7 @@ class CatalogTest extends  \PHPUnit\Framework\TestCase
      */
     protected function setUp()
     {
-        $this->catalog = new Catalog(
+        $this->catalog = new CatalogExportManager(
          $this->createMock(\TurnTo\SocialCommerce\Helper\Config::class),
          $this->createMock(\Magento\Catalog\Model\ResourceModel\Product\CollectionFactory::class),
          $this->createMock(\TurnTo\SocialCommerce\Logger\Monolog::class),
@@ -30,7 +30,6 @@ class CatalogTest extends  \PHPUnit\Framework\TestCase
          $this->createMock(\Magento\UrlRewrite\Model\UrlFinderInterface::class),
          $this->createMock(\Magento\Store\Model\StoreManagerInterface::class),
          $this->createMock(\Magento\Catalog\Helper\Image::class),
-         $this->createMock(\Magento\CatalogInventory\Model\Spi\StockRegistryProviderInterface::class),
          $this->createMock(\TurnTo\SocialCommerce\Helper\Product::class)
         );
     }
@@ -38,6 +37,6 @@ class CatalogTest extends  \PHPUnit\Framework\TestCase
 
 
     public function testIsCatalogClass(){
-        $this->assertInstanceOf(\TurnTo\SocialCommerce\Model\Export\Catalog::class,$this->catalog);
+        $this->assertInstanceOf(\TurnTo\SocialCommerce\Model\Manager\Export\Catalog::class,$this->catalog);
     }
 }
