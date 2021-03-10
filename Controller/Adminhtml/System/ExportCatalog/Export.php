@@ -23,9 +23,9 @@ class Export extends \Magento\Backend\App\Action
     protected $resultJsonFactory;
 
     /**
-     * @var \TurnTo\SocialCommerce\Model\Export\Catalog
+     * @var \TurnTo\SocialCommerce\Model\Manager\Export\Catalog
      */
-    protected $catalogExport;
+    protected $catalogExportManager;
 
     /**
      * @var \Psr\Log\LoggerInterface $logger
@@ -40,12 +40,12 @@ class Export extends \Magento\Backend\App\Action
     public function __construct(
         Context $context,
         JsonFactory $resultJsonFactory,
-        \TurnTo\SocialCommerce\Model\Export\Catalog $catalogExport,
+        \TurnTo\SocialCommerce\Model\Manager\Export\Catalog $catalogExportManager,
         \TurnTo\SocialCommerce\Logger\Monolog $logger
     )
     {
         $this->resultJsonFactory = $resultJsonFactory;
-        $this->catalogExport = $catalogExport;
+        $this->catalogExportManager = $catalogExportManager;
         $this->logger = $logger;
         parent::__construct($context);
     }
@@ -61,7 +61,7 @@ class Export extends \Magento\Backend\App\Action
         $result = $this->resultJsonFactory->create();
 
         try {
-            $this->catalogExport->cronUploadFeed();
+            $this->catalogExportManager->cronUploadFeed();
         } catch (\Exception $e) {
             $this->logger->error("An error occurred while transmitting the catalog feed to TurnTo. [Manual Export]",
                 [
