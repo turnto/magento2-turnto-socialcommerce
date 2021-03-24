@@ -1,58 +1,60 @@
-# PHP CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-php/ for more details
-#
 version: 2
+
 jobs:
   build:
     docker:
-      # Specify the version you desire here
-      - image: circleci/php:7.1-node-browsers
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # Using the RAM variation mitigates I/O contention
-      # for database intensive operations.
-      # - image: circleci/mysql:5.7-ram
-      #
-      # - image: redis:2.8.19
+      # using custom image, see .circleci/images/primary/Dockerfile
+      - image: circleci/php:7.0.30-apache-node
+        environment:
+          DB_USER: root
+          DB_PASSWORD: root
+          DB_NAME: m2_integration_tests
+          DB_HOST: localhost
+          DB_PORT: 3306
+      - image: circleci/mysql:5.7-ram
+        environment:
+          MYSQL_USER: root
+          MYSQL_DATABASE: m2_integration_tests
+          MYSQL_ROOT_HOST: "%"
+          MYSQL_ROOT_PASSWORD: root
+    environment:
+      TEST_RESULTS: /tmp/test-results
+      PATH_TO_MAGENTO: magento/dev/tests/integration
 
     steps:
       - checkout
+      - run: sudo apt-get install -y curl libpng-dev libxml2-dev zlib1g-dev libicu-dev g++ libmcrypt-dev libreadline-dev libxml2 libxml2-dev libxslt1-dev libfreetype6-dev libicu-dev libjpeg62-turbo-dev libmcrypt-dev libpng-dev libxslt1-dev sendmail-bin sendmail cron rsyslog git libgd-dev
+      - run: sudo docker-php-ext-configure intl
+      - run: sudo docker-php-ext-configure gd --with-freetype-dir=/usr --with-jpeg-dir=/usr --with-png-dir=/usr
+      - run: sudo docker-php-ext-install pdo_mysql gd intl bcmath soap mcrypt xsl mbstring json xml mysqli sockets zip
+      - run: sudo apt install -y mysql-client
+      - run: mkdir -p $TEST_RESULTS
+      - run:
+          name: update host file
+          command: |
+            echo 127.0.0.1 localhost | sudo tee -a /etc/hosts
+            cat /etc/hosts
+      - run:
+          name: Install Composer
+          command: |
+            php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+            php -r "if (hash_file('SHA384', 'composer-setup.php') === trim(file_get_contents('https://composer.github.io/installer.sig'))) { echo 'Installer verified'; } else { echo 'Installer invalid'; unlink('composer-setup.php'); } echo PHP_EOL;"
+            php composer-setup.php
+            php -r "unlink('composer-setup.php');"
 
-      - run: sudo apt update # PHP CircleCI 2.0 Configuration File# PHP CircleCI 2.0 Configuration File sudo apt install zlib1g-dev libsqlite3-dev
-      - run: sudo docker-php-ext-install zip
-
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-            # "composer.lock" can be used if it is committed to the repo
-            - v1-dependencies-{{ checksum "composer.json" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
-
-      - run: composer install -n --prefer-dist
-
-      - save_cache:
-          key: v1-dependencies-{{ checksum "composer.json" }}
-          paths:
-            - ./vendor
-      - restore_cache:
-          keys:
-            - node-v1-{{ checksum "package.json" }}
-            - node-v1-
-      - run: yarn install
-      - save_cache:
-          key: node-v1-{{ checksum "package.json" }}
-          paths:
-            - node_modules
-
-      # prepare the database
-      - run: touch storage/testing.sqlite
-      - run: php artisan migrate --env=testing --database=sqlite_testing --force
-
-      # run tests with phpunit or codecept
-      #- run: ./vendor/bin/phpunit
-      - run: ./vendor/bin/codecept build
-      - run: ./vendor/bin/codecept run
+      - run:
+          name: Display PHP information
+          command: |
+            php -v
+            php composer.phar --version
+      - run:
+          name: Install project dependencies
+          command: |
+              php composer.phar install
+      - run:
+          name: Run Unit tests
+          command: |
+              echo ${PATH_TO_MAGENTO}
+              cd ${PATH_TO_MAGENTO}
+              ../../../vendor/bin/phpunit --testsuite "All integration tests"
+              # magento/vendor/bin/phpunit --configuration ${PATH_TO_MAGENTO}/phpunit.xml
