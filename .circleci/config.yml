@@ -40,7 +40,7 @@ commands:
     steps:
       - run:
           name: download and install Magento 2
-          command: git clone -b 2.3 https://github.com/magento/magento2 ./ && composer install && mkdir -p app/code/TurnTo/SocialCommerce
+          command: git clone -b 2.3 https://github.com/magento/magento2 ./ && composer install magento2/ && mkdir -p magento2/app/code/TurnTo/SocialCommerce
 
   copy-repo:
     steps:
