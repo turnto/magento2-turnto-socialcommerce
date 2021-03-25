@@ -85,7 +85,7 @@ class Catalog extends \TurnTo\SocialCommerce\Model\Export\AbstractExport
         \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Catalog\Helper\Image $imageHelper,
-        TurnTo\SocialCommerce\Helper\Product $productHelper,
+        \TurnTo\SocialCommerce\Helper\Product $productHelper,
         \TurnTo\SocialCommerce\Helper\Export $exportHelper
     )
     {
@@ -172,10 +172,10 @@ class Catalog extends \TurnTo\SocialCommerce\Model\Export\AbstractExport
                 '<?xml version="1.0" encoding="UTF-8"?>' . '<feed xmlns="http://www.w3.org/2005/Atom"' . ' xmlns:g="http://base.google.com/ns/1.0" xml:lang="en-US" />'
             );
 
-            $feed->addChild('title', $this->sanitizeData($store->getName() . ' - Google Product Atom 1.0 Feed'));
+            $feed->addChild('title', $this->exportHelper->sanitizeData($store->getName() . ' - Google Product Atom 1.0 Feed'));
             $feed->addChild(
                 'link',
-                $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK))
+                $this->exportHelper->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK))
             );
             $feed->addChild(
                 'updated',
@@ -184,7 +184,7 @@ class Catalog extends \TurnTo\SocialCommerce\Model\Export\AbstractExport
             $feed->addChild('author')->addChild('name', 'TurnTo');
             $feed->addChild(
                 'id',
-                $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB))
+                $this->exportHelper->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB))
             );
 
             return $feed;
