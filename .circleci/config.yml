@@ -52,7 +52,7 @@ commands:
     steps:
       - run:
           name: run magento commands
-          command: php bin/magento setup:upgrade && php bin/magento setup:di:compile
+          command: cd magento2 && php bin/magento setup:upgrade && php bin/magento setup:di:compile
 
   persist-workspace:
     steps:
