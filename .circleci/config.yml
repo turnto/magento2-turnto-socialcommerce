@@ -17,6 +17,7 @@ jobs:
   build:
     executor: default
     steps:
+      - setup-environment
       - install-magento
       - checkout
       - move-repo
@@ -29,6 +30,12 @@ jobs:
       - run-tests
 
 commands:
+  setup-environment:
+    steps:
+      - run:
+          name: install magento dependencies
+          command: apt-get install php-bcmath && apt-get install php-intl && apt-get install php7.0-soap
+
   install-magento:
     steps:
       - run:
