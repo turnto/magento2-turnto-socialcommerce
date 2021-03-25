@@ -33,7 +33,7 @@ commands:
     steps:
       - run:
           name: download and install Magento 2
-          command: git clone https://github.com/magento/magento2/ ./ && git checkout tags/2.3 && composer install
+          command: git clone -b 2.3 https://github.com/magento/magento2 && composer install
 
   move-repo:
     steps:
