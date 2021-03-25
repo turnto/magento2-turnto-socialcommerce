@@ -1,4 +1,4 @@
-[![<TurnTo>](https://circleci.com/gh/turnto/magento2-turnto-socialcommerce.svg?style=shield)]
+[<TurnTo>](https://circleci.com/gh/turnto/magento2-turnto-socialcommerce.svg?style=shield)
 
 # Overview
 
