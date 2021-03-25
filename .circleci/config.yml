@@ -32,7 +32,7 @@ commands:
     steps:
       - run:
           name: make app/code/TurnTo/SocialCommerce dir and copy repo there
-          command: mkdir -p app/code/TurnTo/SocialCommerce && cp ~/repo/* app/code/TurnTo/SocialCommerce
+          command: mkdir -p app/code/TurnTo/SocialCommerce && cp ~/* app/code/TurnTo/SocialCommerce && ls ~/
 
   build-magento:
     steps:
