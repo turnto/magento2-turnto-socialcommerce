@@ -34,7 +34,7 @@ commands:
     steps:
       - run:
           name: install magento dependencies
-          command: apt-get install php-bcmath && apt-get install php-intl && apt-get install php7.0-soap
+          command: sudo apt-get install php-bcmath && sudo apt-get install php-intl && sudo apt-get install php7.0-soap
 
   install-magento:
     steps:
