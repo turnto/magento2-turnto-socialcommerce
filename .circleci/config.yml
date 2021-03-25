@@ -19,8 +19,7 @@ jobs:
     steps:
       - setup-environment
       - install-magento
-      - checkout
-      - move-repo
+      - checkout-repo
       - build-magento
       - persist-workspace
   test:
@@ -40,19 +39,19 @@ commands:
     steps:
       - run:
           name: download and install Magento 2
-          command: git clone -b 2.3 https://github.com/magento/magento2 ./ && composer install
+          command: git clone -b 2.3 https://github.com/magento/magento2 ./ && composer install && mkdir -p app/code/TurnTo/SocialCommerce
 
-  move-repo:
+  checkout-repo:
     steps:
       - run:
-          name: make app/code/TurnTo/SocialCommerce dir and copy repo there
-          command: mkdir -p app/code/TurnTo/SocialCommerce && ls ~/*
+          name: checkout extension repo to proper directory
+          command: git clone app/code/TurnTo/SocialCommerce
 
   build-magento:
     steps:
       - run:
           name: run magento commands
-          command: php bin/magento setup:upgrade
+          command: php bin/magento setup:upgrade && php bin/magento setup:di:compile
 
   persist-workspace:
     steps:
