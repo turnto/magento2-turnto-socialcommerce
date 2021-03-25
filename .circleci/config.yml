@@ -3,58 +3,25 @@ version: 2
 jobs:
   build:
     docker:
-      # using custom image, see .circleci/images/primary/Dockerfile
-      - image: circleci/php:7.2.32-apache-node
+      - image: docker.io/bitnami/mariadb:10.3-debian-10
         environment:
-          DB_USER: root
-          DB_PASSWORD: root
-          DB_NAME: m2_integration_tests
-          DB_HOST: localhost
-          DB_PORT: 3306
-      - image: circleci/mysql:5.7-ram
+          ALLOW_EMPTY_PASSWORD: yes
+          MARIADB_USER: bn_magento
+          MARIADB_PASSWORD: magento_db_password
+          MARIADB_DATABASE: bitnami_magento
+      - image: docker.io/bitnami/magento:2.4.1
         environment:
-          MYSQL_USER: root
-          MYSQL_DATABASE: m2_integration_tests
-          MYSQL_ROOT_HOST: "%"
-          MYSQL_ROOT_PASSWORD: root
+          MAGENTO_HOST: localhost
+          MAGENTO_DATABASE_HOST: mariadb
+          MAGENTO_DATABASE_PORT_NUMBER: 3306
+          MAGENTO_DATABASE_USER: bn_magento
+          MAGENTO_DATABASE_PASSWORD: magento_db_password
+          MAGENTO_DATABASE_NAME: bitnami_magento
+          ELASTICSEARCH_HOST: elasticsearch
+          ELASTICSEARCH_PORT_NUMBER: 9200
+          ALLOW_EMPTY_PASSWORD: yes
+      - image: docker.io/bitnami/elasticsearch:6-debian-10
     environment:
       TEST_RESULTS: /tmp/test-results
       PATH_TO_MAGENTO: magento/dev/tests/integration
 
-    steps:
-      - checkout
-      - run: sudo apt-get install -y curl libpng-dev libxml2-dev zlib1g-dev libicu-dev g++ libmcrypt-dev libreadline-dev libxml2 libxml2-dev libxslt1-dev libfreetype6-dev libicu-dev libjpeg62-turbo-dev libmcrypt-dev libpng-dev libxslt1-dev sendmail-bin sendmail cron rsyslog git libgd-dev
-      - run: sudo docker-php-ext-configure intl
-      - run: sudo docker-php-ext-configure gd --with-freetype-dir=/usr --with-jpeg-dir=/usr --with-png-dir=/usr
-      - run: sudo docker-php-ext-install pdo_mysql gd intl bcmath soap mcrypt xsl mbstring json xml mysqli sockets zip
-      - run: sudo apt install -y mysql-client
-      - run: mkdir -p $TEST_RESULTS
-      - run:
-          name: update host file
-          command: |
-            echo 127.0.0.1 localhost | sudo tee -a /etc/hosts
-            cat /etc/hosts
-      - run:
-          name: Install Composer
-          command: |
-            php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-            php -r "if (hash_file('SHA384', 'composer-setup.php') === trim(file_get_contents('https://composer.github.io/installer.sig'))) { echo 'Installer verified'; } else { echo 'Installer invalid'; unlink('composer-setup.php'); } echo PHP_EOL;"
-            php composer-setup.php
-            php -r "unlink('composer-setup.php');"
-
-      - run:
-          name: Display PHP information
-          command: |
-            php -v
-            php composer.phar --version
-      - run:
-          name: Install project dependencies
-          command: |
-              php composer.phar install
-      - run:
-          name: Run Unit tests
-          command: |
-              echo ${PATH_TO_MAGENTO}
-              cd ${PATH_TO_MAGENTO}
-              ../../../vendor/bin/phpunit --testsuite "All integration tests"
-              # magento/vendor/bin/phpunit --configuration ${PATH_TO_MAGENTO}/phpunit.xml
