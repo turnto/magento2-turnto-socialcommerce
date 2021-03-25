@@ -3,27 +3,7 @@ version: 2.1
 executors:
   default:
     docker:
-      - image: docker.io/bitnami/mariadb:10.3-debian-10
-        environment:
-          ALLOW_EMPTY_PASSWORD: yes
-          MARIADB_USER: bn_magento
-          MARIADB_PASSWORD: magento_db_password
-          MARIADB_DATABASE: bitnami_magento
-      - image: docker.io/bitnami/magento:2.4.1
-        environment:
-          MAGENTO_HOST: localhost
-          MAGENTO_DATABASE_HOST: mariadb
-          MAGENTO_DATABASE_PORT_NUMBER: 3306
-          MAGENTO_DATABASE_USER: bn_magento
-          MAGENTO_DATABASE_PASSWORD: magento_db_password
-          MAGENTO_DATABASE_NAME: bitnami_magento
-          ELASTICSEARCH_HOST: elasticsearch
-          ELASTICSEARCH_PORT_NUMBER: 9200
-          ALLOW_EMPTY_PASSWORD: yes
-      - image: docker.io/bitnami/elasticsearch:6-debian-10
-    environment:
-      TEST_RESULTS: /tmp/test-results
-      PATH_TO_MAGENTO: magento/dev/tests/integration
+      - image: cimg/php:7.2.32
 
 workflows:
   build-test:
@@ -38,6 +18,7 @@ jobs:
     executor: default
     steps:
       - checkout
+      - move-repo
       - build-magento
       - persist-workspace
   test:
@@ -47,6 +28,12 @@ jobs:
       - run-tests
 
 commands:
+  move-repo:
+    steps:
+      - run:
+          name: make app/code/TurnTo/SocialCommerce dir and copy repo there
+          command: mkdir -p app/code/TurnTo/SocialCommerce && cp ~/repo/* app/code/TurnTo/SocialCommerce
+
   build-magento:
     steps:
       - run:
