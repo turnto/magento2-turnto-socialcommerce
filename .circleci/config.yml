@@ -19,7 +19,8 @@ jobs:
     steps:
       - setup-environment
       - install-magento
-      - checkout-repo
+      - checkout
+      - copy-repo
       - build-magento
       - persist-workspace
   test:
@@ -41,11 +42,11 @@ commands:
           name: download and install Magento 2
           command: git clone -b 2.3 https://github.com/magento/magento2 ./ && composer install && mkdir -p app/code/TurnTo/SocialCommerce
 
-  checkout-repo:
+  copy-repo:
     steps:
       - run:
-          name: checkout extension repo to proper directory
-          command: git clone https://github.com/turnto/magento2-turnto-socialcommerce/ app/code/TurnTo/SocialCommerce/
+          name: copy the extension repo into the right place in magento2
+          command: rsync ./* ./magento2/app/code/TurnTo/SocialCommerce --exclude magento2
 
   build-magento:
     steps:
