@@ -45,7 +45,7 @@ commands:
     steps:
       - run:
           name: checkout extension repo to proper directory
-          command: git clone app/code/TurnTo/SocialCommerce
+          command: git clone https://github.com/turnto/magento2-turnto-socialcommerce/ app/code/TurnTo/SocialCommerce/
 
   build-magento:
     steps:
