@@ -17,9 +17,9 @@ jobs:
   build:
     executor: default
     steps:
+      - checkout
       - setup-environment
       - install-magento
-      - checkout
       - copy-repo
       - build-magento
       - persist-workspace
