@@ -1,3 +1,5 @@
+[![<TurnTo>](https://circleci.com/gh/turnto/magento2-turnto-socialcommerce.svg?style=shield)]
+
 # Overview
 
 This repository contains a Magento 2 extension that connects Magento 2 with TurnTo's Social Commerce service. Compatible with Magento Community and Enterprise, versions 2.1.x - 2.3.x.
