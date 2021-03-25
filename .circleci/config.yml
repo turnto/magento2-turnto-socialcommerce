@@ -17,6 +17,7 @@ jobs:
   build:
     executor: default
     steps:
+      - install-magento
       - checkout
       - move-repo
       - build-magento
@@ -28,6 +29,12 @@ jobs:
       - run-tests
 
 commands:
+  install-magento:
+    steps:
+      - run:
+          name: download and install Magento 2
+          command: composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition ./
+
   move-repo:
     steps:
       - run:
