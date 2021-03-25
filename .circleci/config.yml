@@ -33,7 +33,7 @@ commands:
     steps:
       - run:
           name: download and install Magento 2
-          command: composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition ./
+          command: git clone https://github.com/magento/magento2 ./ && cd magento2 && composer install
 
   move-repo:
     steps:
