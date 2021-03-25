@@ -1,5 +1,4 @@
-[![<ORG_NAME>](https://circleci.com/gh/turnto/magento2-turnto-socialcommerce.svg?style=svg)](https://github.com/turnto/magento2-turnto-socialcommerce)
-[![<ORG_NAME>](https://circleci.com/gh/shopify.svg?style=svg&circle-token=8978fb396c23ccbb231c4d78e15986222ae7b30b)](https://www.pixlee.com)
+[![<ORG_NAME>](https://circleci.com/gh/turnto/magento2-turnto-socialcommerce.svg?style=shield)](https://github.com/turnto/magento2-turnto-socialcommerce)
 
 # Overview
 
