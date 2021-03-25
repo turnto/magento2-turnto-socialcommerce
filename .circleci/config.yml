@@ -1,7 +1,7 @@
-version: 2
+version: 2.1
 
-jobs:
-  build:
+executors:
+  default:
     docker:
       - image: docker.io/bitnami/mariadb:10.3-debian-10
         environment:
@@ -25,3 +25,48 @@ jobs:
       TEST_RESULTS: /tmp/test-results
       PATH_TO_MAGENTO: magento/dev/tests/integration
 
+workflows:
+  build-test:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
+
+jobs:
+  build:
+    executor: default
+    steps:
+      - checkout
+      - build-magento
+      - persist-workspace
+  test:
+    executor: default
+    steps:
+      - attach-workspace
+      - run-tests
+
+commands:
+  build-magento:
+    steps:
+      - run:
+          name: run magento commands
+          command: php bin/magento setup:upgrade
+
+  persist-workspace:
+    steps:
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - .
+  
+  attach-workspace:
+    steps:
+      - attach_workspace:
+          at: ~/repo
+  
+  run-tests:
+    steps:
+      - run:
+          name: run php unit tests
+          command: ./vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist app/code/TurnTo/SocialCommerce/Test/Unit
