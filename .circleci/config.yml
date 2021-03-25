@@ -34,7 +34,7 @@ commands:
     steps:
       - run:
           name: install magento dependencies
-          command: sudo apt-get update && sudo apt-get install php7.2-bcmath && sudo apt-get install php7.2-intl && sudo apt-get install php7.2-soap
+          command: sudo apt-get update && sudo apt-get install php7.2-bcmath && sudo apt-get install php7.2-intl && sudo apt-get install php7.2-soap && sudo apt-get install rsync
 
   install-magento:
     steps:
