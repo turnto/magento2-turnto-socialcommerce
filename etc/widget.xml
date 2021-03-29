@@ -16,7 +16,7 @@
 -->
 <widgets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Widget:etc/widget.xsd">
     <widget id="turnto_socialcommerce_pinboard" class="TurnTo\SocialCommerce\Block\Widget\Pinboard">
-        <label translate="true">TurnTo SpeedFlex</label>
+        <label translate="true">TurnTo SpeedFlex - Pinboard</label>
         <description>A responsive pinboard showcasing customer-submitted Checkout Comments or Visual Content in a unique product-centered browsing experience. Only one pinboard may be inserted on a page.</description>
         <parameters>
             <parameter name="content_type" xsi:type="select" required="true" visible="true" sort_order="10">
@@ -53,6 +53,20 @@
             <parameter name="tags" xsi:type="text" required="false" visible="true" sort_order="40">
                 <label>Filter by Tags</label>
                 <description>Pinboard will filter products by the Tags provided in this field. Separate Tags by commmas. e.g. "TAG1, TAG2"</description>
+            </parameter>
+        </parameters>
+    </widget>
+    <widget id="turnto_socialcommerce_landing_page" class="TurnTo\SocialCommerce\Block\Widget\LandingPage">
+        <label translate="true">TurnTo SpeedFlex - Landing Page</label>
+        <description>A widget for inserting the requisite code for a TurnTo Landing Page. The content of this widget does not produce any visible content.</description>
+        <parameters>
+            <parameter name="template" xsi:type="select" required="true" visible="false" sort_order="30">
+                <label translate="true">Template</label>
+                <options>
+                    <option name="default" value="TurnTo_SocialCommerce::widget/landing_page.phtml" selected="true">
+                        <label translate="true">Landing Page Template</label>
+                    </option>
+                </options>
             </parameter>
         </parameters>
     </widget>
