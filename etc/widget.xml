@@ -59,5 +59,15 @@
     <widget id="turnto_socialcommerce_landing_page" class="TurnTo\SocialCommerce\Block\Widget\LandingPage">
         <label translate="true">TurnTo SpeedFlex - Landing Page</label>
         <description>A widget for inserting the requisite code for a TurnTo Landing Page. The content of this widget does not produce any visible content.</description>
+        <parameters>
+            <parameter name="template" xsi:type="select" required="true" visible="false" sort_order="30">
+                <label translate="true">Template</label>
+                <options>
+                    <option name="default" value="TurnTo_SocialCommerce::widget/landing_page.phtml" selected="true">
+                        <label translate="true">Landing Page Template</label>
+                    </option>
+                </options>
+            </parameter>
+        </parameters>
     </widget>
 </widgets>

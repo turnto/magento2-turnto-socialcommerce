@@ -15,11 +15,13 @@ namespace TurnTo\SocialCommerce\Block\Widget;
 use Magento\Framework\Exception\LocalizedException;
 use TurnTo\SocialCommerce\Helper\Config as TurnToConfigHelper;
 
-class LandingPage extends \Magento\Framework\View\Element\AbstractBlock
+class LandingPage extends \Magento\Framework\View\Element\Template implements \Magento\Widget\Block\BlockInterface
 {
 
+    protected $_template = "TurnTo_SocialCommerce::widget/landing_page.phtml";
+
     public function __construct(
-        \Magento\Framework\View\Element\Context $context,
+        \Magento\Framework\View\Element\Template\Context $context,
         array $data = []
     )
     {
@@ -35,6 +37,11 @@ class LandingPage extends \Magento\Framework\View\Element\AbstractBlock
      */
     public function getTurnToConfigHtml()
     {
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test-custom.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        $logger->info('getTurnToConfigHtml');
+
         /** @var \TurnTo\SocialCommerce\Block\TurnToConfig $landingPageBlock */
         try {
             $landingPageBlock = $this->getLayout()->createBlock(
@@ -46,10 +53,10 @@ class LandingPage extends \Magento\Framework\View\Element\AbstractBlock
         }
 
         $landingPageBlock->setConfigData(['pageId' => 'email-landing-page']);
-        $configHtml = $landingPageBlock->toHtml();
-        $landingPageDiv = "<div id=\"tt-embedded-submission\"></div>";
 
-        return $configHtml . "\n" . $landingPageDiv;
+        $logger->info('getTurnToConfigHtml: ' . $landingPageBlock->toHtml());
+
+        return $landingPageBlock->toHtml();
     }
 
 }
