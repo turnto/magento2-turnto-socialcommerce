@@ -8,7 +8,12 @@ executors:
 workflows:
   build-test:
     jobs:
-      - build
+      - build:
+        filters:
+          branches:
+            only:
+              - master
+              - develop 
       - test:
           requires:
             - build
