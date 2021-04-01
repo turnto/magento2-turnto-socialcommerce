@@ -16,13 +16,13 @@
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
     <group id="turnto_socialcommerce">
-        <job name="socialcommerce_exportcatalog" instance="TurnTo\SocialCommerce\Model\Cron\CatalogExport" method="execute">
+        <job name="socialcommerce_exportcatalog" instance="TurnTo\SocialCommerce\Model\Cron\Export\Catalog" method="execute">
              <config_path>turnto_socialcommerce_cron_schedule/cron_schedule/export_catalog_cron_time</config_path>
         </job>
-        <job name="socialcommerce_exportorders" instance="TurnTo\SocialCommerce\Model\Export\Orders" method="cronUploadFeed">
+        <job name="socialcommerce_exportorders" instance="TurnTo\SocialCommerce\Model\Cron\Export\Orders" method="execute">
              <config_path>turnto_socialcommerce_cron_schedule/cron_schedule/export_orders_cron_time</config_path>
         </job>
-        <job name="socialcommerce_export_canceled_orders" instance="TurnTo\SocialCommerce\Model\Export\CanceledOrders" method="cronUploadFeed">
+        <job name="socialcommerce_export_canceled_orders" instance="TurnTo\SocialCommerce\Model\Cron\Export\CancelledOrders" method="execute">
              <config_path>turnto_socialcommerce_cron_schedule/cron_schedule/export_canceled_orders_cron_time</config_path>
         </job>
         <!-- TurnTo generates the SKU feed at 3AM EST, 11AM EST, and 6PM EST every day. The import runs every hour and only updates product attributes that have changed. -->
