@@ -13,92 +13,69 @@
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
-namespace TurnTo\SocialCommerce\Model\Export;
+namespace TurnTo\SocialCommerce\Model\Manager\Export;
 
-use Magento\Catalog\Helper\Product;
-use Magento\Catalog\Model\ProductRepository;
-use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
-use Magento\Framework\Api\FilterBuilder;
-use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\Api\SortOrderBuilder;
-use Magento\Framework\App\Filesystem\DirectoryList;
-use Magento\Framework\Filesystem\Io\File;
-use Magento\Framework\Intl\DateTimeFactory;
-use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Api\ShipmentRepositoryInterface;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactoryAlias;
-use Magento\Store\Model\StoreManagerInterface;
-use Magento\UrlRewrite\Model\UrlFinderInterface;
-use TurnTo\SocialCommerce\Helper\Config;
-use TurnTo\SocialCommerce\Helper\Product as TurnToProductHelper;
-use TurnTo\SocialCommerce\Logger\Monolog;
+use Magento\Framework\App\Filesystem\DirectoryList;
 
-class Orders extends AbstractExport
+class Orders
 {
-    /**#@+
-     * Field Id keys
-     */
+
     CONST MAIN_TABLE_PREFIX = 'main_table.';
 
     const UPDATED_AT_FIELD_ID = 'updated_at';
 
     const STORE_ID_FIELD_ID = 'store_id';
 
-    const ORDER_ID_FIELD_ID = 'order_id';
-
     const PRODUCT_FIELD_ID = 'product';
 
     const SHIP_DATE_FIELD_ID = 'shipDate';
 
     const LINE_ITEM_FIELD_ID = 'lineItem';
-    /**#@-*/
 
-    /**#@+
-     * TurnTo Transmission Constants
-     */
     const FEED_NAME = 'historical-orders-feed.tsv';
 
     const FEED_STYLE = 'tab-style.1';
 
     const FEED_MIME = 'text/tab-separated-values';
-    /**#@-*/
 
     /**
-     * Path to temp file used for writing, maximum of 16MB is used as in memory buffer
+     * @var \TurnTo\SocialCommerce\Helper\Config
      */
-    const TEMP_FILE_PATH = 'php://temp/maxmemory:16384';
+    protected $config;
 
     /**
-     * @var OrderRepositoryInterface|null
+     * @var \TurnTo\SocialCommerce\Logger\Monolog
      */
-    protected $orderService = null;
+    protected $logger;
 
     /**
-     * @var ShipmentRepositoryInterface|null
+     * @var \Magento\Sales\Api\ShipmentRepositoryInterface
      */
-    protected $shipmentsService = null;
+    protected $shipmentsService;
 
     /**
-     * @var ProductRepository|null
+     * @var \Magento\Catalog\Model\ProductRepository
      */
-    protected $productRepository = null;
+    protected $productRepository;
 
     /**
-     * @var Product|null
+     * @var \Magento\Catalog\Helper\Product
      */
-    protected $productHelper = null;
+    protected $productHelper;
 
     /**
-     * @var DirectoryList|null
+     * @var DirectoryList
      */
-    protected $directoryList = null;
+    protected $directoryList;
+
     /**
-     * @var Product
+     * @var \TurnTo\SocialCommerce\Helper\Product
      */
     protected $turnToProductHelper;
 
     /**
-     * @var File
+     * @var \Magento\Framework\Filesystem\Io\File
      */
     protected $fileSystem;
 
@@ -108,119 +85,48 @@ class Orders extends AbstractExport
     protected $orderCollectionFactory;
 
     /**
-     * Orders constructor.
-     *
-     * @param Config                      $config
-     * @param CollectionFactory           $productCollectionFactory
-     * @param Monolog                     $logger
-     * @param DateTimeFactory             $dateTimeFactory
-     * @param SearchCriteriaBuilder       $searchCriteriaBuilder
-     * @param FilterBuilder               $filterBuilder
-     * @param SortOrderBuilder            $sortOrderBuilder
-     * @param UrlFinderInterface          $urlFinder
-     * @param StoreManagerInterface       $storeManager
-     * @param OrderRepositoryInterface    $orderRepositoryInterface
-     * @param ShipmentRepositoryInterface $shipmentsService
-     * @param ProductRepository           $productRepository
-     * @param Product                     $productHelper
-     * @param DirectoryList               $directoryList
-     * @param TurnToProductHelper         $turnToProductHelper
-     * @param File                        $fileSystem
-     * @param OrderCollectionFactoryAlias $orderCollection
+     * @var
      */
-    public function __construct(
-        Config $config,
-        CollectionFactory $productCollectionFactory,
-        Monolog $logger,
-        DateTimeFactory $dateTimeFactory,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        FilterBuilder $filterBuilder,
-        SortOrderBuilder $sortOrderBuilder,
-        UrlFinderInterface $urlFinder,
-        StoreManagerInterface $storeManager,
-        OrderRepositoryInterface $orderRepositoryInterface,
-        ShipmentRepositoryInterface $shipmentsService,
-        ProductRepository $productRepository,
-        Product $productHelper,
-        DirectoryList $directoryList,
-        TurnToProductHelper $turnToProductHelper,
-        File $fileSystem,
-        OrderCollectionFactoryAlias $orderCollection
-    ) {
-        parent::__construct(
-            $config,
-            $productCollectionFactory,
-            $logger,
-            $dateTimeFactory,
-            $searchCriteriaBuilder,
-            $filterBuilder,
-            $sortOrderBuilder,
-            $urlFinder,
-            $storeManager
-        );
+    protected $orderExportHelper;
 
-        $this->orderService = $orderRepositoryInterface;
+    public function __construct(
+        \TurnTo\SocialCommerce\Helper\Config $config,
+        \TurnTo\SocialCommerce\Logger\Monolog $logger,
+        \Magento\Sales\Api\ShipmentRepositoryInterface $shipmentsService,
+        \Magento\Catalog\Model\ProductRepository $productRepository,
+        \Magento\Catalog\Helper\Product $productHelper,
+        DirectoryList $directoryList,
+        \TurnTo\SocialCommerce\Helper\Product $turnToProductHelper,
+        \Magento\Framework\Filesystem\Io\File $fileSystem,
+        OrderCollectionFactoryAlias $orderCollection,
+        \TurnTo\SocialCommerce\Helper\Export\Order $orderExportHelper
+    ) {
+        $this->config = $config;
+        $this->logger = $logger;
         $this->shipmentsService = $shipmentsService;
         $this->productRepository = $productRepository;
         $this->productHelper = $productHelper;
-        $this->storeManager = $storeManager;
         $this->directoryList = $directoryList;
         $this->turnToProductHelper = $turnToProductHelper;
         $this->fileSystem = $fileSystem;
         $this->orderCollectionFactory = $orderCollection;
+        $this->orderExportHelper = $orderExportHelper;
     }
 
     /**
-     * CRON handler that sends the last 2 days of orders to TurnTo
-     */
-    public function cronUploadFeed()
-    {
-        foreach ($this->storeManager->getStores() as $store) {
-            if ($this->config->getIsEnabled($store->getCode())
-                && $this->config->getIsHistoricalOrdersFeedEnabled($store->getCode())
-            ) {
-                try {
-                    $orderFeed =$this->getOrdersFeed(
-                        $store->getId(),
-                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P2D')),
-                        $this->dateTimeFactory->create(
-                            'now',
-                            new \DateTimeZone('UTC')
-
-                        )
-                    );
-                    $this->transmitFeed($orderFeed,$store);
-                } catch (\Exception $e) {
-                    $this->logger->error(
-                        'An error occurred while sending the Historical Orders Feed report to TurnTo. Error:',
-                        [
-                            'storeId' => $store->getId(),
-                            'exception' => $e
-                        ]
-                    );
-                }
-            }
-        }
-    }
-
-    /**
-     * @param           $storeId
-     * @param \DateTime $fromDate
-     * @param \DateTime $toDate
+     * @param $storeId
+     * @param $orders
      * @param bool $forceIncludeAllItems
-     *
-     * @return null|string
+     * @return false|string|null
      */
-    public function getOrdersFeed(
+    public function generateOrdersFeed(
         $storeId,
-        \DateTime $fromDate,
-        \DateTime $toDate,
+        $orders,
         $forceIncludeAllItems = false
     ) {
         $csvData = null;
         try {
 	        $this->fileSystem->checkAndCreateFolder($this->directoryList->getPath(DirectoryList::TMP));
-
             $outputFile = $this->directoryList->getPath(DirectoryList::TMP) . '/tuntoexport.csv';
             $outputHandle = fopen($outputFile, 'w+');
             fputcsv(
@@ -242,8 +148,8 @@ class Orders extends AbstractExport
                 ],
                 "\t"
             );
-            $orderFeed = $this->getOrders($storeId, $fromDate, $toDate);
-            $this->writeOrdersFeed($orderFeed, $outputHandle, $forceIncludeAllItems);
+
+            $this->writeOrdersFeed($orders, $outputHandle, $forceIncludeAllItems);
             rewind($outputHandle);
             $csvData = stream_get_contents($outputHandle);
 
@@ -318,7 +224,7 @@ class Orders extends AbstractExport
      * @param                                       $outputHandle
      * @param bool $forceIncludeAllItems
      */
-    public function writeOrdersFeed($orderList, $outputHandle, $forceIncludeAllItems)
+    protected function writeOrdersFeed($orderList, $outputHandle, $forceIncludeAllItems)
     {
         $pageLimit = $orderList->getLastPageNumber();
         $pageSize = $orderList->getPageSize();
@@ -407,7 +313,7 @@ class Orders extends AbstractExport
      *
      * @return array|mixed
      */
-    public function getItemData(\Magento\Sales\Api\Data\OrderInterface $order, $forceIncludeAllItems)
+    protected function getItemData(\Magento\Sales\Api\Data\OrderInterface $order, $forceIncludeAllItems)
     {
         $items = [];
         $orderId = $order->getEntityId();
@@ -452,7 +358,7 @@ class Orders extends AbstractExport
      */
     protected function addShipDateToItemData($itemData, $orderId, $storeId)
     {
-        $searchCriteria = $this->getShipmentSearchCriteriaForOrder($orderId, $storeId);
+        $searchCriteria = $this->orderExportHelper->getShipmentSearchCriteriaForOrder($orderId, $storeId);
         $shipmentsList = $this->shipmentsService->getList($searchCriteria);
         $pageLimit = $shipmentsList->getLastPageNumber();
         $pageSize = $shipmentsList->getPageSize();
@@ -461,7 +367,7 @@ class Orders extends AbstractExport
         $configExcludeDeliveryDateUntilAllItemsShipped = $this->config->getExcludeDeliveryDateUntilAllItemsShipped($storeId);
         $allItemsShipped = false;
         if ($configExcludeDeliveryDateUntilAllItemsShipped) {
-            $allItemsShipped = $this->getAllOrdersShipped($orderId);
+            $allItemsShipped = $this->orderExportHelper->getAllItemsShipped($orderId);
         }
         // TRUE if: "Exclude Delivery Date..." is off, OR if it's on and all items have shipped
         $includeShipped = ($configExcludeDeliveryDateUntilAllItemsShipped && $allItemsShipped) || !$configExcludeDeliveryDateUntilAllItemsShipped;
@@ -488,22 +394,7 @@ class Orders extends AbstractExport
         return $itemData;
     }
 
-    /**
-     * @param $orderId
-     * @param $storeId
-     *
-     * @return \Magento\Framework\Api\SearchCriteria
-     */
-    public function getShipmentSearchCriteriaForOrder($orderId, $storeId)
-    {
-        return $this->getSearchCriteria(
-            $this->getSortOrder(self::ORDER_ID_FIELD_ID),
-            [
-                $this->getFilter(self::STORE_ID_FIELD_ID, $storeId, 'eq'),
-                $this->getFilter(self::ORDER_ID_FIELD_ID, $orderId, 'eq')
-            ]
-        );
-    }
+
 
     /**
      * @param                                            $outputHandle
@@ -529,7 +420,7 @@ class Orders extends AbstractExport
         $row[] = $lineItem->getName();
         $row[] = $this->getProductUrl($product, $order->getStoreId());
         $row[] = $lineItemNumber;
-        $row[] = $this->getOrderPostCode($order);
+        $row[] = $this->orderExportHelper->getOrderPostCode($order);
         $row[] = $order->getCustomerFirstname();
         $row[] = $order->getCustomerLastname();
 
@@ -543,23 +434,7 @@ class Orders extends AbstractExport
         fputcsv($outputHandle, $row, "\t");
     }
 
-    /**
-     * @param \Magento\Sales\Api\Data\OrderInterface $order
-     *
-     * @return string
-     */
-    protected function getOrderPostCode(\Magento\Sales\Api\Data\OrderInterface $order)
-    {
-        $postCode = '';
-        $shippingAddress = $order->getShippingAddress();
-        if ($shippingAddress) {
-            $postCode = $shippingAddress->getPostcode();
-        }
-
-        return $postCode;
-    }
-
-    protected function getOrders($storeId, $fromDate, $toDate){
+    public function getOrders($storeId, $fromDate, $toDate){
         $orderList = $this->orderCollectionFactory->create();
 
         $select = $orderList->getSelect();
@@ -587,32 +462,5 @@ class Orders extends AbstractExport
         $orderList->getSelect()->group('main_table.entity_id');
 
         return $orderList;
-    }
-
-    /**
-     * @param $orderId
-     * @return bool
-     */
-    protected function getAllOrdersShipped($orderId) {
-
-        $items = $this->orderService->get($orderId)->getItems();
-
-        $allItemsShipped = true;
-        foreach ($items as $item) {
-            // If the item has a parent item, that means it's just the associated Simple product, which doesn't actually
-            //   track shipping and such, so we want to skip it.
-            if ($item->getParentItem()) {
-                continue;
-            }
-
-            $qtyOrdered = $item->getQtyOrdered();
-            $qtyHandled = ($item->getQtyCanceled() + $item->getQtyRefunded() + $item->getQtyReturned() + $item->getQtyShipped());
-            $qtyRemaining = $qtyOrdered - $qtyHandled;
-            if ($qtyRemaining) {
-                $allItemsShipped = false;
-            }
-        }
-
-        return $allItemsShipped;
     }
 }

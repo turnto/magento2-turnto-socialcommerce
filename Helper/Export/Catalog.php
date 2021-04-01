@@ -9,8 +9,28 @@ namespace TurnTo\SocialCommerce\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 
-class Export extends AbstractHelper
+class Catalog extends AbstractHelper
 {
+    protected $urlFinder;
+
+    protected $storeManager;
+
+    /**
+     * Catalog constructor.
+     *
+     * @param \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder
+     */
+    public function __construct(
+        \Magento\Framework\App\Helper\Context $context,
+        \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder,
+        \Magento\Store\Model\StoreManagerInterface $storeManager
+    ) {
+        parent::__construct($context);
+        $this->urlFinder = $urlFinder;
+        $this->storeManager = $storeManager;
+    }
+
+
     /**
      * Gets the deepest tree for given product and returns as "rootNodeName > branchNodeName > leafNodeName"
      *
@@ -106,5 +126,40 @@ class Export extends AbstractHelper
         ];
 
         return str_replace(array_keys($replacementMap), array_values($replacementMap), $dirtyString);
+    }
+
+    /**
+     * @param \Magento\Catalog\Model\Product $product
+     * @param $storeId
+     * @return string
+     */
+    protected function getProductUrl(\Magento\Catalog\Model\Product $product, $storeId)
+    {
+        // Due to core bug, it is necessary to retrieve url using this method (see https://github.com/magento/magento2/issues/3074)
+        $urlRewrite = $this->urlFinder->findOneByData(
+            [
+                \Magento\UrlRewrite\Service\V1\Data\UrlRewrite::ENTITY_ID => $product->getId(),
+                \Magento\UrlRewrite\Service\V1\Data\UrlRewrite::ENTITY_TYPE =>
+                    \Magento\CatalogUrlRewrite\Model\ProductUrlRewriteGenerator::ENTITY_TYPE,
+                \Magento\UrlRewrite\Service\V1\Data\UrlRewrite::STORE_ID => $storeId
+            ]
+        );
+
+        if (isset($urlRewrite)) {
+            return $this->getAbsoluteUrl($urlRewrite->getRequestPath(), $storeId);
+        } else {
+            return $product->getProductUrl();
+        }
+    }
+
+    /**
+     * @param $relativeUrl
+     * @param $storeId
+     * @return string
+     */
+    protected function getAbsoluteUrl($relativeUrl, $storeId)
+    {
+        $storeUrl = $this->storeManager->getStore($storeId)->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK);
+        return rtrim($storeUrl, '/') . '/' . ltrim($relativeUrl, '/');
     }
 }

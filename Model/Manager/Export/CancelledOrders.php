@@ -13,7 +13,7 @@
  * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  */
 
-namespace TurnTo\SocialCommerce\Model\Export;
+namespace TurnTo\SocialCommerce\Model\Manager\Export;
 
 use Magento\Catalog\Helper\Product;
 use Magento\Catalog\Model\ProductRepository;
@@ -33,69 +33,34 @@ use TurnTo\SocialCommerce\Helper\Config;
 use TurnTo\SocialCommerce\Helper\Product as TurnToProductHelper;
 use TurnTo\SocialCommerce\Logger\Monolog;
 
-class CanceledOrders extends Orders
+class CancelledOrders extends Orders
 {
     const CANCELED_FEED_NAME = 'canceled-orders-feed.tsv';
     const FEED_STYLE = 'cancelled-order.txt';
 
-    /**
-     * CanceledOrders constructor.
-     *
-     * @param Config                      $config
-     * @param CollectionFactory           $productCollectionFactory
-     * @param Monolog                     $logger
-     * @param DateTimeFactory             $dateTimeFactory
-     * @param SearchCriteriaBuilder       $searchCriteriaBuilder
-     * @param FilterBuilder               $filterBuilder
-     * @param SortOrderBuilder            $sortOrderBuilder
-     * @param UrlFinderInterface          $urlFinder
-     * @param StoreManagerInterface       $storeManager
-     * @param OrderRepositoryInterface    $orderRepositoryInterface
-     * @param ShipmentRepositoryInterface $shipmentsService
-     * @param ProductRepository           $productRepository
-     * @param Product                     $productHelper
-     * @param DirectoryList               $directoryList
-     * @param TurnToProductHelper         $turnToProductHelper
-     * @param File                        $fileSystem
-     * @param OrderCollectionFactoryAlias $orderCollectionFactory
-     */
     public function __construct(
-        Config $config,
-        CollectionFactory $productCollectionFactory,
-        Monolog $logger,
-        DateTimeFactory $dateTimeFactory,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        FilterBuilder $filterBuilder,
-        SortOrderBuilder $sortOrderBuilder,
-        UrlFinderInterface $urlFinder,
-        StoreManagerInterface $storeManager,
-        OrderRepositoryInterface $orderRepositoryInterface,
-        ShipmentRepositoryInterface $shipmentsService,
-        ProductRepository $productRepository,
-        Product $productHelper,
+        \TurnTo\SocialCommerce\Helper\Config $config,
+        \TurnTo\SocialCommerce\Logger\Monolog $logger,
+        \Magento\Sales\Api\ShipmentRepositoryInterface $shipmentsService,
+        \Magento\Catalog\Model\ProductRepository $productRepository,
+        \Magento\Catalog\Helper\Product $productHelper,
         DirectoryList $directoryList,
-        TurnToProductHelper $turnToProductHelper,
-        File $fileSystem,
-        OrderCollectionFactoryAlias $orderCollectionFactory
+        \TurnTo\SocialCommerce\Helper\Product $turnToProductHelper,
+        \Magento\Framework\Filesystem\Io\File $fileSystem,
+        OrderCollectionFactoryAlias $orderCollection,
+        \TurnTo\SocialCommerce\Helper\Export\Order $orderExportHelper
     ) {
         parent::__construct(
             $config,
-            $productCollectionFactory,
             $logger,
-            $dateTimeFactory,
-            $searchCriteriaBuilder,
-            $filterBuilder,
-            $sortOrderBuilder,
-            $urlFinder,
-            $storeManager,
-            $orderRepositoryInterface,
             $shipmentsService,
             $productRepository,
             $productHelper,
             $directoryList,
             $turnToProductHelper,
             $fileSystem,
-            $orderCollectionFactory
+            $orderCollection,
+            $orderExportHelper
         );
     }
 
@@ -109,13 +74,10 @@ class CanceledOrders extends Orders
      */
     public function getCanceledOrdersFeed(
         $storeId,
-        \DateTime $fromDate,
-        \DateTime $toDate,
+        $cancelledOrders,
         $forceIncludeAllItems = false
     ) {
         $csvData = null;
-        $canceledOrders = $this->getCanceledOrders($storeId, $fromDate, $toDate);
-
         try {
             $this->fileSystem->checkAndCreateFolder($this->directoryList->getPath(DirectoryList::TMP));
 
@@ -129,7 +91,7 @@ class CanceledOrders extends Orders
                 ],
                 "\t"
             );
-            $this->writeOrdersToFeed($outputHandle, $canceledOrders, $forceIncludeAllItems);
+            $this->writeOrdersToFeed($outputHandle, $cancelledOrders, $forceIncludeAllItems);
             rewind($outputHandle);
             $csvData = stream_get_contents($outputHandle);
         } catch (\Exception $e) {
@@ -150,42 +112,13 @@ class CanceledOrders extends Orders
     }
 
     /**
-     * CRON handler that sends the last 2 days of orders to TurnTo
-     */
-    public function cronUploadFeed()
-    {
-        foreach ($this->storeManager->getStores() as $store) {
-            if ($this->config->getIsEnabled($store->getCode()) && $this->config->getIsCancelledOrdersFeedEnabled(
-                $store->getCode()
-            )) {
-                try {
-                    $feedData = $this->getCanceledOrdersFeed(
-                        $store->getId(),
-                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P80D')),
-                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))
-                    );
-                    $this->transmitFeed($feedData, $store);
-                } catch (\Exception $e) {
-                    $this->logger->error(
-                        'An error occurred while processing or transmitting canceled Orders Feed Cron',
-                        [
-                            'storeId' => $store->getId(),
-                            'exception' => $e
-                        ]
-                    );
-                }
-            }
-        }
-    }
-
-    /**
      * @param $storeId
      * @param $fromDate
      * @param $toDate
      *
      * @return \Magento\Sales\Model\ResourceModel\Order\Collection
      */
-    protected function getCanceledOrders($storeId, $fromDate, $toDate)
+    public function getCanceledOrders($storeId, $fromDate, $toDate)
     {
         return $this->orderCollectionFactory->create()
             ->addAttributeToFilter('status', ['eq' => 'canceled'])

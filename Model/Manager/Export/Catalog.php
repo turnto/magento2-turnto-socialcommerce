@@ -20,7 +20,7 @@ use TurnTo\SocialCommerce\Helper\Config;
  * Class Catalog
  * @package TurnTo\SocialCommerce\Model\Export
  */
-class Catalog extends \TurnTo\SocialCommerce\Model\Export\AbstractExport
+class Catalog
 {
     /**
      * Feed Style used for the Product Feed
@@ -38,10 +38,34 @@ class Catalog extends \TurnTo\SocialCommerce\Model\Export\AbstractExport
     const TURNTO_SUCCESS_RESPONSE = 'SUCCESS';
 
     /**
+     * @var \TurnTo\SocialCommerce\Helper\Config
+     */
+    protected $config;
+
+    /**
+     * @var \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory
+     */
+    protected $productCollectionFactory;
+
+    /**
+     * @var \TurnTo\SocialCommerce\Logger\Monolog
+     */
+    protected $logger;
+
+    /**
+     * @var \Magento\Framework\Intl\DateTimeFactory
+     */
+    protected $dateTimeFactory;
+
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManager;
+
+    /**
      * @var \Magento\Catalog\Helper\Image $imageHelper
      */
     protected $imageHelper = null;
-
 
     /**
      * @var TurnTo\SocialCommerce\Helper\Product
@@ -49,7 +73,7 @@ class Catalog extends \TurnTo\SocialCommerce\Model\Export\AbstractExport
     protected $productHelper;
 
     /**
-     * @var \TurnTo\SocialCommerce\Helper\Export
+     * @var \TurnTo\SocialCommerce\Helper\Catalog
      */
     protected $exportHelper;
 
@@ -59,48 +83,23 @@ class Catalog extends \TurnTo\SocialCommerce\Model\Export\AbstractExport
      */
     protected $totalPages;
 
-    /**
-     * Catalog constructor.
-     *
-     * @param Config $config
-     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
-     * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
-     * @param \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory
-     * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
-     * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
-     * @param \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder
-     * @param \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Catalog\Helper\Image $imageHelper
-     * @param TurnTo\SocialCommerce\Helper\Product $productHelper
-     */
+
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
         \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
         \TurnTo\SocialCommerce\Logger\Monolog $logger,
         \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory,
-        \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
-        \Magento\Framework\Api\FilterBuilder $filterBuilder,
-        \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
-        \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Catalog\Helper\Image $imageHelper,
         \TurnTo\SocialCommerce\Helper\Product $productHelper,
-        \TurnTo\SocialCommerce\Helper\Export $exportHelper
+        \TurnTo\SocialCommerce\Helper\Catalog $exportHelper
     )
     {
-        parent::__construct(
-            $config,
-            $productCollectionFactory,
-            $logger,
-            $dateTimeFactory,
-            $searchCriteriaBuilder,
-            $filterBuilder,
-            $sortOrderBuilder,
-            $urlFinder,
-            $storeManager
-        );
-
+        $this->config = $config;
+        $this->productCollectionFactory = $productCollectionFactory;
+        $this->logger = $logger;
+        $this->dateTimeFactory = $dateTimeFactory;
+        $this->storeManager = $storeManager;
         $this->imageHelper = $imageHelper;
         $this->productHelper = $productHelper;
         $this->exportHelper = $exportHelper;
@@ -200,16 +199,13 @@ class Catalog extends \TurnTo\SocialCommerce\Model\Export\AbstractExport
     }
 
     /**
-     * Writes all individually visible products to an ATOM 1.0 feed which is returned in a SimpleXMLElement Object
+     * @description Writes all individually visible products to an ATOM 1.0 feed which is returned in a SimpleXMLElement Object
      *
      * @param \Magento\Store\Api\Data\StoreInterface $store
-     *
-     * @param                                        $store
-     * @param                                        $page
-     * @param                                        $products
-     *
-     * @return bool|\SimpleXMLElement
-     * @throws \Exception If feed could not be generated
+     * @param $feed
+     * @param $products
+     * @return mixed
+     * @throws \Exception
      */
     public function populateProductFeed(\Magento\Store\Api\Data\StoreInterface $store, $feed, $products)
     {

@@ -15,7 +15,7 @@ class CatalogTest extends \PHPUnit\Framework\TestCase
     const TURNTO_SITE_KEY = '';
     const TURNTO_AUTH_KEY = '';
 
-    private $catalog;
+    private $catalogExportManager;
 
     private $store;
 
@@ -28,7 +28,7 @@ class CatalogTest extends \PHPUnit\Framework\TestCase
         $dateTimeFactory = $this->mockDateTime();
         $config = $this->mockConfig();
 
-        $this->catalog = new CatalogExportManager(
+        $this->catalogExportManager = new CatalogExportManager(
             $config,
             $this->mockCollection(),
             $this->createMock(\TurnTo\SocialCommerce\Logger\Monolog::class),
@@ -40,19 +40,19 @@ class CatalogTest extends \PHPUnit\Framework\TestCase
             $this->createMock(\Magento\Store\Model\StoreManagerInterface::class),
             $this->createMock(\Magento\Catalog\Helper\Image::class),
             $this->createMock(\TurnTo\SocialCommerce\Helper\Product::class),
-            $this->createMock(\TurnTo\SocialCommerce\Helper\Export::class)
+            $this->createMock(\TurnTo\SocialCommerce\Helper\Catalog::class)
 
         );
     }
 
     public function testIsCatalogClass()
     {
-        $this->assertInstanceOf(\TurnTo\SocialCommerce\Model\Manager\Export\Catalog::class, $this->catalog);
+        $this->assertInstanceOf(\TurnTo\SocialCommerce\Model\Manager\Export\Catalog::class, $this->catalogExportManager);
     }
 
     public function testCreateFeed()
     {
-        $feed = $this->catalog->createFeed($this->store);
+        $feed = $this->catalogExportManager->createFeed($this->store);
         $this->assertEquals(
             $feed,
             new \SimpleXMLElement(
@@ -69,7 +69,7 @@ class CatalogTest extends \PHPUnit\Framework\TestCase
 
         }
 
-        $this->catalog->transmitFeed(
+        $this->catalogExportManager->transmitFeed(
             new \SimpleXMLElement(
                 '<?xml version="1.0" encoding="UTF-8" ?><root><title/><link/><updated>2021-03-19</updated><author><name>TurnTo</name></author><id/></root>'
             ),
@@ -84,7 +84,7 @@ class CatalogTest extends \PHPUnit\Framework\TestCase
         );
         $product = $this->mockProduct();
 
-        $feed = $this->catalog->populateProductFeed($this->store, $feed, [$product]);
+        $feed = $this->catalogExportManager->populateProductFeed($this->store, $feed, [$product]);
 
         $this->assertEquals(
             $feed,
@@ -97,7 +97,7 @@ class CatalogTest extends \PHPUnit\Framework\TestCase
 
     public function testGetProducts()
     {
-        $results = $this->catalog->getProducts($this->store, 1, 1);
+        $results = $this->catalogExportManager->getProducts($this->store, 1, 1);
         $this->assertInstanceOf(\Magento\Catalog\Model\ResourceModel\Product\Collection::class, $results);
 
     }

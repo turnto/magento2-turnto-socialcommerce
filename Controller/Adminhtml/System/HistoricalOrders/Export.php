@@ -22,32 +22,32 @@ use Magento\Framework\Controller\ResultFactory;
 class Export extends \Magento\Backend\App\Action
 {
     /**
-     * @var null|\TurnTo\SocialCommerce\Logger\Monolog
+     * @var \TurnTo\SocialCommerce\Logger\Monolog
      */
-    protected $logger = null;
+    protected $logger;
 
     /**
-     * @var \Magento\Framework\Intl\DateTimeFactory|null
+     * @var \Magento\Framework\Intl\DateTimeFactory
      */
-    protected $dateTimeFactory = null;
+    protected $dateTimeFactory;
 
     /**
-     * @var null|\TurnTo\SocialCommerce\Model\Export\Orders
+     * @var \TurnTo\SocialCommerce\Model\Manager\Export\Orders
      */
-    protected $ordersModel = null;
+    protected $orderExportManager;
 
     /**
-     * @var Magento\Store\Model\StoreManagerInterface
+     * @var \Magento\Store\Model\StoreManagerInterface
      */
     protected $storeManager = null;
 
     /**
-     * Download constructor.
-     *
-     * @param \Magento\Backend\App\Action\Context     $context
-     * @param Orders                                  $ordersModel
-     * @param \TurnTo\SocialCommerce\Logger\Monolog   $logger
+     * Export constructor.
+     * @param \Magento\Backend\App\Action\Context $context
+     * @param Orders $ordersModel
+     * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
      * @param \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      */
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
@@ -57,8 +57,7 @@ class Export extends \Magento\Backend\App\Action
         \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         parent::__construct($context);
-
-        $this->ordersModel = $ordersModel;
+        $this->orderExportManager = $ordersModel;
         $this->logger = $logger;
         $this->dateTimeFactory = $dateTimeFactory;
         $this->storeManager = $storeManager;
@@ -84,9 +83,10 @@ class Export extends \Magento\Backend\App\Action
             ->sub(new \DateInterval('PT1S'));
 
         try {
-            $feedData = $this->ordersModel->getOrdersFeed($storeId, $fromDate, $toDate, true);
+            $orders = $this->orderExportManager->getOrders($storeId, $fromDate, $toDate);
+            $feedData = $this->orderExportManager->generateOrdersFeed($storeId, $orders, true);
             $store = $this->storeManager->getStore($storeId);
-            $this->ordersModel->transmitFeed($feedData, $store);
+            $this->orderExportManager->transmitFeed($feedData, $store);
             $this->messageManager->addSuccessMessage('Orders exported successfully.');
         } catch (\Exception $e) {
             $this->messageManager->addErrorMessage('There was an issue processing your request. Please try again later.');
