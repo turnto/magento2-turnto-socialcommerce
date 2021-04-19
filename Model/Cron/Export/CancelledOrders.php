@@ -66,13 +66,13 @@ class CancelledOrders
                    $store->getCode()
                )) {
                try {
-                   $cancelledOrders = $this->cancelledOrderExportManager->getCanceledOrders(
-                       $store->getId(),
-                       $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P80D')),
-                       $this->dateTimeFactory->create('now', new \DateTimeZone('UTC')));
+                   $fromDate = $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P80D'));
+                   $toDate = $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'));
+                   $cancelledOrders = $this->cancelledOrderExportManager->getCanceledOrders($store->getId(), $fromDate, $toDate);
+                   $cancelledOrderData = $this->cancelledOrderExportManager->formatCancelledOrderData($cancelledOrders);
                    $feedData = $this->cancelledOrderExportManager->getCanceledOrdersFeed(
                        $store->getId(),
-                       $cancelledOrders
+                       $cancelledOrderData
                    );
                    $this->transmitFeed($feedData, $store);
                } catch (\Exception $e) {
