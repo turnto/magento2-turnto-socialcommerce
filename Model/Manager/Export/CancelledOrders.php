@@ -33,10 +33,60 @@ use TurnTo\SocialCommerce\Helper\Config;
 use TurnTo\SocialCommerce\Helper\Product as TurnToProductHelper;
 use TurnTo\SocialCommerce\Logger\Monolog;
 
-class CancelledOrders extends Orders
+class CancelledOrders
 {
     const CANCELED_FEED_NAME = 'canceled-orders-feed.tsv';
     const FEED_STYLE = 'cancelled-order.txt';
+
+    /**
+     * @var \TurnTo\SocialCommerce\Helper\Config
+     */
+    protected $config;
+
+    /**
+     * @var \TurnTo\SocialCommerce\Logger\Monolog
+     */
+    protected $logger;
+
+    /**
+     * @var \Magento\Sales\Api\ShipmentRepositoryInterface
+     */
+    protected $shipmentsService;
+
+    /**
+     * @var \Magento\Catalog\Model\ProductRepository
+     */
+    protected $productRepository;
+
+    /**
+     * @var \Magento\Catalog\Helper\Product
+     */
+    protected $productHelper;
+
+    /**
+     * @var DirectoryList
+     */
+    protected $directoryList;
+
+    /**
+     * @var \TurnTo\SocialCommerce\Helper\Product
+     */
+    protected $turnToProductHelper;
+
+    /**
+     * @var \Magento\Framework\Filesystem\Io\File
+     */
+    protected $fileSystem;
+
+    /**
+     * @var OrderCollectionFactoryAlias
+     */
+    protected $orderCollectionFactory;
+
+    /**
+     * @var
+     */
+    protected $orderExportHelper;
 
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
@@ -50,18 +100,17 @@ class CancelledOrders extends Orders
         OrderCollectionFactoryAlias $orderCollection,
         \TurnTo\SocialCommerce\Helper\Export\Order $orderExportHelper
     ) {
-        parent::__construct(
-            $config,
-            $logger,
-            $shipmentsService,
-            $productRepository,
-            $productHelper,
-            $directoryList,
-            $turnToProductHelper,
-            $fileSystem,
-            $orderCollection,
-            $orderExportHelper
-        );
+        $this->config = $config;
+        $this->logger = $logger;
+        $this->shipmentsService = $shipmentsService;
+        $this->productRepository = $productRepository;
+        $this->productHelper = $productHelper;
+        $this->directoryList = $directoryList;
+        $this->turnToProductHelper = $turnToProductHelper;
+        $this->fileSystem = $fileSystem;
+        $this->orderCollectionFactory = $orderCollection;
+        $this->orderExportHelper = $orderExportHelper;
+
     }
 
     /**
@@ -74,7 +123,7 @@ class CancelledOrders extends Orders
      */
     public function getCanceledOrdersFeed(
         $storeId,
-        $cancelledOrders,
+        $cancelledOrderData,
         $forceIncludeAllItems = false
     ) {
         $csvData = null;
@@ -91,7 +140,7 @@ class CancelledOrders extends Orders
                 ],
                 "\t"
             );
-            $this->writeOrdersToFeed($outputHandle, $cancelledOrders, $forceIncludeAllItems);
+            $this->writeOrdersToFeed($outputHandle, $cancelledOrderData, $forceIncludeAllItems);
             rewind($outputHandle);
             $csvData = stream_get_contents($outputHandle);
         } catch (\Exception $e) {
@@ -122,9 +171,28 @@ class CancelledOrders extends Orders
     {
         return $this->orderCollectionFactory->create()
             ->addAttributeToFilter('status', ['eq' => 'canceled'])
-            ->addAttributeToFilter(self::STORE_ID_FIELD_ID, ['eq' => $storeId])
-            ->addAttributeToFilter(self::UPDATED_AT_FIELD_ID, ['gteq' => $fromDate->format(DATE_ATOM)])
-            ->addAttributeToFilter(self::UPDATED_AT_FIELD_ID, ['lteq' => $toDate->format(DATE_ATOM)]);
+            ->addAttributeToFilter('store_id', ['eq' => $storeId])
+            ->addAttributeToFilter('updated_at', ['gteq' => $fromDate->format(DATE_ATOM)])
+            ->addAttributeToFilter('updated_at', ['lteq' => $toDate->format(DATE_ATOM)]);
+    }
+
+    public function formatCancelledOrderData($cancelledOrders) {
+        $cancelledOrderData = [];
+
+        foreach($cancelledOrders as $cancelledOrder) {
+
+            foreach($cancelledOrder as $cancelledItem) {
+                $product = $this->productRepository->getById($cancelledItem->getProductId());
+                $productSku = $this->config->getUseChildSku($cancelledOrder->getStoreId()) ? $cancelledItem->getSku() : $product->getSku();
+
+                $cancelledOrderData[] = [
+                    "ORDERID" => $cancelledOrder->getIncrementId(),
+                    "SKU" => $productSku
+                ];
+            }
+        }
+
+        return $cancelledOrderData;
     }
 
     /**
@@ -134,19 +202,16 @@ class CancelledOrders extends Orders
      *
      * @return int|void
      */
-    protected function writeOrdersToFeed($outputHandle, $orders, $forceIncludeAllItems)
+    protected function writeOrdersToFeed($outputHandle, $cancelledOrderData, $forceIncludeAllItems)
     {
-        foreach ($orders as $order) {
+        foreach ($cancelledOrderData as $cancelledOrderDatum) {
             try {
-                $items = $this->getItemData($order, $forceIncludeAllItems);
-                foreach ($items as $item) {
-                    $row = [];
-                    $lineItem = $item[self::LINE_ITEM_FIELD_ID];
-                    $product = $item[self::PRODUCT_FIELD_ID];
-                    $sku = $this->config->getUseChildSku($order->getStoreId()) ? $lineItem->getSku() : $product->getSku();
 
-                    $row[] = $order->getIncrementId();
-                    $row[] = $this->turnToProductHelper->turnToSafeEncoding($sku);
+                foreach ($cancelledOrderDatum as $cancelledItem) {
+                    $row = [];
+
+                    $row[] = $cancelledItem["ORDERID"];
+                    $row[] = $cancelledItem["SKU"];
 
                     fputcsv($outputHandle, $row, "\t");
                 }

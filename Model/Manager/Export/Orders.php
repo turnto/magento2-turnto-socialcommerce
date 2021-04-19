@@ -27,12 +27,6 @@ class Orders
 
     const STORE_ID_FIELD_ID = 'store_id';
 
-    const PRODUCT_FIELD_ID = 'product';
-
-    const SHIP_DATE_FIELD_ID = 'shipDate';
-
-    const LINE_ITEM_FIELD_ID = 'lineItem';
-
     const FEED_NAME = 'historical-orders-feed.tsv';
 
     const FEED_STYLE = 'tab-style.1';
@@ -114,63 +108,6 @@ class Orders
     }
 
     /**
-     * @param $storeId
-     * @param $orders
-     * @param bool $forceIncludeAllItems
-     * @return false|string|null
-     */
-    public function generateOrdersFeed(
-        $storeId,
-        $orders,
-        $forceIncludeAllItems = false
-    ) {
-        $csvData = null;
-        try {
-	        $this->fileSystem->checkAndCreateFolder($this->directoryList->getPath(DirectoryList::TMP));
-            $outputFile = $this->directoryList->getPath(DirectoryList::TMP) . '/tuntoexport.csv';
-            $outputHandle = fopen($outputFile, 'w+');
-            fputcsv(
-                $outputHandle,
-                [
-                    'ORDERID',
-                    'ORDERDATE',
-                    'EMAIL',
-                    'ITEMTITLE',
-                    'ITEMURL',
-                    'ITEMLINEID',
-                    'ZIP',
-                    'FIRSTNAME',
-                    'LASTNAME',
-                    'SKU',
-                    'PRICE',
-                    'ITEMIMAGEURL',
-                    'DELIVERYDATE'
-                ],
-                "\t"
-            );
-
-            $this->writeOrdersFeed($orders, $outputHandle, $forceIncludeAllItems);
-            rewind($outputHandle);
-            $csvData = stream_get_contents($outputHandle);
-
-        } catch (\Exception $e) {
-            $this->logger->error(
-                'An error occurred while creating or writing data to the Historical Orders Feed export file. Error:',
-                [
-                    'storeId' => $storeId,
-                    'exception' => $e
-                ]
-            );
-        } finally {
-            if (isset($outputHandle)) {
-                fclose($outputHandle);
-            }
-        }
-
-        return $csvData;
-    }
-
-    /**
      * @param                                        $feedData
      * @param \Magento\Store\Api\Data\StoreInterface $store
      *
@@ -220,91 +157,96 @@ class Orders
     }
 
     /**
-     * @param \Magento\Framework\Api\SearchCriteria $searchCriteria
-     * @param                                       $outputHandle
-     * @param bool $forceIncludeAllItems
-     */
-    protected function writeOrdersFeed($orderList, $outputHandle, $forceIncludeAllItems)
-    {
-        $pageLimit = $orderList->getLastPageNumber();
-        $pageSize = $orderList->getPageSize();
-        for ($i = 1; $i <= $pageLimit; $i++) {
-            try {
-
-                $paginatedCollection = clone $orderList;
-                $paginatedCollection->clear();
-                $paginatedCollection->setPageSize($pageSize)->setCurPage($i);
-                $paginatedCollection->load();
-
-                if ($paginatedCollection->count() > 0) {
-                    $this->writeOrdersToFeed($outputHandle, $paginatedCollection, $forceIncludeAllItems);
-                }
-            } catch (\Exception $e) {
-                $this->logger->error(
-                    "TurnTo Orders Export Exception: An exception was triggered on page $i of $pageLimit.",
-                    [
-                        'exception' => $e
-                    ]
-                );
-            }
-        }
-    }
-
-    /**
-     * @param      $outputHandle
-     * @param      $orders
-     * @param bool $forceIncludeAllItems
-     *
-     * @return int
-     */
-    protected function writeOrdersToFeed($outputHandle, $orders, $forceIncludeAllItems)
-    {
-        if (!isset($orders) || empty($orders)) {
-            return 0;
-        }
-
-        $numberOfRecordsWritten = 0;
-        foreach ($orders as $order) {
-            try {
-                $this->writeOrderToFeed($outputHandle, $order, $forceIncludeAllItems);
-            } catch (\Exception $e) {
-                $this->logger->error(
-                    'An error occurred while writing order data to the historical orders feed. Error:',
-                    [
-                        'exception' => $e,
-                    ]
-                );
-            } finally {
-                $numberOfRecordsWritten++;
-            }
-        }
-
-        return $numberOfRecordsWritten;
-    }
-
-    /**
      * @param                                        $outputHandle
      * @param \Magento\Sales\Api\Data\OrderInterface $order
      * @param bool $forceIncludeAllItems
      */
-    protected function writeOrderToFeed($outputHandle, \Magento\Sales\Api\Data\OrderInterface $order, $forceIncludeAllItems)
+    protected function writeOrderToFeed($outputHandle, \Magento\Sales\Api\Data\OrderInterface $orderData, $forceIncludeAllItems)
     {
-        $items = $this->getItemData($order, $forceIncludeAllItems);
-        if (empty($items)) {
+        if (empty($orderData)) {
             return;
         }
 
-        $itemNumber = 0;
-        foreach ($items as $item) {
+        foreach ($orderData as $item) {
             $this->writeLineToFeed(
                 $outputHandle,
-                $order,
-                $item[self::LINE_ITEM_FIELD_ID],
-                $item[self::PRODUCT_FIELD_ID],
-                $itemNumber++,
-                $item[self::SHIP_DATE_FIELD_ID]
+                $item
             );
         }
+    }
+
+
+    /**
+     * @param $outputHandle
+     * @param $orderData
+     * @param \Magento\Sales\Api\Data\OrderItemInterface $lineItem
+     * @param \Magento\Catalog\Model\Product $product
+     * @param $lineItemNumber
+     * @param $shipmentDate
+     */
+    protected function writeLineToFeed(
+        $outputHandle,
+        $orderData
+    ) {
+        $row = [];
+
+        $row[] = $orderData["ORDERID"];
+        $row[] = $orderData["ORDERDATE"];
+        $row[] = $orderData["EMAIL"];
+        $row[] = $orderData["ITEMTITLE"];
+        $row[] = $orderData["ITEMURL"];
+        $row[] = $orderData["FIRSTNAME"];
+        $row[] = $orderData["LASTNAME"];
+        $row[] = $orderData["SKU"];
+        $row[] = $orderData["ITEMLINEID"];
+        $row[] = $orderData["ZIP"];
+        $row[] = $orderData["PRICE"];
+        $row[] = $orderData["ITEMIMAGEURL"];
+        $row[] = $orderData["DELIVERYDATE"];
+
+        fputcsv($outputHandle, $row, "\t");
+    }
+
+    public function getOrders($storeId, $fromDate, $toDate) {
+        $orderList = $this->orderCollectionFactory->create();
+
+        $select = $orderList->getSelect();
+        $select->joinLeft(
+            ["shipment" => "sales_shipment"],
+            'main_table.entity_id = shipment.order_id',
+            []
+        )->joinLeft(
+            ["shipment_track" => "sales_shipment_track"],
+            'shipment.entity_id = shipment_track.parent_id',
+            ['ship_updated_at' => 'shipment_track.updated_at']
+        );
+
+        $orderList->addFieldToFilter(self::MAIN_TABLE_PREFIX . self::STORE_ID_FIELD_ID, ['eq' => $storeId]);
+        $orderList->addFieldToFilter(
+            [self::MAIN_TABLE_PREFIX . self::UPDATED_AT_FIELD_ID, 'shipment_track.updated_at'], [
+                ['gteq' => $fromDate->format(DATE_ATOM)],
+                ['gteq' => $fromDate->format(DATE_ATOM)]
+            ]
+        );
+        $orderList->addFieldToFilter(
+            self::MAIN_TABLE_PREFIX . self::UPDATED_AT_FIELD_ID,
+            ['lteq' => $toDate->format(DATE_ATOM)]
+        );
+        $orderList->getSelect()->group('main_table.entity_id');
+
+        return $orderList;
+    }
+
+    public function formatOrderData($orders, $forceIncludeAllItems = false) {
+        $orderItems = [];
+
+        $orderCounter = 0;
+        foreach($orders as $order) {
+            $orderData = $this->getItemData($order, $orderCounter, $forceIncludeAllItems);
+            $orderItems[] = $orderData;
+        }
+
+        return $orderItems;
     }
 
     /**
@@ -313,7 +255,7 @@ class Orders
      *
      * @return array|mixed
      */
-    protected function getItemData(\Magento\Sales\Api\Data\OrderInterface $order, $forceIncludeAllItems)
+    protected function getItemData(\Magento\Sales\Api\Data\OrderInterface $order, $orderCounter, $forceIncludeAllItems)
     {
         $items = [];
         $orderId = $order->getEntityId();
@@ -323,10 +265,22 @@ class Orders
                 if (!$item->isDeleted() && !$item->getParentItemId()) {
                     $itemId = $item->getItemId();
                     $key = "$orderId.$itemId";
+                    $product = $this->productRepository->getById($item->getProductId());
+                    $sku = $this->config->getUseChildSku($order->getStoreId()) ? $item->getSku() : $product->getSku();
                     $items[$key] = [
-                        self::LINE_ITEM_FIELD_ID => $item,
-                        self::PRODUCT_FIELD_ID => $this->productRepository->getById($item->getProductId()),
-                        self::SHIP_DATE_FIELD_ID => ''
+                        "ORDERID" => $order->getIncrementId(),
+                        "ORDERDATE" => $order->getCreatedAt(),
+                        "EMAIL" => $order->getCustomerEmail(),
+                        "ITEMTITLE" => $item->getName(),
+                        "ITEMURL" => $this->getProductUrl($item, $order->getStoreId()),
+                        "FIRSTNAME" => $order->getCustomerFirstname(),
+                        "LASTNAME" => $order->getCustomerLastname(),
+                        "SKU" => $this->turnToProductHelper->turnToSafeEncoding($sku),
+                        "ITEMLINEID" => $orderCounter,
+                        "ZIP" =>  $this->orderExportHelper->getOrderPostCode($order),
+                        "PRICE" => $item->getOriginalPrice(),
+                        "ITEMIMAGEURL" => $this->productHelper->getImageUrl($product),
+                        "DELIVERYDATE" => ''
                     ];
                 }
             } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
@@ -348,6 +302,7 @@ class Orders
 
         return $items;
     }
+
 
     /**
      * @param $itemData
@@ -384,7 +339,7 @@ class Orders
                         $itemId = $shipmentItem->getOrderItemId();
                         $key = "$orderId.$itemId";
                         if (isset($itemData[$key]) && $includeShipped) {
-                            $itemData[$key][self::SHIP_DATE_FIELD_ID] = $shipment->getCreatedAt();
+                            $itemData[$key]["DELIVERYDATE"] = $shipment->getCreatedAt();
                         }
                     }
                 }
@@ -394,73 +349,63 @@ class Orders
         return $itemData;
     }
 
-
-
     /**
-     * @param                                            $outputHandle
-     * @param \Magento\Sales\Api\Data\OrderInterface $order
-     * @param \Magento\Sales\Api\Data\OrderItemInterface $lineItem
-     * @param \Magento\Catalog\Model\Product $product
-     * @param                                            $lineItemNumber
-     * @param                                            $shipmentDate
+     * @param $storeId
+     * @param $orderData
+     * @param bool $forceIncludeAllItems
+     * @return false|string|null
      */
-    protected function writeLineToFeed(
-        $outputHandle,
-        \Magento\Sales\Api\Data\OrderInterface $order,
-        \Magento\Sales\Api\Data\OrderItemInterface $lineItem,
-        \Magento\Catalog\Model\Product $product,
-        $lineItemNumber,
-        $shipmentDate
+    public function generateOrdersFeed(
+        $storeId,
+        $orderData,
+        $forceIncludeAllItems = false
     ) {
-        $row = [];
+        $csvData = null;
+        try {
+            $this->fileSystem->checkAndCreateFolder($this->directoryList->getPath(DirectoryList::TMP));
+            $outputFile = $this->directoryList->getPath(DirectoryList::TMP) . '/tuntoexport.csv';
+            $outputHandle = fopen($outputFile, 'w+');
+            fputcsv(
+                $outputHandle,
+                [
+                    'ORDERID',
+                    'ORDERDATE',
+                    'EMAIL',
+                    'ITEMTITLE',
+                    'ITEMURL',
+                    'FIRSTNAME',
+                    'LASTNAME',
+                    'SKU',
+                    'ITEMLINEID',
+                    'ZIP',
+                    'PRICE',
+                    'ITEMIMAGEURL',
+                    'DELIVERYDATE'
+                ],
+                "\t"
+            );
 
-        $row[] = $order->getIncrementId();
-        $row[] = $order->getCreatedAt();
-        $row[] = $order->getCustomerEmail();
-        $row[] = $lineItem->getName();
-        $row[] = $this->getProductUrl($product, $order->getStoreId());
-        $row[] = $lineItemNumber;
-        $row[] = $this->orderExportHelper->getOrderPostCode($order);
-        $row[] = $order->getCustomerFirstname();
-        $row[] = $order->getCustomerLastname();
+            foreach($orderData as $orderDatum) {
+                $this->writeOrderToFeed($outputHandle, $orderDatum, $forceIncludeAllItems);
+            }
+            rewind($outputHandle);
+            $csvData = stream_get_contents($outputHandle);
 
-        $sku = $this->config->getUseChildSku($order->getStoreId()) ? $lineItem->getSku() : $product->getSku();
-        $row[] = $this->turnToProductHelper->turnToSafeEncoding($sku);
+        } catch (\Exception $e) {
+            $this->logger->error(
+                'An error occurred while creating or writing data to the Historical Orders Feed export file. Error:',
+                [
+                    'storeId' => $storeId,
+                    'exception' => $e
+                ]
+            );
+        } finally {
+            if (isset($outputHandle)) {
+                fclose($outputHandle);
+            }
+        }
 
-        $row[] = $lineItem->getOriginalPrice();
-        $row[] = $this->productHelper->getImageUrl($product);
-        $row[] = $shipmentDate;
-
-        fputcsv($outputHandle, $row, "\t");
+        return $csvData;
     }
 
-    public function getOrders($storeId, $fromDate, $toDate){
-        $orderList = $this->orderCollectionFactory->create();
-
-        $select = $orderList->getSelect();
-        $select->joinLeft(
-            ["shipment" => "sales_shipment"],
-            'main_table.entity_id = shipment.order_id',
-            []
-        )->joinLeft(
-            ["shipment_track" => "sales_shipment_track"],
-            'shipment.entity_id = shipment_track.parent_id',
-            ['ship_updated_at' => 'shipment_track.updated_at']
-        );
-
-        $orderList->addFieldToFilter(self::MAIN_TABLE_PREFIX . self::STORE_ID_FIELD_ID, ['eq' => $storeId]);
-        $orderList->addFieldToFilter(
-            [self::MAIN_TABLE_PREFIX . self::UPDATED_AT_FIELD_ID, 'shipment_track.updated_at'], [
-                ['gteq' => $fromDate->format(DATE_ATOM)],
-                ['gteq' => $fromDate->format(DATE_ATOM)]
-            ]
-        );
-        $orderList->addFieldToFilter(
-            self::MAIN_TABLE_PREFIX . self::UPDATED_AT_FIELD_ID,
-            ['lteq' => $toDate->format(DATE_ATOM)]
-        );
-        $orderList->getSelect()->group('main_table.entity_id');
-
-        return $orderList;
-    }
 }

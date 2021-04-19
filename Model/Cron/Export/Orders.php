@@ -69,7 +69,8 @@ class Orders
                    $fromDate =  $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P2D'));
                    $toDate = $this->dateTimeFactory->create('now',new \DateTimeZone('UTC'));
                    $orders = $this->orderExportManager->getOrders($store->getId(), $fromDate, $toDate);
-                   $orderFeed =$this->orderExportManager->generateOrdersFeed($store->getId(), $orders);
+                   $orderData = $this->orderExportManager->formatOrderData($orders);
+                   $orderFeed =$this->orderExportManager->generateOrdersFeed($store->getId(), $orderData);
                    $this->orderExportManager->transmitFeed($orderFeed,$store);
                } catch (\Exception $e) {
                    $this->logger->error(
