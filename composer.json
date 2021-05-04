@@ -2,7 +2,7 @@
     "name": "turnto/social-commerce",
     "description": "This module connects Magento 2 with TurnTo's Social Commerce service",
     "type": "magento2-module",
-    "version": "3.7.0",
+    "version": "3.7.1",
     "require": {
         "firebase/php-jwt": "^5.0"
     },
