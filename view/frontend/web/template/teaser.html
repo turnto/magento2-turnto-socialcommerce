@@ -23,16 +23,16 @@
     <div class="TTteaser__rating">
         <!-- ko foreach: new Array(getNumFullStars()) -->
             <!-- ko if: $index() == 0 -->
-                <span class="TTteaser__star" role="img" >
-                    <svg class="TTteaser__icon--full">
+                <span class="TTteaser__star">
+                    <svg class="TTteaser__icon--full" role="img">
                         <title data-bind="text: $parent.getStarDescriptionString()"></title>
                         <use xlink:href="#tt-teaser-star--full"></use>
                     </svg>
                 </span>
             <!-- /ko -->
             <!-- ko if: $index() != 0 -->
-                <span class="TTteaser__star" role="presentation">
-                    <svg class="TTteaser__icon--full">
+                <span class="TTteaser__star">
+                    <svg class="TTteaser__icon--full" role="presentation">
                         <use xlink:href="#tt-teaser-star--full"></use>
                     </svg>
                 </span>
@@ -40,16 +40,16 @@
         <!-- /ko -->
 
         <!-- ko if: hasHalfStar() -->
-        <span class="TTteaser__star" role="presentation">
-            <svg class="TTteaser__icon--half">
+        <span class="TTteaser__star">
+            <svg class="TTteaser__icon--half" role="presentation">
                 <use xlink:href="#tt-teaser-star--half"></use>
             </svg>
         </span>
         <!-- /ko -->
 
         <!-- ko foreach: new Array(getNumEmptyStars()) -->
-        <span class="TTteaser__star" role="presentation">
-            <svg class="TTteaser__icon--empty">
+        <span class="TTteaser__star">
+            <svg class="TTteaser__icon--empty" role="presentation">
                 <use xlink:href="#tt-teaser-star--empty"></use>
             </svg>
         </span>

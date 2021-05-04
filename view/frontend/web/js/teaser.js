@@ -76,7 +76,7 @@ define([
         },
 
         getStarDescriptionString: function getStarDescriptionString() {
-            let fullStars = this.getNumEmptyStars();
+            let fullStars = this.getNumFullStars();
             let halfStar = this.hasHalfStar();
             let halfStarString = halfStar ? " and a half " : " ";
 
