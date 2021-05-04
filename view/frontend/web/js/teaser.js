@@ -37,13 +37,14 @@ define([
             if (this.teaserSku !== null && (this.qaEnabled === "true" || this.reviewsEnabled === "true")) {
                 this.loadTeaserCounts(this.teaserSku);
             }
-            
+
             // Map bridge the tabs widget to something we can manually call
             jQuery.widget.bridge('mage_tabs', jQuery.mage.tabs);
             this.tabsContainer = document.querySelector('.product.data.items');
 
             return this;
         },
+
         loadTeaserCounts: function loadTeaserCounts(sku) {
             var xhr = new XMLHttpRequest();
 
@@ -56,6 +57,7 @@ define([
             }.bind(this));
             xhr.send();
         },
+
         getNumFullStars: function getFullStars() {
             // this ends up being oddly complicated because we essentially want to do rounding, but also round to the
             //    nearest half
@@ -63,16 +65,28 @@ define([
                 Math.round(this.reviewsData().avgRating) :
                 Math.floor(this.reviewsData().avgRating);
         },
+
         hasHalfStar: function hasHalfStar() {
             let halfStarValue = (this.reviewsData().avgRating - this.getNumFullStars()).toFixed(2);
             return halfStarValue > 0.25 && halfStarValue <= .75;
         },
+
         getNumEmptyStars: function getNumEmptyStars() {
             return (5 - (this.getNumFullStars() + (this.hasHalfStar() ? 1 : 0)));
         },
+
+        getStarDescriptionString: function getStarDescriptionString() {
+            let fullStars = this.getNumEmptyStars();
+            let halfStar = this.hasHalfStar();
+            let halfStarString = halfStar ? " and a half " : " ";
+
+            return "Rating: " + fullStars + halfStarString + "Stars";
+        },
+
         writeReview: function writeReview() {
             window.TurnToCmd('reviewsList.writeReview');
         },
+
         getTabIndex: function getTabIndex(tabAnchor) {
             /** @type Array.<Element> */
             var tabs = Array.prototype.slice.call(this.tabsContainer.querySelectorAll('.title a'));
@@ -90,10 +104,10 @@ define([
 
             return tabIndex;
         },
+
         openTab: function openTab(tabAnchor) {
             jQuery(this.tabsContainer).mage_tabs('activate', this.getTabIndex(tabAnchor));
             this.tabsContainer.scrollIntoView();
         },
-
     });
 });
