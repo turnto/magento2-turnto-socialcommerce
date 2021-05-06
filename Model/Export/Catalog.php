@@ -428,13 +428,13 @@ class Catalog extends AbstractExport
                 )) {
                 $page = 1;
 
-                $products = $this->getProducts($store, $page, 100);
+                $products = $this->getProducts($store, $page, 10000);
                 while ($products) {
                     try {
                         $feed = $this->populateProductFeed($store, $this->createFeed($store), $products);
                         $page++;
                         $this->transmitFeed($feed, $store, $page);
-                        $products = $this->getProducts($store, $page, 100);
+                        $products = $this->getProducts($store, $page, 10000);
                     }catch(\Exception $e){
                         $this->logger->error(
                             "TurnTo catalog export error on page number $page.",
@@ -443,7 +443,7 @@ class Catalog extends AbstractExport
                             ]
                         );
                         $page++;
-                        $products = $this->getProducts($store, $page, 100);
+                        $products = $this->getProducts($store, $page, 10000);
 
                     }
                 }
