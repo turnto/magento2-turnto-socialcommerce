@@ -333,10 +333,17 @@ class Catalog extends AbstractExport
         $currentStore = $this->storeManager->getStore();
         $this->storeManager->setCurrentStore($store->getStoreId());
 
-        $imageHelper = $this->getImageHelper();
-        $productImageUrl = $imageHelper->init($product, 'product_page_main_image')->setImageFile(
-            $product->getImage()
-        )->getUrl();
+        // Check if the product has an image. If it does NOT, we don't send an image URL, so TurnTo doesn't
+        // just process the placeholder image
+        $productHasImage = (bool) $product->getData('image');
+        if (!$productHasImage) {
+            $productImageUrl = '';
+        } else {
+            $imageHelper = $this->getImageHelper();
+            $productImageUrl = $imageHelper->init($product, 'product_page_main_image')->setImageFile(
+                $product->getImage()
+            )->getUrl();
+        }
 
         // Restore the "current store"
         $this->storeManager->setCurrentStore($currentStore);
