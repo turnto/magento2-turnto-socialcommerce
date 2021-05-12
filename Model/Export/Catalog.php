@@ -268,6 +268,8 @@ class Catalog extends AbstractExport
         if (empty($productUrl)) {
             throw new \Exception('Product must have a valid store-product url');
         }
+        // Replace spaces with dashes so we always have a valid URL
+        $productUrl = str_replace(" ", "-", $productUrl);
 
         $productName = $product->getName();
         if (empty($productName)) {
@@ -319,7 +321,7 @@ class Catalog extends AbstractExport
         }
 
         $entry->addChild('g:identifier_exists', $identifierExists);
-        $entry->addChild('g:link', $this->sanitizeData($productUrl));
+        $entry->addChild('g:link', $productUrl);
         $entry->addChild('g:title', $this->sanitizeData($productName));
 
         $categoryName = $this->getCategoryTreeString($product);
@@ -343,6 +345,7 @@ class Catalog extends AbstractExport
             $productImageUrl = $imageHelper->init($product, 'product_page_main_image')->setImageFile(
                 $product->getImage()
             )->getUrl();
+            $productImageUrl = str_replace(" ", "-", $productImageUrl);
         }
 
         // Restore the "current store"
