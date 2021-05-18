@@ -43,6 +43,10 @@ class Catalog extends AbstractExport
      */
     protected $imageHelper = null;
 
+    /**
+     * @var \Magento\CatalogInventory\Model\Spi\StockRegistryProviderInterface
+     */
+    protected $stockRegistryProvider;
 
     /**
      * @var Product
@@ -68,6 +72,7 @@ class Catalog extends AbstractExport
      * @param \Magento\UrlRewrite\Model\UrlFinderInterface                       $urlFinder
      * @param \Magento\Store\Model\StoreManagerInterface                         $storeManager
      * @param \Magento\Catalog\Helper\Image                                      $imageHelper
+     * @param \Magento\CatalogInventory\Model\Spi\StockRegistryProviderInterface $stockRegistryProvider
      * @param Product                                                            $productHelper
      */
     public function __construct(
@@ -81,6 +86,7 @@ class Catalog extends AbstractExport
         \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Catalog\Helper\Image $imageHelper,
+        \Magento\CatalogInventory\Model\Spi\StockRegistryProviderInterface $stockRegistryProvider,
         Product $productHelper
     )
     {
@@ -96,8 +102,10 @@ class Catalog extends AbstractExport
             $storeManager
         );
 
-        $this->setImageHelper($imageHelper);
-        $this->setProductHelper($productHelper);
+        $this->imageHelper = $imageHelper;
+        $this->storeManager = $storeManager;
+        $this->stockRegistryProvider = $stockRegistryProvider;
+        $this->productHelper = $productHelper;
     }
 
     /**
@@ -157,7 +165,7 @@ class Catalog extends AbstractExport
      *
      * @return string
      */
-    public function sanitizeData($dirtyString)
+    protected function sanitizeData($dirtyString)
     {
         $replacementMap = [
             '&' => '&amp;',
@@ -175,19 +183,40 @@ class Catalog extends AbstractExport
      *
      * @param \Magento\Store\Api\Data\StoreInterface $store
      *
-     * @param                                        $store
-     * @param                                        $page
-     * @param                                        $products
-     *
      * @return bool|\SimpleXMLElement
      * @throws \Exception If feed could not be generated
      */
-    public function populateProductFeed(\Magento\Store\Api\Data\StoreInterface $store, $feed, $products)
+    protected function generateProductFeed(\Magento\Store\Api\Data\StoreInterface $store, $page)
     {
+        $feed = null;
         $progressCounter = 0;
+        $products = [];
+
         try {
 
-            $childProducts = [];
+
+            $feed = new \SimpleXMLElement(
+                '<?xml version="1.0" encoding="UTF-8"?>' . '<feed xmlns="http://www.w3.org/2005/Atom"' . ' xmlns:g="http://base.google.com/ns/1.0" xml:lang="en-US" />'
+            );
+
+            $feed->addChild('title', $this->sanitizeData($store->getName() . ' - Google Product Atom 1.0 Feed'));
+            $feed->addChild(
+                'link',
+                $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK))
+            );
+            $feed->addChild(
+                'updated',
+                $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->format(DATE_ATOM)
+            );
+            $feed->addChild('author')->addChild('name', 'TurnTo');
+            $feed->addChild(
+                'id',
+                $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB))
+            );
+
+            if ($products = $this->getProducts($store,$page,10000)){
+
+                $childProducts = [];
 
                 // TurnTo requires a product feed where children of configurable products are aware of their parent SKUs
                 // and include that parent SKU in the feed. This code is not very performant and therefore the feed will
@@ -228,18 +257,45 @@ class Catalog extends AbstractExport
                     }
                 }
                 return $feed;
+            }else{
+                //no more products to submit
+                return false;
+            }
+
 
         } catch (\Exception $feedException) {
+            if ($feed) {
                 $this->logger->error(
-                    'An exception occurred that prevented the creation of the catalog feed',
+                    'An exception occurred while generating the catalog feed',
                     [
                         'exception' => $feedException,
                         'productCount' => count($products),
                         'productsProcessed' => $progressCounter
                     ]
                 );
+            } else if ($products) {
+                $this->logger->error(
+                    'An exception occurred that prevented the creation of the catalog feed due to invalid product data.',
+                    [
+                        'exception' => $feedException,
+                        'productCount' => count($products),
+                        'productsProcessed' => $progressCounter
+                    ]
+                );
+            } else {
+                $this->logger->error(
+                    'An exception occurred while retrieving the products for the catalog feed',
+                    [
+                        'exception' => $feedException,
+                        'productsProcessed' => $progressCounter
+                    ]
+                );
+            }
             throw $feedException;
         }
+
+
+        return false;
     }
 
     /**
@@ -258,8 +314,7 @@ class Catalog extends AbstractExport
             throw new \Exception('Product can not be null or empty');
         }
 
-        $productHelper = $this->getProductHelper();
-        $sku = $productHelper->turnToSafeEncoding($product->getSku());
+        $sku = $this->productHelper->turnToSafeEncoding($product->getSku());
         if (empty($sku)) {
             throw new \Exception('Product must have a valid sku');
         }
@@ -373,7 +428,7 @@ class Catalog extends AbstractExport
      *
      * @return string
      */
-    public function getCategoryTreeString(\Magento\Catalog\Model\Product $product)
+    protected function getCategoryTreeString(\Magento\Catalog\Model\Product $product)
     {
         $categoryName = '';
         $categories = $product->getCategoryCollection();
@@ -410,7 +465,7 @@ class Catalog extends AbstractExport
      *
      * @return array
      */
-    public function getCategoryBranch(\Magento\Catalog\Model\Category $category, array $categoryBranch = [])
+    protected function getCategoryBranch(\Magento\Catalog\Model\Category $category, array $categoryBranch = [])
     {
         try {
             $parent = $category->getParentCategory();
@@ -431,21 +486,20 @@ class Catalog extends AbstractExport
      */
     public function cronUploadFeed()
     {
-
         foreach ($this->storeManager->getStores() as $store) {
             if ($this->config->getIsEnabled($store->getCode()) && $this->config->getIsProductFeedSubmissionEnabled(
                     $store->getCode()
                 )) {
-                $page = 1;
 
-                $products = $this->getProducts($store, $page, 10000);
-                while ($products) {
+               $page =1;
+
+                $feed = $this->generateProductFeed($store, $page);
+                while ($feed) {
                     try {
-                        $feed = $this->populateProductFeed($store, $this->createFeed($store), $products);
-                        $page++;
                         $this->transmitFeed($feed, $store, $page);
-                        $products = $this->getProducts($store, $page, 10000);
-                    }catch(\Exception $e){
+                        $page++;
+                        $feed = $this->generateProductFeed($store, $page);
+                    } catch (\Exception $e) {
                         $this->logger->error(
                             "TurnTo catalog export error on page number $page.",
                             [
@@ -453,10 +507,11 @@ class Catalog extends AbstractExport
                             ]
                         );
                         $page++;
-                        $products = $this->getProducts($store, $page, 10000);
-
+                        $feed = $this->generateProductFeed($store, $page);
                     }
                 }
+
+
             }
         }
     }
@@ -539,86 +594,5 @@ class Catalog extends AbstractExport
         return $collection;
     }
 
-    public function createFeed($store)
-    {
-        try {
-            $feed = new \SimpleXMLElement(
-                '<?xml version="1.0" encoding="UTF-8"?>' . '<feed xmlns="http://www.w3.org/2005/Atom"' . ' xmlns:g="http://base.google.com/ns/1.0" xml:lang="en-US" />'
-            );
-
-            $feed->addChild('title', $this->sanitizeData($store->getName() . ' - Google Product Atom 1.0 Feed'));
-            $feed->addChild(
-                'link',
-                $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK))
-            );
-            $feed->addChild(
-                'updated',
-                $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->format(DATE_ATOM)
-            );
-            $feed->addChild('author')->addChild('name', 'TurnTo');
-            $feed->addChild(
-                'id',
-                $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB))
-            );
-
-            return $feed;
-        } catch (\Exception $feedException) {
-            $this->logger->error(
-                'An exception occurred while creating the catalog feed',
-                [
-                    'exception' => $feedException,
-                ]
-            );
-            throw $feedException;
-        }
-    }
-
-    /**
-     * @return Int
-     */
-    public function getTotalPages()
-    {
-        return $this->totalPages;
-    }
-
-    /**
-     * @param Int $totalPages
-     */
-    public function setTotalPages($totalPages)
-    {
-        $this->totalPages = $totalPages;
-    }
-
-    /**
-     * @return Product
-     */
-    public function getProductHelper()
-    {
-        return $this->productHelper;
-    }
-
-    /**
-     * @param Product $productHelper
-     */
-    public function setProductHelper($productHelper)
-    {
-        $this->productHelper = $productHelper;
-    }
-
-    /**
-     * @return \Magento\Catalog\Helper\Image
-     */
-    public function getImageHelper()
-    {
-        return $this->imageHelper;
-    }
-
-    /**
-     * @param \Magento\Catalog\Helper\Image $imageHelper
-     */
-    public function setImageHelper($imageHelper)
-    {
-        $this->imageHelper = $imageHelper;
-    }
 
 }
