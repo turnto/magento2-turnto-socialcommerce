@@ -330,6 +330,7 @@ class Catalog extends AbstractExport
         if (empty($productName)) {
             throw new \Exception('Product must have a valid name');
         }
+        $productName = str_replace($productName, "\n", "");
 
         $entry->addChild('id', $this->sanitizeData($sku));
 
