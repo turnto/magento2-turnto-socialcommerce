@@ -5,7 +5,7 @@
  * @author      sean.templeton
  */
 
-namespace TurnTo\SocialCommerce\Helper;
+namespace TurnTo\SocialCommerce\Helper\Export;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 
