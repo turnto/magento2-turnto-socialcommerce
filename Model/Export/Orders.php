@@ -523,10 +523,14 @@ class Orders extends AbstractExport
     ) {
         $row = [];
 
+        $productName = $lineItem->getName();
+        $productName = str_replace("\"", "'", $productName);
+        $productName = str_replace("\n", "", $productName);
+
         $row[] = $order->getIncrementId();
         $row[] = $order->getCreatedAt();
         $row[] = $order->getCustomerEmail();
-        $row[] = str_replace("\"", "'", $lineItem->getName());
+        $row[] = $productName;
         $row[] = $this->getProductUrl($product, $order->getStoreId());
         $row[] = $lineItemNumber;
         $row[] = $this->getOrderPostCode($order);
