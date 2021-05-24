@@ -73,7 +73,7 @@ class Catalog
     protected $productHelper;
 
     /**
-     * @var \TurnTo\SocialCommerce\Helper\Catalog
+     * @var \TurnTo\SocialCommerce\Helper\Export\Catalog
      */
     protected $exportHelper;
 
@@ -92,7 +92,7 @@ class Catalog
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Catalog\Helper\Image $imageHelper,
         \TurnTo\SocialCommerce\Helper\Product $productHelper,
-        \TurnTo\SocialCommerce\Helper\Catalog $exportHelper
+        \TurnTo\SocialCommerce\Helper\Export\Catalog $exportHelper
     )
     {
         $this->config = $config;
