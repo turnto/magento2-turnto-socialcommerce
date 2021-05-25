@@ -272,7 +272,7 @@ class Orders
                         "ORDERDATE" => $order->getCreatedAt(),
                         "EMAIL" => $order->getCustomerEmail(),
                         "ITEMTITLE" => $item->getName(),
-                        "ITEMURL" => $this->getProductUrl($item, $order->getStoreId()),
+                        "ITEMURL" => $this->productHelper->getProductUrl($item, $order->getStoreId()),
                         "FIRSTNAME" => $order->getCustomerFirstname(),
                         "LASTNAME" => $order->getCustomerLastname(),
                         "SKU" => $this->turnToProductHelper->turnToSafeEncoding($sku),
