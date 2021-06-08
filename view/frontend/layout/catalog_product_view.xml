@@ -28,9 +28,9 @@
                 </arguments>Magento\Catalog\Block\Product\View
                 <block class="TurnTo\SocialCommerce\Block\Config" name="turnto.pdp" template="TurnTo_SocialCommerce::product/view/config.phtml" />
             </block>
-            <block ifconfig="turnto_socialcommerce_configuration/qa/enable_qa" class="Magento\Framework\View\Element\Template" template="TurnTo_SocialCommerce::product/view/qa-tab.phtml" name="turnto.qa">
+            <block class="Magento\Framework\View\Element\Template" template="TurnTo_SocialCommerce::product/view/qa-tab.phtml" name="turnto.qa">
             </block>
-            <block ifconfig="turnto_socialcommerce_configuration/reviews/enable_reviews" class="Magento\Framework\View\Element\Template" template="TurnTo_SocialCommerce::product/view/reviews-tab.phtml" name="turnto.reviews">
+            <block class="Magento\Framework\View\Element\Template" template="TurnTo_SocialCommerce::product/view/reviews-tab.phtml" name="turnto.reviews">
             </block>
         </referenceContainer>
 
@@ -39,11 +39,6 @@
             <action method="setTemplate">
                 <argument name="template" xsi:type="string">TurnTo_SocialCommerce::product/view/teaser-conditional.phtml</argument>
             </action>
-        </referenceBlock>
-
-        <!-- QA Tab Content -->
-        <referenceBlock name="product.info.details">
-
         </referenceBlock>
 
         <!-- Top Comments PDP Content -->

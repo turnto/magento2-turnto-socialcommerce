@@ -30,11 +30,7 @@ class ReviewPlugin
      */
     public function aroundGetTemplate(\Magento\Review\Block\Product\Review $subject, callable $proceed)
     {
-        if (!$this->config->getIsEnabled() || !$this->config->getReviewsEnabled()) {
-            return $proceed();
-        }
-
-        return 'TurnTo_SocialCommerce::product/view/reviews-tab.phtml';
+        return $proceed();
     }
 
     /**
