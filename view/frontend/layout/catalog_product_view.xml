@@ -26,7 +26,11 @@
                         <item name="chatter" xsi:type="array"/>
                     </argument>
                 </arguments>Magento\Catalog\Block\Product\View
-                <block class="TurnTo\SocialCommerce\Block\Config" name="turnto.pdp" template="TurnTo_SocialCommerce::product/view/config.phtml" />
+                <block class="TurnTo\SocialCommerce\Block\Config" name="turnto.pdp" template="TurnTo_SocialCommerce::product/view/config.phtml">
+                    <argument name="data" xsi:type="array">
+                        <item name="cache_lifetime" xsi:type="number">3600</item>
+                    </argument>
+                </block>
             </block>
         </referenceContainer>
 
