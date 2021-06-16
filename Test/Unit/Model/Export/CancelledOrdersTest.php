@@ -13,7 +13,7 @@ use TurnTo\SocialCommerce\Model\Manager\Export\CancelledOrders as CancelledOrder
  * Class OrdersTest
  * @package TurnTo\SocialCommerce\Test\Unit\Model\Export
  */
-class CancledOrdersTest extends \PHPUnit\Framework\TestCase
+class CanceledOrdersTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * URL to send feed uploads to
@@ -35,7 +35,7 @@ class CancledOrdersTest extends \PHPUnit\Framework\TestCase
     {
         $config = $this->mockConfig();
 
-        $this->cancledOrdersExportManager = new CancelledOrders(
+        $this->canceledOrdersExportManager = new CancelledOrders(
             $config,
             $this->createMock(\TurnTo\SocialCommerce\Logger\Monolog::class),
             $this->mockShipmentRepo(),
@@ -54,7 +54,7 @@ class CancledOrdersTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsCanceledOrderExportClass()
     {
-        $this->assertInstanceOf(\TurnTo\SocialCommerce\Model\Manager\Export\CancelledOrders::class, $this->cancledOrdersExportManager);
+        $this->assertInstanceOf(\TurnTo\SocialCommerce\Model\Manager\Export\CancelledOrders::class, $this->canceledOrdersExportManager);
     }
 
     /**
@@ -71,7 +71,7 @@ class CancledOrdersTest extends \PHPUnit\Framework\TestCase
         $store = $this->mockStore();
         $outputHandle = fopen('tuntoexport.csv', 'w+');
         fputcsv($outputHandle, ['Test Header'], "\t");
-        $this->cancledOrdersExportManager->transmitFeed($outputHandle, $store);
+        $this->canceledOrdersExportManager->transmitFeed($outputHandle, $store);
     }
 
     /**
@@ -83,7 +83,7 @@ class CancledOrdersTest extends \PHPUnit\Framework\TestCase
     {
         $this->assertInstanceOf(
             \Magento\Sales\Model\ResourceModel\Order\Collection::class,
-            $this->cancledOrdersExportManager->getCanceledOrders(1, $this->mockDateTime(), $this->mockDateTime())
+            $this->canceledOrdersExportManager->getCanceledOrders(1, $this->mockDateTime(), $this->mockDateTime())
         );
     }
 
@@ -93,7 +93,7 @@ class CancledOrdersTest extends \PHPUnit\Framework\TestCase
     public function testFormatCancelledOrderData()
     {
         //Test that correct type is returned (array).
-        $this->assertTrue(is_array($this->cancledOrdersExportManager->formatCancelledOrderData([$this->mockOrder()])));
+        $this->assertTrue(is_array($this->canceledOrdersExportManager->formatCancelledOrderData([$this->mockOrder()])));
     }
 
     /**
@@ -101,7 +101,7 @@ class CancledOrdersTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetCanceledOrderFeed()
     {
-        $cleanedOutput = trim(preg_replace('/\s+/', ' ', $this->cancledOrdersExportManager->getCanceledOrdersFeed('1', [])));
+        $cleanedOutput = trim(preg_replace('/\s+/', ' ', $this->canceledOrdersExportManager->getCanceledOrdersFeed('1', [])));
         $this->assertEquals($cleanedOutput, utf8_encode('ORDERID SKU'));
     }
 
