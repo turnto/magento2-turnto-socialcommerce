@@ -235,7 +235,7 @@ class Ratings extends AbstractImport
                             );
                         }
                         // Now reset all products not in the feed
-                        $this->resetProducts($feedProducts);
+                        $this->resetProducts($feedProducts, $store);
                     }
                 } catch (\Exception $feedRetrievalException) {
                     $this->logger->error(
