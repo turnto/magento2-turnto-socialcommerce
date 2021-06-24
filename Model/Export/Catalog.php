@@ -397,8 +397,7 @@ class Catalog extends AbstractExport
         if (!$productHasImage) {
             $productImageUrl = '';
         } else {
-            $imageHelper = $this->getImageHelper();
-            $productImageUrl = $imageHelper->init($product, 'product_page_main_image')->setImageFile(
+            $productImageUrl = $this->imageHelper->init($product, 'product_page_main_image')->setImageFile(
                 $product->getImage()
             )->getUrl();
             $productImageUrl = str_replace(" ", "-", $productImageUrl);
