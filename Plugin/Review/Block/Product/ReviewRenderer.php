@@ -59,10 +59,21 @@ class ReviewRenderer
      */
     public function aroundGetRatingSummary(\Magento\Catalog\Block\Product\ReviewRendererInterface $subject, $proceed)
     {
+
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/turnto-temp.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+
+        $logger->info("Plugin Path 1 - TurnTo Enabled: ". $this->turnToConfigHelper->getIsEnabled());
+        $logger->info("Plugin Path 1 - TurnTo Reviews Enabled: ". $this->turnToConfigHelper->getReviewsEnabled());
+
         if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
+            $logger->info("Plugin Path 1 - Logic Path");
+
             $result = (string)round(
                 $subject->getProduct()->getTurntoRating() * self::RATING_TO_PERCENTILE_MULTIPLIER
             );
+            $logger->info("Plugin Path 1 - Rating: ".$result);
         } else {
             $result = $proceed();
         }
@@ -77,10 +88,20 @@ class ReviewRenderer
      */
     public function aroundGetReviewSummary(\Magento\Catalog\Block\Product\ReviewRendererInterface $subject, $proceed)
     {
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/turnto-temp.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+
+        $logger->info("Plugin Path 2 - TurnTo Enabled: ". $this->turnToConfigHelper->getIsEnabled());
+        $logger->info("Plugin Path 2 - TurnTo Reviews Enabled: ". $this->turnToConfigHelper->getReviewsEnabled());
+
         if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
+            $logger->info("Plugin Path 2 - Logic Path");
+
             $result = (string)round(
                 $subject->getProduct()->getTurntoRating() * self::RATING_TO_PERCENTILE_MULTIPLIER
             );
+            $logger->info("Plugin Path 2 - Rating: ".$result);
         } else {
             $result = $proceed();
         }
@@ -95,8 +116,18 @@ class ReviewRenderer
      */
     public function aroundGetReviewsCount(\Magento\Catalog\Block\Product\ReviewRendererInterface $subject, $proceed)
     {
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/turnto-temp.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+
+        $logger->info("Plugin Path 3 - TurnTo Enabled: ". $this->turnToConfigHelper->getIsEnabled());
+        $logger->info("Plugin Path 3 - TurnTo Reviews Enabled: ". $this->turnToConfigHelper->getReviewsEnabled());
+
         if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
+            $logger->info("Plugin Path 3 - Logic Path");
+
             $result = $subject->getProduct()->getTurntoReviewCount();
+            $logger->info("Plugin Path 3 - Review Count: ".$result);
         } else {
             $result = $proceed();
         }
@@ -124,13 +155,25 @@ class ReviewRenderer
          * standard checks for magento based product reviews otherwise resolve as usual
          */
 
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/turnto-temp.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+
+        $logger->info("Plugin Path 4 - TurnTo Enabled: ". $this->turnToConfigHelper->getIsEnabled());
+        $logger->info("Plugin Path 4 - TurnTo Reviews Enabled: ". $this->turnToConfigHelper->getReviewsEnabled());
+        $logger->info("Plugin Path 4 - Template: ". $templateType . " = ".$this->_availableTemplates[$templateType]);
+
         if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
+
+            $logger->info("Plugin Path 4 - Logic Path");
+
             try {
                 $subject->setTemplate($this->_availableTemplates[$templateType]);
                 $subject->setDisplayIfEmpty($displayIfNoReviews);
                 $subject->setProduct($product);
                 $result = $subject->toHtml();
             } catch (\Exception $e) {
+                $logger->info("Plugin Path 4 - Exception");
                 $result = $proceed($product, $templateType, $displayIfNoReviews, false);
             }
         } else {
