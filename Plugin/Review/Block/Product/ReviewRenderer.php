@@ -31,6 +31,11 @@ class ReviewRenderer
     protected $turnToConfigHelper = null;
 
     /**
+     * @var \Magento\Catalog\Model\ProductRepository
+     */
+    protected $productRepository;
+
+    /**
      * Array of available template name
      *
      * This array is a copy of the @see \Magento\Review\Block\Product\ReviewRenderer::$_availableTemplates
@@ -47,9 +52,11 @@ class ReviewRenderer
      * Plugin constructor.
      * @param \TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper
      */
-    public function __construct(\TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper)
+    public function __construct(\TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper,
+                                \Magento\Catalog\Model\ProductRepository $productRepository)
     {
         $this->turnToConfigHelper = $turnToConfigHelper;
+        $this->productRepository = $productRepository;
     }
 
     /**
@@ -60,8 +67,11 @@ class ReviewRenderer
     public function aroundGetRatingSummary(\Magento\Catalog\Block\Product\ReviewRendererInterface $subject, $proceed)
     {
         if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
+            // $rating = $subject->getProduct()->getTurntoRating();
+            $product = $this->productRepository->getById($subject->getProduct()->getId(), false, 0);
+            $rating = $product->getTurntoRating();
             $result = (string)round(
-                $subject->getProduct()->getTurntoRating() * self::RATING_TO_PERCENTILE_MULTIPLIER
+                $rating * self::RATING_TO_PERCENTILE_MULTIPLIER
             );
         } else {
             $result = $proceed();
@@ -78,8 +88,12 @@ class ReviewRenderer
     public function aroundGetReviewSummary(\Magento\Catalog\Block\Product\ReviewRendererInterface $subject, $proceed)
     {
         if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
+            // $rating = $subject->getProduct()->getTurntoRating()
+            $product = $this->productRepository->getById($subject->getProduct()->getId(), false, 0);
+            $rating = $product->getTurntoRating();
+
             $result = (string)round(
-                $subject->getProduct()->getTurntoRating() * self::RATING_TO_PERCENTILE_MULTIPLIER
+                $rating * self::RATING_TO_PERCENTILE_MULTIPLIER
             );
         } else {
             $result = $proceed();
@@ -96,7 +110,9 @@ class ReviewRenderer
     public function aroundGetReviewsCount(\Magento\Catalog\Block\Product\ReviewRendererInterface $subject, $proceed)
     {
         if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
-            $result = $subject->getProduct()->getTurntoReviewCount();
+            // $result = $subject->getProduct()->getData("turnto_review_count");
+            $product = $this->productRepository->getById($subject->getProduct()->getId(), false, 0);
+            $result = $product->getData("turnto_review_count");
         } else {
             $result = $proceed();
         }
