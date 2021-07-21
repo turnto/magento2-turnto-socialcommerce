@@ -12,7 +12,6 @@
 
 namespace TurnTo\SocialCommerce\Block\Widget;
 
-use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
 use TurnTo\SocialCommerce\Helper\Product;
