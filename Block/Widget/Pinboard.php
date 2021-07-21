@@ -104,34 +104,34 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
     /**
      * Return an array of product SKUs from the pinboard widget configuration.
      *
-     * @return array
+     * @return string
      */
     public function getProductSkus()
     {
         $productSkus = $this->getData('skus');
-        return $productSkus ? array_map('trim' , explode(',', $productSkus)) : [];
+        return $productSkus ? implode(array_map('trim' , explode(',', $productSkus)), ",") : "";
     }
 
     /**
      * Return an array of product Brands from the pinboard widget configuration.
      *
-     * @return array
+     * @return string
      */
     public function getProductBrands()
     {
         $productBrands = $this->getData('brands');
-        return $productBrands ? array_map('trim' , explode(',', $productBrands)) : [];
+        return $productBrands ? implode(array_map('trim' , explode(',', $productBrands)), ",") : "";
     }
 
     /**
      * Return an array of product tags from the pinboard widget configuration.
      *
-     * @return array
+     * @return string
      */
     public function getProductTags()
     {
         $productTags = $this->getData('tags');
-        return $productTags ? array_map('trim' , explode(',', $productTags)) : [];
+        return $productTags ? implode(array_map('trim' , explode(',', $productTags)), ",") : "";
     }
 
     /**
