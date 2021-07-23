@@ -22,6 +22,10 @@ $staticUrl = preg_replace("(^https?://)", "//", $configHelper->getStaticUrl());
 echo $block->getTurnToConfigHtml();
 
 ?>
+<script>
+    window.turnToConfig.commentsPinboard = {"skus": <?= var_export($block->getProductSkus()) ?>};
+</script>
+
 <?php if ($block->getContentType() === 'vcPinboard'): ?>
 <div id="tt-vc-pinboard-widget">
 <?php elseif($block->getContentType() === 'commentsPinboardTeaser'): ?>
