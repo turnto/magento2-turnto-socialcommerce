@@ -413,6 +413,21 @@ class Catalog extends AbstractExport
         $availability = $turntoDisable ? 'out of stock' :
             (($product->getStatus() == 1) ? 'in stock' : 'out of stock');
 
+        $loggingOverride = false; // set to true to log on all products
+        if ($product->getSku() == "931020" || $loggingOverride) {
+            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/turnto-disabled-attribute.log');
+            $logger = new \Zend\Log\Logger();
+            $logger->addWriter($writer);
+
+            $logger->info("Fetching product Disabled Attribute");
+            $logger->info("Fetching product Disabled Attribute - store Id: ".$this->storeManager->getStore()->getId());
+            $logger->info("Fetching product Disabled Attribute - Attribute fetch: ".(bool) $product->getCustomAttribute('turnto_disabled'));
+            $logger->info("Fetching product Disabled Attribute - Value fetch: ".$product->getCustomAttribute('turnto_disabled')->getValue());
+            $logger->info("Fetching product Disabled Attribute - turntoDisable value: ".$turntoDisable);
+            $logger->info("Fetching product Disabled Attribute - product status value: ".$product->getStatus());
+            $logger->info("Fetching product Disabled Attribute - availability value: ".$availability);
+        }
+
         $entry->addChild('g:availability', $availability);
         $entry->addChild('g:image_link', $this->sanitizeData($productImageUrl));
         $entry->addChild('g:condition', 'new');
