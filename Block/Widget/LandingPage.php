@@ -48,9 +48,7 @@ class LandingPage extends \Magento\Framework\View\Element\Template implements \M
         }
 
         $landingPageBlock->setConfigData(['pageId' => 'email-landing-page']);
-
-        $logger->info('getTurnToConfigHtml: ' . $landingPageBlock->toHtml());
-
+        
         return $landingPageBlock->toHtml();
     }
 
