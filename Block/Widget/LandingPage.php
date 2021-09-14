@@ -37,11 +37,6 @@ class LandingPage extends \Magento\Framework\View\Element\Template implements \M
      */
     public function getTurnToConfigHtml()
     {
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test-custom.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-        $logger->info('getTurnToConfigHtml');
-
         /** @var \TurnTo\SocialCommerce\Block\TurnToConfig $landingPageBlock */
         try {
             $landingPageBlock = $this->getLayout()->createBlock(
