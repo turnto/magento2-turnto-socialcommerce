@@ -157,11 +157,11 @@ class Orders
     }
 
     /**
-     * @param                                        $outputHandle
-     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @param       $outputHandle
+     * @param array $orderData
      * @param bool $forceIncludeAllItems
      */
-    protected function writeOrderToFeed($outputHandle, \Magento\Sales\Api\Data\OrderInterface $orderData, $forceIncludeAllItems)
+    protected function writeOrderToFeed($outputHandle, $orderData)
     {
         if (empty($orderData)) {
             return;
