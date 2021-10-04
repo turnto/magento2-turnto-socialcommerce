@@ -234,9 +234,9 @@ class Ratings extends AbstractImport
                                 ]
                             );
                         }
-                        // Now reset all products not in the feed
-                        $this->resetProducts($feedProducts, $store);
                     }
+                    // Now reset all products not in the feed
+                    $this->resetProducts($feedProducts, $store);
                 } catch (\Exception $feedRetrievalException) {
                     $this->logger->error(
                         'Failed to retrieve TurnTo aggregate rating feed for store from TurnTo',
