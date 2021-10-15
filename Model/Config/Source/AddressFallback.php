@@ -19,7 +19,7 @@ namespace TurnTo\SocialCommerce\Model\Config\Source;
  * Class ProductAttributeSelect
  * @package TurnTo\SocialCommerce\Model\Config\Source
  */
-class AddressFallback implements \Magento\Framework\Option\ArrayInterface
+class AddressFallback implements \Magento\Framework\Data\OptionSourceInterface
 {
 
     CONST BILLING_ADDRESS_VALUE = '0';
