@@ -36,8 +36,8 @@ define([
             selectedProduct: function () {
                 var selected_options = {};
                 jQuery('div.swatch-attribute').each(function (k, v) {
-                    var attribute_id = jQuery(v).attr('attribute-id');
-                    var option_selected = jQuery(v).attr('option-selected');
+                    var attribute_id = jQuery(v).attr('data-attribute-id');
+                    var option_selected = jQuery(v).attr('data-option-selected');
                     if (!attribute_id || !option_selected) {
                         return;
                     }
