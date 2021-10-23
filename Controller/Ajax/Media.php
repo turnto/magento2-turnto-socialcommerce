@@ -17,6 +17,7 @@ namespace TurnTo\SocialCommerce\Controller\Ajax;
 
 use Magento\Framework\Controller\ResultFactory;
 use TurnTo\SocialCommerce\Helper\Product;
+use Magento\Catalog\Model\Product\Attribute\Source\Status;
 
 class Media extends \Magento\Swatches\Controller\Ajax\Media
 {
