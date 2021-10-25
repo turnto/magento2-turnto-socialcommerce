@@ -183,12 +183,6 @@ class AbstractExport
 
         $collection->addStoreFilter($store);
 
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/turnt-query.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-
-        $logger->info($collection->getSelect()->__toString());
-
         return $collection;
     }
 
