@@ -17,6 +17,7 @@ namespace TurnTo\SocialCommerce\Controller\Ajax;
 
 use Magento\Framework\Controller\ResultFactory;
 use TurnTo\SocialCommerce\Helper\Product;
+use Magento\Catalog\Model\Product\Attribute\Source\Status;
 
 class Media extends \Magento\Swatches\Controller\Ajax\Media
 {
@@ -174,29 +175,32 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
         // End Edit
 
         $productMedia = [];
+
+        /** @var \Magento\Framework\Controller\Result\Json $resultJson */
+        $resultJson = $this->resultFactory->create(ResultFactory::TYPE_JSON);
+
+        /** @var \Magento\Framework\App\ResponseInterface $response */
+        $response = $this->getResponse();
+
         if ($productId = (int)$this->getRequest()->getParam('product_id')) {
-            $currentConfigurable = $this->productModelFactory->create()->load($productId);
-            $attributes = (array)$this->getRequest()->getParam('attributes');
-            if (!empty($attributes)) {
-                $product = $this->getProductVariationWithMedia($currentConfigurable, $attributes);
+            /** @var \Magento\Catalog\Api\Data\ProductInterface $product */
+            $product = $this->productModelFactory->create()->load($productId);
+            $productMedia = [];
+            if ($product->getId() && $product->getStatus() == Status::STATUS_ENABLED) {
+                $productMedia = $this->swatchHelper->getProductMediaGallery($product);
             }
-            if ((empty($product) || (!$product->getImage() || $product->getImage() == 'no_selection'))
-                && isset($currentConfigurable)
-            ) {
-                $product = $currentConfigurable;
-            }
-            $productMedia = $this->swatchHelper->getProductMediaGallery($product);
+            $resultJson->setHeader('X-Magento-Tags', implode(',', $product->getIdentities()));
+
+            $response->setPublicHeaders($this->config->getTtl());
 
             // Begin Edit
-            $childProduct = $this->swatchHelper->loadVariationByFallback($product, $attributes);
+            $childProduct = $this->swatchHelper->loadVariationByFallback($product);
             $productMedia['sku'] = $this->productHelper->turnToSafeEncoding(
                 $childProduct ? $childProduct->getSku() : $product->getSku()
             );
             // End Edit
         }
 
-        /** @var \Magento\Framework\Controller\Result\Json $resultJson */
-        $resultJson = $this->resultFactory->create(ResultFactory::TYPE_JSON);
         $resultJson->setData($productMedia);
 
         return $resultJson;

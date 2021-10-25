@@ -19,7 +19,7 @@ namespace TurnTo\SocialCommerce\Model\Config\Source;
  * Class ProductAttributeSelect
  * @package TurnTo\SocialCommerce\Model\Config\Source
  */
-class ProductAttributeSelect implements \Magento\Framework\Option\ArrayInterface
+class ProductAttributeSelect implements \Magento\Framework\Data\OptionSourceInterface
 {
     /**
      * @var null|\TurnTo\SocialCommerce\Helper\Config

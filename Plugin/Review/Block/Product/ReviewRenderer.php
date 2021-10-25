@@ -31,6 +31,16 @@ class ReviewRenderer
     protected $turnToConfigHelper = null;
 
     /**
+     * @var \Magento\Catalog\Model\ProductRepository
+     */
+    protected $productRepository;
+
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManager;
+
+    /**
      * Array of available template name
      *
      * This array is a copy of the @see \Magento\Review\Block\Product\ReviewRenderer::$_availableTemplates
@@ -47,9 +57,14 @@ class ReviewRenderer
      * Plugin constructor.
      * @param \TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper
      */
-    public function __construct(\TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper)
-    {
+    public function __construct(
+        \TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Catalog\Model\ProductRepository $productRepository
+    ) {
         $this->turnToConfigHelper = $turnToConfigHelper;
+        $this->storeManager = $storeManager;
+        $this->productRepository = $productRepository;
     }
 
     /**
@@ -60,8 +75,11 @@ class ReviewRenderer
     public function aroundGetRatingSummary(\Magento\Catalog\Block\Product\ReviewRendererInterface $subject, $proceed)
     {
         if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
+            $storeId = $this->storeManager->getStore()->getId();
+            $product = $this->productRepository->getById($subject->getProduct()->getId(), false, $storeId);
+            $rating = $product->getTurntoRating();
             $result = (string)round(
-                $subject->getProduct()->getTurntoRating() * self::RATING_TO_PERCENTILE_MULTIPLIER
+                $rating * self::RATING_TO_PERCENTILE_MULTIPLIER
             );
         } else {
             $result = $proceed();
@@ -78,8 +96,11 @@ class ReviewRenderer
     public function aroundGetReviewSummary(\Magento\Catalog\Block\Product\ReviewRendererInterface $subject, $proceed)
     {
         if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
+            $storeId = $this->storeManager->getStore()->getId();
+            $product = $this->productRepository->getById($subject->getProduct()->getId(), false, $storeId);
+            $rating = $product->getTurntoRating();
             $result = (string)round(
-                $subject->getProduct()->getTurntoRating() * self::RATING_TO_PERCENTILE_MULTIPLIER
+                $rating * self::RATING_TO_PERCENTILE_MULTIPLIER
             );
         } else {
             $result = $proceed();
@@ -96,7 +117,9 @@ class ReviewRenderer
     public function aroundGetReviewsCount(\Magento\Catalog\Block\Product\ReviewRendererInterface $subject, $proceed)
     {
         if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
-            $result = $subject->getProduct()->getTurntoReviewCount();
+            $storeId = $this->storeManager->getStore()->getId();
+            $product = $this->productRepository->getById($subject->getProduct()->getId(), false, $storeId);
+            $result = $product->getData("turnto_review_count");
         } else {
             $result = $proceed();
         }
@@ -123,7 +146,6 @@ class ReviewRenderer
          * if turnto module and reviews are enabled trigger generation of the block contents but avoid using the
          * standard checks for magento based product reviews otherwise resolve as usual
          */
-
         if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
             try {
                 $subject->setTemplate($this->_availableTemplates[$templateType]);

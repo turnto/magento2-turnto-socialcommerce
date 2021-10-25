@@ -36,10 +36,18 @@ define([
             selectedProduct: function () {
                 var selected_options = {};
                 jQuery('div.swatch-attribute').each(function (k, v) {
-                    var attribute_id = jQuery(v).attr('attribute-id');
-                    var option_selected = jQuery(v).attr('option-selected');
+                    // In Magento 2.4+ the div attributes are called "data-attribute-id" and "data-option-selected"
+                    // In versions before 2.4, they're "attribute-id" and "option-selected". So check both.
+                    var attribute_id = jQuery(v).attr('data-attribute-id');
+                    var option_selected = jQuery(v).attr('data-option-selected');
                     if (!attribute_id || !option_selected) {
-                        return;
+                        // Try this if they're using version < 2.4
+                        attribute_id = jQuery(v).attr('attribute-id');
+                        option_selected = jQuery(v).attr('option-selected');
+                        // If we still don't have anything, now we can return
+                        if (!attribute_id || !option_selected) {
+                            return;
+                        }
                     }
                     selected_options[attribute_id] = option_selected;
                 });
