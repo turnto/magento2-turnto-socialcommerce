@@ -592,8 +592,8 @@ class Catalog extends AbstractExport
         $collection->addStoreFilter($store);
 
 
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/turnto-query.log');
-        $logger = new \Zend\Log\Logger();
+        $writer = new \Laminas\Log\Writer\Stream(BP . '/var/log/custom.log');
+        $logger = new  \Laminas\Log\Logger();
         $logger->addWriter($writer);
 
         $logger->info($collection->getSelect()->__toString());
