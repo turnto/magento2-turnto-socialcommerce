@@ -68,6 +68,10 @@
                 <exclude_items_without_delivery_date>0</exclude_items_without_delivery_date>
                 <exclude_delivery_date_until_all_items_shipped>0</exclude_delivery_date_until_all_items_shipped>
             </historical_orders_feed>
+            <average_rating_import>
+                <enable_average_rating>1</enable_average_rating>
+                <import_aggregate_data>1</import_aggregate_data>
+            </average_rating_import>
             <sso>
                 <review_msg>We need to know who you are before we post your review. Please login or register to continue.</review_msg>
                 <review_msg_pur_req>To ensure authenticity you may only write reviews for items you've purchased. Please login or register so we can look up your purchases.</review_msg_pur_req>
