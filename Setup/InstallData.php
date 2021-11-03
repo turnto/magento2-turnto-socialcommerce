@@ -123,7 +123,7 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
             ]
         );
 
-       // use turnto's remote teaser code rather then local code for new installs
+        // use turnto's remote teaser code rather then local code for new installs
         $this->configWriter->save('turnto_socialcommerce_configuration/teaser/use_local_teaser_code', 0);
 
         $setup->endSetup();

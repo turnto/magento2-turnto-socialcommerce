@@ -384,7 +384,7 @@
                 </field>
                 <field id="import_aggregate_data" type="select" translate="label" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Aggregate Related Review Count</label>
-                    <comment>Default is "No". If set to "No", the Review Count attribute will be populated with the number of reviews, NOT including related reviews. If set to "Yes", the Review Count attribute will be populated based on the number of review AND related reviews</comment>
+                    <comment>Default is "Yes". If set to "No", the Review Count attribute will be populated with the number of reviews, NOT including related reviews. If set to "Yes", the Review Count attribute will be populated based on the number of review AND related reviews</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
