@@ -194,7 +194,7 @@ class Media extends \Magento\Swatches\Controller\Ajax\Media
             $response->setPublicHeaders($this->config->getTtl());
 
             // Begin Edit
-            $childProduct = $this->swatchHelper->loadVariationByFallback($product);
+            $childProduct = $this->swatchHelper->loadVariationByFallback($product, []);
             $productMedia['sku'] = $this->productHelper->turnToSafeEncoding(
                 $childProduct ? $childProduct->getSku() : $product->getSku()
             );
