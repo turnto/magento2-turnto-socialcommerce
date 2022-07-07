@@ -32,6 +32,9 @@ class Ratings extends AbstractImport
     const TURNTO_FEED_KEY_REVIEW_COUNT = 'review_count';
 
     const TURNTO_FEED_KEY_RELATED_REVIEW_COUNT = 'related_review_count';
+
+    public const WEBSITE_IDS = 'website_ids';
+
     /**
      * @var Product
      */
@@ -44,12 +47,13 @@ class Ratings extends AbstractImport
     protected $productCollectionFactory;
 
     /**
-     * @param \TurnTo\SocialCommerce\Helper\Config                 $config
-     * @param \TurnTo\SocialCommerce\Logger\Monolog                $logger
-     * @param \Magento\Catalog\Model\ProductFactory                $productFactory
-     * @param \Magento\Store\Model\StoreManagerInterface           $storeManager
+     * @param \TurnTo\SocialCommerce\Helper\Config $config
+     * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
+     * @param \Magento\Catalog\Model\ProductFactory $productFactory
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Catalog\Model\Indexer\Product\Eav\Processor $productEavIndexProcessor
-     * @param Product                                              $productHelper
+     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
+     * @param Product $productHelper
      */
     public function __construct(
         \TurnTo\SocialCommerce\Helper\Config $config,
@@ -59,8 +63,7 @@ class Ratings extends AbstractImport
         \Magento\Catalog\Model\Indexer\Product\Eav\Processor $productEavIndexProcessor,
         \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
         Product $productHelper
-    )
-    {
+    ) {
         parent::__construct($config, $logger, $productFactory, $storeManager, $productEavIndexProcessor);
 
         $this->productCollectionFactory = $productCollectionFactory;
@@ -97,9 +100,7 @@ class Ratings extends AbstractImport
         $sku,
         $reviewCount,
         $averageRating
-    )
-    {
-
+    ) {
         $product = $this->productFactory->create()
             ->setStoreId($store->getId())
             ->loadByAttribute(
@@ -140,6 +141,12 @@ class Ratings extends AbstractImport
             $product->setData(InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE, implode(',', $filterValues));
         }
         $product->getResource()->saveAttribute($product, InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE);
+
+        //Set website_ids in OrigData to fix issue with ProductProcessUrlRewriteSavingObserver
+        if (!$product->getOrigData(self::WEBSITE_IDS)) {
+            $websiteIds = $product->getResource()->getWebsiteIds($product);
+            $product->setOrigData(self::WEBSITE_IDS, $websiteIds);
+        }
 
         // Ensure product gets reindexed
         $product->afterSave();
@@ -248,9 +255,6 @@ class Ratings extends AbstractImport
                     );
                 }
             }
-
-
-
         } catch (\Exception $exception) {
             $this->logger->error(
                 'Failed to download ratings feed',
@@ -267,7 +271,8 @@ class Ratings extends AbstractImport
      * @param $feedProducts
      * @param $store
      */
-    private function resetProducts($feedProducts, $store) {
+    private function resetProducts($feedProducts, $store)
+    {
         $collection = $this->productCollectionFactory->create()
             ->addAttributeToSelect('id')
             ->addAttributeToSelect('name')
