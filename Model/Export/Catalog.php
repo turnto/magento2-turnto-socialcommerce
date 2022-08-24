@@ -88,8 +88,7 @@ class Catalog extends AbstractExport
         \Magento\Catalog\Helper\Image $imageHelper,
         \Magento\CatalogInventory\Model\Spi\StockRegistryProviderInterface $stockRegistryProvider,
         Product $productHelper
-    )
-    {
+    ) {
         parent::__construct(
             $config,
             $productCollectionFactory,
@@ -130,7 +129,7 @@ class Catalog extends AbstractExport
                     'authKey' => $this->config->getAuthorizationKey($store->getCode()),
                     'feedStyle' => self::FEED_STYLE
                 ]
-            )->setFileUpload($page.'_of_'.$this->totalPages.'_store_'. $store->getId() .'_' . self::FEED_STYLE, 'file', $feed->asXML(), self::FEED_MIME);
+            )->setFileUpload($page . '_of_' . $this->totalPages . '_store_' . $store->getId() . '_' . self::FEED_STYLE, 'file', $feed->asXML(), self::FEED_MIME);
 
             \file_put_contents(BP . "/var/google-product_storecode_{$store->getCode()}.xml", $feed->asXML());
             $response = $zendClient->request();
@@ -193,8 +192,6 @@ class Catalog extends AbstractExport
         $products = [];
 
         try {
-
-
             $feed = new \SimpleXMLElement(
                 '<?xml version="1.0" encoding="UTF-8"?>' . '<feed xmlns="http://www.w3.org/2005/Atom"' . ' xmlns:g="http://base.google.com/ns/1.0" xml:lang="en-US" />'
             );
@@ -214,8 +211,7 @@ class Catalog extends AbstractExport
                 $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB))
             );
 
-            if ($products = $this->getProducts($store,$page,10000)){
-
+            if ($products = $this->getProducts($store, $page, 10000)) {
                 $childProducts = [];
 
                 // TurnTo requires a product feed where children of configurable products are aware of their parent SKUs
@@ -257,12 +253,10 @@ class Catalog extends AbstractExport
                     }
                 }
                 return $feed;
-            }else{
+            } else {
                 //no more products to submit
                 return false;
             }
-
-
         } catch (\Exception $feedException) {
             if ($feed) {
                 $this->logger->error(
@@ -273,7 +267,7 @@ class Catalog extends AbstractExport
                         'productsProcessed' => $progressCounter
                     ]
                 );
-            } else if ($products) {
+            } elseif ($products) {
                 $this->logger->error(
                     'An exception occurred that prevented the creation of the catalog feed due to invalid product data.',
                     [
@@ -293,7 +287,6 @@ class Catalog extends AbstractExport
             }
             throw $feedException;
         }
-
 
         return false;
     }
@@ -408,7 +401,7 @@ class Catalog extends AbstractExport
 
         // Availability is normally determined by status, but can be overridden by custom "turnto_disabled" attribute
         $turntoDisable = $product->getCustomAttribute('turnto_disabled') ?
-            $product->getCustomAttribute('turnto_disabled')->getValue():
+            $product->getCustomAttribute('turnto_disabled')->getValue() :
             false;
         $availability = $turntoDisable ? 'out of stock' :
             (($product->getStatus() == 1) ? 'in stock' : 'out of stock');
@@ -487,11 +480,11 @@ class Catalog extends AbstractExport
     public function cronUploadFeed()
     {
         foreach ($this->storeManager->getStores() as $store) {
-            if ($this->config->getIsEnabled($store->getCode()) && $this->config->getIsProductFeedSubmissionEnabled(
-                    $store->getCode()
-                )) {
-
-               $page =1;
+            if (
+                $this->config->getIsEnabled($store->getCode()) &&
+                $this->config->getIsProductFeedSubmissionEnabled($store->getCode())
+            ) {
+                $page = 1;
 
                 $feed = $this->generateProductFeed($store, $page);
                 while ($feed) {
@@ -510,8 +503,6 @@ class Catalog extends AbstractExport
                         $feed = $this->generateProductFeed($store, $page);
                     }
                 }
-
-
             }
         }
     }
@@ -533,7 +524,6 @@ class Catalog extends AbstractExport
         }
     }
 
-
     /**
      * Retrieves a store/visibility filtered product collection selecting only attributes necessary for the TurnTo Feed
      * over written to allow for pagination
@@ -543,8 +533,6 @@ class Catalog extends AbstractExport
      */
     public function getProducts(\Magento\Store\Api\Data\StoreInterface $store, $page = null, $pageCount = 10000)
     {
-
-
         $collection = $this->productCollectionFactory->create()
             ->addAttributeToSelect('id')
             ->addAttributeToSelect('name')
@@ -557,16 +545,7 @@ class Catalog extends AbstractExport
             ->addAttributeToSelect('price')
             ->addAttributeToSelect('status')
             ->addAttributeToSelect('turnto_disabled')
-            ->setPage($page,$pageCount);
-
-
-        //used to generate file name 1_of_$totalPages.xml
-        $this->totalPages = $collection->getLastPageNumber();
-
-        //stop the feed once we get to the last page
-        if($this->totalPages < $page){
-            return false;
-        }
+            ->setPage($page, $pageCount);
 
         $gtinMap = $this->config->getGtinAttributesMap($store->getCode());
 
@@ -580,8 +559,7 @@ class Catalog extends AbstractExport
             $collection->addFieldToFilter(
                 'visibility',
                 [
-                    'in' =>
-                        [
+                    'in' => [
                             \Magento\Catalog\Model\Product\Visibility::VISIBILITY_BOTH,
                             \Magento\Catalog\Model\Product\Visibility::VISIBILITY_IN_CATALOG
                         ]
@@ -591,8 +569,14 @@ class Catalog extends AbstractExport
 
         $collection->addStoreFilter($store);
 
+        //used to generate file name 1_of_$totalPages.xml
+        $this->totalPages = $collection->getLastPageNumber();
+
+        //stop the feed once we get to the last page
+        if ($this->totalPages < $page) {
+            return false;
+        }
+
         return $collection;
     }
-
-
 }
