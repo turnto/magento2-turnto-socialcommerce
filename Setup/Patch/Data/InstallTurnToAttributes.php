@@ -1,83 +1,78 @@
 <?php
-/**
- * TurnTo_SocialCommerce
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- *
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
- */
 
-namespace TurnTo\SocialCommerce\Setup;
+namespace TurnTo\SocialCommerce\Setup\Patch\Data;
 
-class InstallData implements \Magento\Framework\Setup\InstallDataInterface
+use Magento\Eav\Setup\EavSetupFactory;
+use Magento\Framework\App\Config\Storage\WriterInterface;
+use Magento\Framework\Setup\ModuleDataSetupInterface;
+use Magento\Framework\Setup\Patch\DataPatchInterface;
+use TurnTo\SocialCommerce\Setup\InstallHelper;
+
+class InstallTurnToAttributes implements DataPatchInterface
 {
     /**
-     * @var \Magento\Eav\Setup\EavSetupFactory|null
+     * @var ModuleDataSetupInterface
      */
-    protected $eavSetupFactory = null;
+    private $moduleDataSetup;
 
     /**
-     * @var null|\Psr\Log\LoggerInterface
+     * @var EavSetupFactory
      */
-    protected $logger = null;
+    private $eavSetupFactory;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface|null
+     * @var WriterInterface
      */
-    protected $storeManager = null;
-
-    /**
-     * @var \Magento\Framework\App\Config\Storage\WriterInterface
-     */
-    protected $configWriter;
+    private $configWriter;
 
     /**
      * @var \TurnTo\SocialCommerce\Setup\InstallHelper|null
      */
-    protected $installHelper = null;
+    private $installHelper;
 
     /**
-     * InstallData constructor.
-     *
-     * @param \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * InstallTurnToAttributes constructor.
+     * @param ModuleDataSetupInterface $moduleDataSetup
      * @param InstallHelper $installHelper
+     * @param WriterInterface $configWriter
+     * @param EavSetupFactory $eavSetupFactory
      */
     public function __construct(
-        \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory,
-        \Psr\Log\LoggerInterface $logger,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Framework\App\Config\Storage\WriterInterface $configWriter,
-        InstallHelper $installHelper
+        ModuleDataSetupInterface $moduleDataSetup,
+        InstallHelper $installHelper,
+        WriterInterface $configWriter,
+        EavSetupFactory $eavSetupFactory
     ) {
+        $this->moduleDataSetup = $moduleDataSetup;
         $this->eavSetupFactory = $eavSetupFactory;
-        $this->logger = $logger;
-        $this->storeManager = $storeManager;
-        $this->configWriter = $configWriter;
         $this->installHelper = $installHelper;
+        $this->configWriter = $configWriter;
     }
 
     /**
-     * Install Data Method
-     *
-     * @param \Magento\Framework\Setup\ModuleDataSetupInterface $setup
-     * @param \Magento\Framework\Setup\ModuleContextInterface $context
+     * @inheritDoc
      */
-    public function install(
-        \Magento\Framework\Setup\ModuleDataSetupInterface $setup,
-        \Magento\Framework\Setup\ModuleContextInterface $context
-    ) {
-        $setup->startSetup();
-        $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+    public static function getDependencies()
+    {
+        return [];
+    }
 
+    /**
+     * @inheritDoc
+     */
+    public function getAliases()
+    {
+        return [];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function apply()
+    {
+        $eavSetup = $this->eavSetupFactory->create(['setup' => $this->moduleDataSetup]);
         $this->installHelper->sortAttributeGroup($eavSetup);
+
 
         $this->installHelper->addTurnToAttribute(
             $eavSetup,
@@ -125,9 +120,5 @@ class InstallData implements \Magento\Framework\Setup\InstallDataInterface
 
         // use turnto's remote teaser code rather then local code for new installs
         $this->configWriter->save('turnto_socialcommerce_configuration/teaser/use_local_teaser_code', 0);
-
-        $setup->endSetup();
     }
-
-
 }
