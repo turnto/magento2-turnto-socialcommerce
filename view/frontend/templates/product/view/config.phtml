@@ -17,6 +17,7 @@ $productSku = $block->getProductSku();
 
 ?>
 
+<?php if ($configHelper->getIsEnabled()): ?>
 <script type="text/javascript">
     (function (window) {
         window.scrollToTab = function scrollToTab(teaserContainer, clickElement, container, tab) {
@@ -31,8 +32,10 @@ $productSku = $block->getProductSku();
             });
         };
 
-        <?php if($productSku): ?>
+        <?php if ($productSku): ?>
         window.TurnToCmd('set', {'sku': '<?= $productSku ?>'});
         <?php endif; ?>
     })(window);
 </script>
+<?php endif; ?>
+
