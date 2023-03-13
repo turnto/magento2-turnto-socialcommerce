@@ -13,12 +13,6 @@ use TurnTo\SocialCommerce\Helper\Config;
 
 class RedirectToLogin extends \Magento\Framework\App\Action\Action
 {
-
-
-    /**
-     * @var Magento\Framework\UrlInterface
-     */
-    private $uriInterface;
     /**
      * @var Config
      */
@@ -34,14 +28,10 @@ class RedirectToLogin extends \Magento\Framework\App\Action\Action
 
 
     public function __construct(Context $context,
-                                \Magento\Framework\Message\ManagerInterface $messageManager,
-                                \Magento\Framework\UrlInterface $uriInterface,
                                 Config $config,
                                 \Magento\Customer\Model\SessionFactory $customerSessionFactory
     )
     {
-        $this->messageManager = $messageManager;
-        $this->uriInterface = $uriInterface;
         $this->config = $config;
         $this->customerSessionFactory = $customerSessionFactory;
         parent::__construct($context);
@@ -52,7 +42,7 @@ class RedirectToLogin extends \Magento\Framework\App\Action\Action
         $url = $this->_redirect->getRefererUrl();
 
         $resultRedirect = $this->resultRedirectFactory->create();
-        $login_url = $this->uriInterface
+        $login_url = $this->_url
             ->getUrl('customer/account/login',
                 ['referer' => base64_encode($url)]
             );
@@ -90,4 +80,3 @@ class RedirectToLogin extends \Magento\Framework\App\Action\Action
     }
 
 }
-
