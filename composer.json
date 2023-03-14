@@ -1,13 +1,19 @@
 {
     "name": "turnto/social-commerce",
-    "description": "This module connects Magento 2 with TurnTo's Social Commerce service",
+    "version": "3.8.2",
+    "description": "Social commerce platform to collect, manage, and display ratings and reviews to enhance your Magento store",
     "type": "magento2-module",
-    "version": "3.8.1",
     "require": {
-        "firebase/php-jwt": "^5.0"
+        "magento/framework": "*",
+        "php": "^7.1||~8.0.0||~8.1.0"
     },
+    "license": [
+        "OSL-3.0"
+    ],
     "autoload": {
-        "files": [ "registration.php" ],
+        "files": [
+            "registration.php"
+        ],
         "psr-4": {
             "TurnTo\\SocialCommerce\\": ""
         }
