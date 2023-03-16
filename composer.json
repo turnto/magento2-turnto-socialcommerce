@@ -4,7 +4,7 @@
     "description": "Social commerce platform to collect, manage, and display ratings and reviews to enhance your Magento store",
     "type": "magento2-module",
     "require": {
-        "magento/framework": "*",
+        "magento/framework": "<103.0.6",
         "php": "^7.1||~8.0.0||~8.1.0"
     },
     "license": [
