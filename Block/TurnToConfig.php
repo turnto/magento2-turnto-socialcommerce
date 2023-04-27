@@ -45,7 +45,6 @@ class TurnToConfig extends Template implements TurnToConfigInterface
     protected $json;
 
     /**
-     * TurnToConfig constructor.
      * @param Context $context
      * @param TurnToConfigHelper $configHelper
      * @param Resolver $localeResolver
@@ -77,7 +76,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
     }
 
     /**
-     * Takes an array and converts it to JavasScript output
+     * Create turnToConfig json
      * @return string
      * @throws NoSuchEntityException
      */
@@ -116,8 +115,28 @@ class TurnToConfig extends Template implements TurnToConfigInterface
             $additionalConfigData['commentCapture'] = ['suppress' => true];
         }
 
-        $configData = array_merge($additionalConfigData, $configData);
+        return $this->addConfigFunctions($configData, $additionalConfigData);
+    }
 
-        return $this->json->serialize($configData);
+    /**
+     * Add functions for teaser links
+     * https://docs.turnto.com/en/speedflex-widget-implementation/event-callbacks.html#installation-14743
+     * @param array $configData
+     * @param array $additionalConfigData
+     * @return string
+     */
+    public function addConfigFunctions($configData, $additionalConfigData)
+    {
+        $value = '%teaser%';
+        $additionalConfigData['teaser'] = $value;
+        $teaser = '{
+            showReviews(){jQuery("#tab-label-reviews-title").click()},
+            showQa(){jQuery("#tab-label-turnto_qa-title").click()}
+        }';
+
+        $configData = array_merge($additionalConfigData, $configData);
+        $json = $this->json->serialize($configData);
+
+        return str_replace('"' . $value . '"', $teaser, $json);
     }
 }
