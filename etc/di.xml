@@ -6,6 +6,7 @@
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="TurnTo\SocialCommerce\Api\FeedClient" type="TurnTo\SocialCommerce\Service\GoogleFeed\Client"/>
     <preference for="TurnTo\SocialCommerce\Api\JwtInterface" type="TurnTo\SocialCommerce\Service\FirebaseJwt"/>
     <type name="TurnTo\SocialCommerce\Logger\Handler\FileHandler">
         <arguments>
@@ -29,15 +30,13 @@
     <type name="Magento\Catalog\Model\Layer\Filter\Item\DataBuilder">
         <plugin name="turnto_socialcommerce_plugin_catalog_model_layer_filter_item_databuilder" type="TurnTo\SocialCommerce\Plugin\Catalog\Model\Layer\Filter\Item\DataBuilder" sortOrder="1" />
     </type>
-    <type name="\Magento\ConfigurableProduct\Block\Product\View\Type\Configurable">
+    <type name="Magento\ConfigurableProduct\Block\Product\View\Type\Configurable">
         <plugin name="turnto_socialcommerce_plugin_add_sku_to_product_images" type="TurnTo\SocialCommerce\Plugin\Product\View\Type\Configurable" />
+        <plugin name="turnto_socialcommerce_configurable_json_add_skus" type="TurnTo\SocialCommerce\Plugin\Block\Product\View\Type\ConfigurablePlugin" sortOrder="1" />
     </type>
     <preference for="Magento\Swatches\Controller\Ajax\Media" type="TurnTo\SocialCommerce\Controller\Ajax\Media"/>
-    <type name="Magento\ConfigurableProduct\Block\Product\View\Type\Configurable">
-        <plugin sortOrder="1" name="turnToSocialCommerceConfigurable" type="TurnTo\SocialCommerce\Plugin\Block\Product\View\Type\ConfigurablePlugin"/>
-    </type>
     <type name="Magento\Customer\Controller\Account\CreatePost">
-        <plugin sortOrder="1" name="turnToSocialCommerceCreatePost" type="TurnTo\SocialCommerce\Plugin\Controller\Account\CreatePostPlugin"/>
+        <plugin name="turnto_socialcommerce_account_create" type="TurnTo\SocialCommerce\Plugin\Controller\Account\CreatePostPlugin" sortOrder="1" />
     </type>
 </config>
 

@@ -1,29 +1,30 @@
 <?php
 /**
- * TurnTo_SocialCommerce
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- *
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Model\Import;
 
+use Exception;
+use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Catalog\Model\ProductFactory;
+use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
+use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
+use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\StoreManagerInterface;
+use TurnTo\SocialCommerce\Helper\Config;
 use TurnTo\SocialCommerce\Helper\Product;
+use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Setup\InstallHelper;
 
-class Ratings extends AbstractImport
+class Ratings
 {
     /**#@+
      *  TurnTo Aggregate Rating Feed constants
      */
-    const TURNTO_EXPORT_BASE_URI = 'http://www.turnto.com/static/export/';
+    const TURNTO_EXPORT_BASE_URI = 'https://export.turnto.com/';
 
     const TURNTO_AVERAGE_RATING_BY_SKU_NAME = 'turnto-skuaveragerating.xml';
 
@@ -42,30 +43,53 @@ class Ratings extends AbstractImport
     /**#@-*/
 
     /**
-     * @var \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory
+     * @var CollectionFactory
      */
     protected $productCollectionFactory;
+    /**
+     * @var Config
+     */
+    protected $config;
+    /**
+     * @var Monolog
+     */
+    protected $logger;
+    /**
+     * @var ProductFactory
+     */
+    protected $productFactory;
+    /**
+     * @var StoreManagerInterface
+     */
+    protected $storeManager;
+    /**
+     * @var ProductResource
+     */
+    protected $productResource;
 
     /**
-     * @param \TurnTo\SocialCommerce\Helper\Config $config
-     * @param \TurnTo\SocialCommerce\Logger\Monolog $logger
-     * @param \Magento\Catalog\Model\ProductFactory $productFactory
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Catalog\Model\Indexer\Product\Eav\Processor $productEavIndexProcessor
-     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
+     * @param Config $config
+     * @param Monolog $logger
+     * @param ProductFactory $productFactory
+     * @param ProductResource $productResource
+     * @param StoreManagerInterface $storeManager
+     * @param CollectionFactory $productCollectionFactory
      * @param Product $productHelper
      */
     public function __construct(
-        \TurnTo\SocialCommerce\Helper\Config $config,
-        \TurnTo\SocialCommerce\Logger\Monolog $logger,
-        \Magento\Catalog\Model\ProductFactory $productFactory,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Catalog\Model\Indexer\Product\Eav\Processor $productEavIndexProcessor,
-        \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
-        Product $productHelper
+        Config                $config,
+        Monolog               $logger,
+        ProductFactory        $productFactory,
+        ProductResource       $productResource,
+        StoreManagerInterface $storeManager,
+        CollectionFactory     $productCollectionFactory,
+        Product               $productHelper
     ) {
-        parent::__construct($config, $logger, $productFactory, $storeManager, $productEavIndexProcessor);
-
+        $this->config = $config;
+        $this->logger = $logger;
+        $this->productFactory = $productFactory;
+        $this->productResource = $productResource;
+        $this->storeManager = $storeManager;
         $this->productCollectionFactory = $productCollectionFactory;
         $this->productHelper = $productHelper;
     }
@@ -73,11 +97,10 @@ class Ratings extends AbstractImport
     /**
      * Builds the store specific address to obtain aggregated product ratings by sku
      *
-     * @param \Magento\Store\Api\Data\StoreInterface $store
-     *
+     * @param StoreInterface $store
      * @return string
      */
-    public function getAggregateRatingsFeedAddress(\Magento\Store\Api\Data\StoreInterface $store)
+    public function getAggregateRatingsFeedAddress(StoreInterface $store)
     {
         return self::TURNTO_EXPORT_BASE_URI
             . $this->config->getSiteKey($store->getCode())
@@ -88,15 +111,14 @@ class Ratings extends AbstractImport
     /**
      * Updates the magento product's turnto ratings related values
      *
-     * @param \Magento\Store\Api\Data\StoreInterface $store
-     * @param                                        $sku
-     * @param                                        $reviewCount
-     * @param                                        $averageRating
-     *
+     * @param StoreInterface $store
+     * @param $sku
+     * @param $reviewCount
+     * @param $averageRating
      * @return bool
      */
     public function updateProduct(
-        \Magento\Store\Api\Data\StoreInterface $store,
+        StoreInterface $store,
         $sku,
         $reviewCount,
         $averageRating
@@ -104,7 +126,7 @@ class Ratings extends AbstractImport
         $product = $this->productFactory->create()
             ->setStoreId($store->getId())
             ->loadByAttribute(
-                \Magento\Catalog\Model\Product::SKU,
+                ProductInterface::SKU,
                 $sku,
                 [
                     InstallHelper::RATING_ATTRIBUTE_CODE,
@@ -126,9 +148,9 @@ class Ratings extends AbstractImport
         }
 
         $product->setData(InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE, $reviewCount);
-        $product->getResource()->saveAttribute($product, InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE);
+        $this->productResource->saveAttribute($product, InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE);
         $product->setData(InstallHelper::RATING_ATTRIBUTE_CODE, $averageRating);
-        $product->getResource()->saveAttribute($product, InstallHelper::RATING_ATTRIBUTE_CODE);
+        $this->productResource->saveAttribute($product, InstallHelper::RATING_ATTRIBUTE_CODE);
 
         // Set "3 stars and above" tags
         $filterValues = [];
@@ -140,7 +162,7 @@ class Ratings extends AbstractImport
             }
             $product->setData(InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE, implode(',', $filterValues));
         }
-        $product->getResource()->saveAttribute($product, InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE);
+        $this->productResource->saveAttribute($product, InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE);
 
         //Set website_ids in OrigData to fix issue with ProductProcessUrlRewriteSavingObserver
         if (!$product->getOrigData(self::WEBSITE_IDS)) {
@@ -192,7 +214,7 @@ class Ratings extends AbstractImport
                 try {
                     $feedAddress = $this->getAggregateRatingsFeedAddress($store);
                     $xmlFeed = simplexml_load_file($feedAddress);
-                    // Take each product in the feed and update it's info
+                    // Take each product in the feed and update its info
                     foreach ($xmlFeed->products->product as $turnToProduct) {
                         try {
                             if (!isset($turnToProduct[self::TURNTO_FEED_KEY_SKU])
@@ -201,7 +223,6 @@ class Ratings extends AbstractImport
                                 continue;
                             }
                             $sku = null;
-                            $averageRating = null;
                             $reviewCount = null;
 
                             $sku = $this->productHelper->turnToSafeDecoding(
@@ -231,7 +252,7 @@ class Ratings extends AbstractImport
                                         . 'number despite product having reviews');
                                 }
                             }
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
                             $this->logger->error(
                                 'Failed to read TurnTo aggregate rating data for product',
                                 [
@@ -244,7 +265,7 @@ class Ratings extends AbstractImport
                     }
                     // Now reset all products not in the feed
                     $this->resetProducts($feedProducts, $store);
-                } catch (\Exception $feedRetrievalException) {
+                } catch (Exception $feedRetrievalException) {
                     $this->logger->error(
                         'Failed to retrieve TurnTo aggregate rating feed for store from TurnTo',
                         [
@@ -255,7 +276,7 @@ class Ratings extends AbstractImport
                     );
                 }
             }
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $this->logger->error(
                 'Failed to download ratings feed',
                 [
