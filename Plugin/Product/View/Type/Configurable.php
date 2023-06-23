@@ -29,7 +29,7 @@ class Configurable
      */
     public function __construct(
         Product $productHelper,
-        Json $json,
+        Json $json
     ) {
         $this->productHelper = $productHelper;
         $this->json = $json;
