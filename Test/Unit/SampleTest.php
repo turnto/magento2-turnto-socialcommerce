@@ -1,18 +1,20 @@
 <?php
 /**
- * @category    ClassyLlama
- * @package
- * @copyright   Copyright (c) 2021 Classy Llama Studios, LLC
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Test\Unit;
 
-class SampleTest extends  \PHPUnit\Framework\TestCase {
+use PHPUnit\Framework\TestCase;
 
+class SampleTest extends TestCase
+{
     /**
      * Is called once before running all test in class
      */
-    static function setUpBeforeClass()
+    static function setUpBeforeClass(): void
     {
 
     }
@@ -20,7 +22,7 @@ class SampleTest extends  \PHPUnit\Framework\TestCase {
     /**
      * Is called once after running all test in class
      */
-    static function tearDownAfterClass()
+    static function tearDownAfterClass(): void
     {
 
     }
@@ -28,7 +30,7 @@ class SampleTest extends  \PHPUnit\Framework\TestCase {
     /**
      * Is called before running a test
      */
-    protected function setUp()
+    protected function setUp(): void
     {
 
     }
@@ -36,7 +38,7 @@ class SampleTest extends  \PHPUnit\Framework\TestCase {
     /**
      * Is called after running a test
      */
-    protected function tearDown()
+    protected function tearDown(): void
     {
 
     }
@@ -48,5 +50,4 @@ class SampleTest extends  \PHPUnit\Framework\TestCase {
     {
         $this->assertTrue(true);
     }
-
 }

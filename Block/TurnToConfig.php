@@ -1,15 +1,18 @@
 <?php
 /**
- * @category    ClassyLlama
- * @package
- * @copyright   Copyright (c) 2018 Classy Llama Studios, LLC
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Block;
 
 use Magento\Catalog\Helper\Data;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Locale\Resolver;
+use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Template;
+use Magento\Framework\View\Element\Template\Context;
 use TurnTo\SocialCommerce\Api\TurnToConfigDataSourceInterface;
 use TurnTo\SocialCommerce\Helper\Config as TurnToConfigHelper;
 use TurnTo\SocialCommerce\Helper\Version;
@@ -35,15 +38,19 @@ class TurnToConfig extends Template implements TurnToConfigInterface
     /**
      * @var Version
      */
-    private $versionHelper;
+    protected $versionHelper;
+    /**
+     * @var Json
+     */
+    protected $json;
 
     /**
-     * TurnToConfig constructor.
-     * @param Template\Context $context
+     * @param Context $context
      * @param TurnToConfigHelper $configHelper
      * @param Resolver $localeResolver
      * @param Data $helper
      * @param Version $versionHelper
+     * @param Json $json
      * @param array $data
      */
     public function __construct(
@@ -52,9 +59,9 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         Resolver $localeResolver,
         Data $helper,
         Version $versionHelper,
+        Json $json,
         array $data = []
-    )
-    {
+    ) {
         // Set the template here so that it's easier to manually create a config block to place anywhere, such as widget
         // Set the template first so that if it's overwritten at the block level we don't force this template
         $this->setTemplate('TurnTo_SocialCommerce::turnto-config.phtml');
@@ -65,11 +72,13 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         $this->localeResolver = $localeResolver;
         $this->helper = $helper;
         $this->versionHelper = $versionHelper;
+        $this->json = $json;
     }
 
     /**
-     * Takes an array and converts it to JavasScript output with support for \Zend_Json_Expr
+     * Create turnToConfig json
      * @return string
+     * @throws NoSuchEntityException
      */
     public function getJavaScriptConfig()
     {
@@ -106,14 +115,28 @@ class TurnToConfig extends Template implements TurnToConfigInterface
             $additionalConfigData['commentCapture'] = ['suppress' => true];
         }
 
+        return $this->addConfigFunctions($configData, $additionalConfigData);
+    }
+
+    /**
+     * Add functions for teaser links
+     * https://docs.turnto.com/en/speedflex-widget-implementation/event-callbacks.html#installation-14743
+     * @param array $configData
+     * @param array $additionalConfigData
+     * @return string
+     */
+    public function addConfigFunctions($configData, $additionalConfigData)
+    {
+        $value = '%teaser%';
+        $additionalConfigData['teaser'] = $value;
+        $teaser = '{
+            showReviews(){jQuery("#tab-label-reviews-title").click()},
+            showQa(){jQuery("#tab-label-turnto_qa-title").click()}
+        }';
+
         $configData = array_merge($additionalConfigData, $configData);
+        $json = $this->json->serialize($configData);
 
-        /*
-         * Zend_Json::encode is used instead of json_encode because the values of iTeaserFunc and reviewsTeaserFunc
-         * have to be a JavaScript object. json_encode has no way to accomplish this. See this stack overflow question
-         * for more context http://stackoverflow.com/questions/6169640/php-json-encode-encode-a-function
-         */
-
-        return \Zend_Json::encode($configData, true, ['enableJsonExprFinder' => true]);
+        return str_replace('"' . $value . '"', $teaser, $json);
     }
 }

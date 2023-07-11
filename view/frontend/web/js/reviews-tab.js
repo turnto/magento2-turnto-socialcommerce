@@ -1,13 +1,12 @@
 /**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 define([
-    'underscore',
     'ko',
     'uiComponent',
     'jquery'
-], function (_, ko, Component, jQuery) {
+], function (ko, Component) {
     'use strict';
 
     return Component.extend({
@@ -19,7 +18,7 @@ define([
             reviewsUrl: null
 
         },
-        //
+
         /**
          * Initialize view.
          *
@@ -33,10 +32,6 @@ define([
             if (this.reviewSku !== null && this.reviewsEnabled === "true") {
                 this.loadReviewCount(this.reviewSku);
             }
-
-            // Map bridge the tabs widget to something we can manually call
-            jQuery.widget.bridge('mage_tabs', jQuery.mage.tabs);
-            this.tabsContainer = document.querySelector('.product.data.items');
 
             return this;
         },
