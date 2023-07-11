@@ -1,22 +1,20 @@
 <?php
 /**
- * TurnTo_SocialCommerce
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- *
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Plugin\Review\Block\Product;
 
+use Closure;
+use Exception;
 use Magento\Catalog\Block\Product\ReviewRendererInterface;
-use TurnTo\SocialCommerce\Setup\InstallData;
+use Magento\Catalog\Model\Product;
+use Magento\Catalog\Model\ProductRepository;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Store\Model\StoreManagerInterface;
+use TurnTo\SocialCommerce\Helper\Config;
 
 class ReviewRenderer
 {
@@ -26,17 +24,17 @@ class ReviewRenderer
     const RATING_TO_PERCENTILE_MULTIPLIER = 20;
 
     /**
-     * @var null|\TurnTo\SocialCommerce\Helper\Config
+     * @var Config
      */
-    protected $turnToConfigHelper = null;
+    protected $turnToConfigHelper;
 
     /**
-     * @var \Magento\Catalog\Model\ProductRepository
+     * @var ProductRepository
      */
     protected $productRepository;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface
+     * @var StoreManagerInterface
      */
     protected $storeManager;
 
@@ -49,18 +47,20 @@ class ReviewRenderer
      * @var array
      */
     protected $_availableTemplates = [
-        \Magento\Catalog\Block\Product\ReviewRendererInterface::FULL_VIEW => 'Magento_Review::helper/summary.phtml',
-        \Magento\Catalog\Block\Product\ReviewRendererInterface::SHORT_VIEW => 'Magento_Review::helper/summary_short.phtml',
+        ReviewRendererInterface::FULL_VIEW => 'Magento_Review::helper/summary.phtml',
+        ReviewRendererInterface::SHORT_VIEW => 'Magento_Review::helper/summary_short.phtml',
     ];
 
     /**
      * Plugin constructor.
-     * @param \TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper
+     * @param Config $turnToConfigHelper
+     * @param StoreManagerInterface $storeManager
+     * @param ProductRepository $productRepository
      */
     public function __construct(
-        \TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Catalog\Model\ProductRepository $productRepository
+        Config $turnToConfigHelper,
+        StoreManagerInterface $storeManager,
+        ProductRepository $productRepository
     ) {
         $this->turnToConfigHelper = $turnToConfigHelper;
         $this->storeManager = $storeManager;
@@ -68,11 +68,12 @@ class ReviewRenderer
     }
 
     /**
-     * @param \Magento\Catalog\Block\Product\ReviewRendererInterface $subject
+     * @param ReviewRendererInterface $subject
      * @param $proceed
      * @return string
+     * @throws NoSuchEntityException
      */
-    public function aroundGetRatingSummary(\Magento\Catalog\Block\Product\ReviewRendererInterface $subject, $proceed)
+    public function aroundGetRatingSummary(ReviewRendererInterface $subject, $proceed)
     {
         if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
             $storeId = $this->storeManager->getStore()->getId();
@@ -89,11 +90,12 @@ class ReviewRenderer
     }
 
     /**
-     * @param \Magento\Catalog\Block\Product\ReviewRendererInterface $subject
+     * @param ReviewRendererInterface $subject
      * @param $proceed
      * @return string
+     * @throws NoSuchEntityException
      */
-    public function aroundGetReviewSummary(\Magento\Catalog\Block\Product\ReviewRendererInterface $subject, $proceed)
+    public function aroundGetReviewSummary(ReviewRendererInterface $subject, $proceed)
     {
         if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
             $storeId = $this->storeManager->getStore()->getId();
@@ -110,11 +112,12 @@ class ReviewRenderer
     }
 
     /**
-     * @param \Magento\Catalog\Block\Product\ReviewRendererInterface $subject
+     * @param ReviewRendererInterface $subject
      * @param $proceed
      * @return int
+     * @throws NoSuchEntityException
      */
-    public function aroundGetReviewsCount(\Magento\Catalog\Block\Product\ReviewRendererInterface $subject, $proceed)
+    public function aroundGetReviewsCount(ReviewRendererInterface $subject, $proceed)
     {
         if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
             $storeId = $this->storeManager->getStore()->getId();
@@ -128,17 +131,17 @@ class ReviewRenderer
     }
 
     /**
-     * @param \Magento\Catalog\Block\Product\ReviewRendererInterface $subject
-     * @param \Closure $proceed
-     * @param \Magento\Catalog\Model\Product $product
+     * @param ReviewRendererInterface $subject
+     * @param Closure $proceed
+     * @param Product $product
      * @param bool $templateType
      * @param bool $displayIfNoReviews
      * @return string
      */
     public function aroundGetReviewsSummaryHtml(
-        \Magento\Catalog\Block\Product\ReviewRendererInterface $subject,
-        \Closure $proceed,
-        \Magento\Catalog\Model\Product $product,
+        ReviewRendererInterface $subject,
+        Closure $proceed,
+        Product $product,
         $templateType = false,
         $displayIfNoReviews = false
     ) {
@@ -152,7 +155,7 @@ class ReviewRenderer
                 $subject->setDisplayIfEmpty($displayIfNoReviews);
                 $subject->setProduct($product);
                 $result = $subject->toHtml();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $result = $proceed($product, $templateType, $displayIfNoReviews, false);
             }
         } else {

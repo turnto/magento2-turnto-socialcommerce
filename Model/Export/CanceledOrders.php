@@ -1,117 +1,121 @@
 <?php
 /**
- * TurnTo_SocialCommerce
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- *
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
-use Magento\Catalog\Helper\Product;
-use Magento\Catalog\Model\ProductRepository;
-use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
-use Magento\Framework\Api\FilterBuilder;
-use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\Api\SortOrderBuilder;
+use DateTime;
+use Exception;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Filesystem\Io\File;
 use Magento\Framework\Intl\DateTimeFactory;
-use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Api\ShipmentRepositoryInterface;
-use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactoryAlias;
+use Magento\Sales\Model\ResourceModel\Order\Collection;
+use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\UrlRewrite\Model\UrlFinderInterface;
+use TurnTo\SocialCommerce\Api\FeedClient;
 use TurnTo\SocialCommerce\Helper\Config;
 use TurnTo\SocialCommerce\Helper\Product as TurnToProductHelper;
 use TurnTo\SocialCommerce\Logger\Monolog;
 
-class CanceledOrders extends Orders
+class CanceledOrders
 {
-    const CANCELED_FEED_NAME = 'canceled-orders-feed.tsv';
+    const FEED_NAME = 'canceled-orders-feed.tsv';
     const FEED_STYLE = 'cancelled-order.txt';
+    /**
+     * @var Config
+     */
+    protected $config;
+    /**
+     * @var Monolog
+     */
+    protected $logger;
+    /**
+     * @var DateTimeFactory
+     */
+    protected $dateTimeFactory;
+    /**
+     * @var StoreManagerInterface
+     */
+    protected $storeManager;
+    /**
+     * @var TurnToProductHelper
+     */
+    protected $turnToProductHelper;
+    /**
+     * @var DirectoryList
+     */
+    protected $directoryList;
+    /**
+     * @var FeedClient
+     */
+    protected $feedClient;
+    /**
+     * @var File
+     */
+    protected $fileSystem;
+    /**
+     * @var Orders
+     */
+    protected $ordersExport;
+    /**
+     * @var OrderCollectionFactory
+     */
+    protected $orderCollectionFactory;
 
     /**
      * CanceledOrders constructor.
      *
-     * @param Config                      $config
-     * @param CollectionFactory           $productCollectionFactory
-     * @param Monolog                     $logger
-     * @param DateTimeFactory             $dateTimeFactory
-     * @param SearchCriteriaBuilder       $searchCriteriaBuilder
-     * @param FilterBuilder               $filterBuilder
-     * @param SortOrderBuilder            $sortOrderBuilder
-     * @param UrlFinderInterface          $urlFinder
-     * @param StoreManagerInterface       $storeManager
-     * @param OrderRepositoryInterface    $orderRepositoryInterface
-     * @param ShipmentRepositoryInterface $shipmentsService
-     * @param ProductRepository           $productRepository
-     * @param Product                     $productHelper
-     * @param DirectoryList               $directoryList
-     * @param TurnToProductHelper         $turnToProductHelper
-     * @param File                        $fileSystem
-     * @param OrderCollectionFactoryAlias $orderCollectionFactory
+     * @param Config $config
+     * @param Monolog $logger
+     * @param DateTimeFactory $dateTimeFactory
+     * @param StoreManagerInterface $storeManager
+     * @param TurnToProductHelper $turnToProductHelper
+     * @param DirectoryList $directoryList
+     * @param FeedClient $feedClient
+     * @param File $fileSystem
+     * @param Orders $ordersExport
+     * @param OrderCollectionFactory $orderCollectionFactory
      */
     public function __construct(
-        Config $config,
-        CollectionFactory $productCollectionFactory,
-        Monolog $logger,
-        DateTimeFactory $dateTimeFactory,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        FilterBuilder $filterBuilder,
-        SortOrderBuilder $sortOrderBuilder,
-        UrlFinderInterface $urlFinder,
-        StoreManagerInterface $storeManager,
-        OrderRepositoryInterface $orderRepositoryInterface,
-        ShipmentRepositoryInterface $shipmentsService,
-        ProductRepository $productRepository,
-        Product $productHelper,
-        DirectoryList $directoryList,
-        TurnToProductHelper $turnToProductHelper,
-        File $fileSystem,
-        OrderCollectionFactoryAlias $orderCollectionFactory
+        Config                      $config,
+        Monolog                     $logger,
+        DateTimeFactory             $dateTimeFactory,
+        StoreManagerInterface       $storeManager,
+        TurnToProductHelper         $turnToProductHelper,
+        DirectoryList               $directoryList,
+        FeedClient                  $feedClient,
+        File                        $fileSystem,
+        Orders                      $ordersExport,
+        OrderCollectionFactory $orderCollectionFactory
     ) {
-        parent::__construct(
-            $config,
-            $productCollectionFactory,
-            $logger,
-            $dateTimeFactory,
-            $searchCriteriaBuilder,
-            $filterBuilder,
-            $sortOrderBuilder,
-            $urlFinder,
-            $storeManager,
-            $orderRepositoryInterface,
-            $shipmentsService,
-            $productRepository,
-            $productHelper,
-            $directoryList,
-            $turnToProductHelper,
-            $fileSystem,
-            $orderCollectionFactory
-        );
+        $this->config = $config;
+        $this->logger = $logger;
+        $this->dateTimeFactory = $dateTimeFactory;
+        $this->storeManager = $storeManager;
+        $this->turnToProductHelper = $turnToProductHelper;
+        $this->directoryList = $directoryList;
+        $this->feedClient = $feedClient;
+        $this->fileSystem = $fileSystem;
+        $this->ordersExport = $ordersExport;
+        $this->orderCollectionFactory = $orderCollectionFactory;
     }
 
     /**
      * @param           $storeId
-     * @param \DateTime $fromDate
-     * @param \DateTime $toDate
-     * @param bool      $forceIncludeAllItems
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     * @param bool $forceIncludeAllItems
      *
      * @return bool|string|null
      */
     public function getCanceledOrdersFeed(
         $storeId,
-        \DateTime $fromDate,
-        \DateTime $toDate,
-        $forceIncludeAllItems = false
+        DateTime $fromDate,
+        DateTime $toDate,
+        bool $forceIncludeAllItems = false
     ) {
         $csvData = null;
         $canceledOrders = $this->getCanceledOrders($storeId, $fromDate, $toDate);
@@ -119,7 +123,7 @@ class CanceledOrders extends Orders
         try {
             $this->fileSystem->checkAndCreateFolder($this->directoryList->getPath(DirectoryList::TMP));
 
-            $outputFile = $this->directoryList->getPath(DirectoryList::TMP) . '/' . self::CANCELED_FEED_NAME;
+            $outputFile = $this->directoryList->getPath(DirectoryList::TMP) . '/' . self::FEED_NAME;
             $outputHandle = fopen($outputFile, 'w+');
             fputcsv(
                 $outputHandle,
@@ -132,7 +136,7 @@ class CanceledOrders extends Orders
             $this->writeOrdersToFeed($outputHandle, $canceledOrders, $forceIncludeAllItems);
             rewind($outputHandle);
             $csvData = stream_get_contents($outputHandle);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error(
                 'An error occurred while creating or writing to the Historical Orders Feed export file',
                 [
@@ -151,6 +155,7 @@ class CanceledOrders extends Orders
 
     /**
      * CRON handler that sends the last 2 days of orders to TurnTo
+     * @return void
      */
     public function cronUploadFeed()
     {
@@ -164,8 +169,8 @@ class CanceledOrders extends Orders
                         $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P80D')),
                         $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))
                     );
-                    $this->transmitFeed($feedData, $store);
-                } catch (\Exception $e) {
+                    $this->feedClient->transmitFeedFile($feedData, self::FEED_NAME, self::FEED_STYLE, $store->getCode());
+                } catch (Exception $e) {
                     $this->logger->error(
                         'An error occurred while processing or transmitting canceled Orders Feed Cron',
                         [
@@ -183,15 +188,15 @@ class CanceledOrders extends Orders
      * @param $fromDate
      * @param $toDate
      *
-     * @return \Magento\Sales\Model\ResourceModel\Order\Collection
+     * @return Collection
      */
     protected function getCanceledOrders($storeId, $fromDate, $toDate)
     {
         return $this->orderCollectionFactory->create()
             ->addAttributeToFilter('status', ['eq' => 'canceled'])
-            ->addAttributeToFilter(self::STORE_ID_FIELD_ID, ['eq' => $storeId])
-            ->addAttributeToFilter(self::UPDATED_AT_FIELD_ID, ['gteq' => $fromDate->format(DATE_ATOM)])
-            ->addAttributeToFilter(self::UPDATED_AT_FIELD_ID, ['lteq' => $toDate->format(DATE_ATOM)]);
+            ->addAttributeToFilter(Orders::STORE_ID_FIELD_ID, ['eq' => $storeId])
+            ->addAttributeToFilter(Orders::UPDATED_AT_FIELD_ID, ['gteq' => $fromDate->format(DATE_ATOM)])
+            ->addAttributeToFilter(Orders::UPDATED_AT_FIELD_ID, ['lteq' => $toDate->format(DATE_ATOM)]);
     }
 
     /**
@@ -199,17 +204,17 @@ class CanceledOrders extends Orders
      * @param      $orders
      * @param bool $forceIncludeAllItems
      *
-     * @return int|void
+     * @return void
      */
     protected function writeOrdersToFeed($outputHandle, $orders, $forceIncludeAllItems)
     {
         foreach ($orders as $order) {
             try {
-                $items = $this->getItemData($order, $forceIncludeAllItems);
+                $items = $this->ordersExport->getItemData($order, $forceIncludeAllItems);
                 foreach ($items as $item) {
                     $row = [];
-                    $lineItem = $item[self::LINE_ITEM_FIELD_ID];
-                    $product = $item[self::PRODUCT_FIELD_ID];
+                    $lineItem = $item[Orders::LINE_ITEM_FIELD_ID];
+                    $product = $item[Orders::PRODUCT_FIELD_ID];
                     $sku = $this->config->getUseChildSku($order->getStoreId()) ? $lineItem->getSku() : $product->getSku();
 
                     $row[] = $order->getIncrementId();
@@ -217,7 +222,7 @@ class CanceledOrders extends Orders
 
                     fputcsv($outputHandle, $row, "\t");
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->logger->error(
                     'An error occurred while writing order data to the canceled orders feed',
                     [
@@ -225,52 +230,6 @@ class CanceledOrders extends Orders
                     ]
                 );
             }
-        }
-    }
-
-    /**
-     * @param                                        $feedData
-     * @param \Magento\Store\Api\Data\StoreInterface $store
-     *
-     * @throws \Exception
-     */
-    public function transmitFeed($feedData, \Magento\Store\Api\Data\StoreInterface $store)
-    {
-        $response = null;
-
-        try {
-            $zendClient = new \Magento\Framework\HTTP\ZendClient();
-            $zendClient->setUri(
-                $this->config->getFeedUploadAddress($store->getCode())
-            )->setMethod(\Zend_Http_Client::POST)->setParameterPost(
-                [
-                    'siteKey' => $this->config->getSiteKey($store->getCode()),
-                    'authKey' => $this->config->getAuthorizationKey($store->getCode()),
-                    'feedStyle' => self::FEED_STYLE
-                ]
-            )->setFileUpload(self::CANCELED_FEED_NAME, 'file', $feedData, self::FEED_MIME);
-
-            $response = $zendClient->request();
-
-            if (!$response || !$response->isSuccessful()) {
-                throw new \Exception('TurnTo order canceled feed submission failed silently');
-            }
-
-            $body = $response->getBody();
-
-            //It is possible to get a status 200 message who's body is an error message from TurnTo
-            if (empty($body) || $body != Catalog::TURNTO_SUCCESS_RESPONSE) {
-                throw new \Exception("TurnTo canceled order feed submission failed with message: $body");
-            }
-        } catch (\Exception $e) {
-            $this->logger->error(
-                'An error occurred while transmitting the canceled order feed to TurnTo',
-                [
-                    'exception' => $e,
-                    'response' => $response ? $response->getBody() : 'null'
-                ]
-            );
-            throw $e;
         }
     }
 }

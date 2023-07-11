@@ -1,72 +1,74 @@
 <?php
 /**
- * TurnTo_SocialCommerce
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- *
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Controller\Adminhtml\System\HistoricalOrders;
 
-
+use Exception;
+use Magento\Backend\App\Action;
+use Magento\Backend\App\Action\Context;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Intl\DateTimeFactory;
+use Magento\Store\Model\StoreManagerInterface;
+use TurnTo\SocialCommerce\Api\FeedClient;
+use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Export\Orders;
 use Magento\Framework\Controller\ResultFactory;
 
-class Export extends \Magento\Backend\App\Action
+class Export extends Action
 {
     /**
-     * @var null|\TurnTo\SocialCommerce\Logger\Monolog
+     * @var Orders
      */
-    protected $logger = null;
+    protected $ordersExport;
+    /**
+     * @var Monolog
+     */
+    protected $logger;
 
     /**
-     * @var \Magento\Framework\Intl\DateTimeFactory|null
+     * @var DateTimeFactory
      */
-    protected $dateTimeFactory = null;
+    protected $dateTimeFactory;
 
     /**
-     * @var null|\TurnTo\SocialCommerce\Model\Export\Orders
+     * @var StoreManagerInterface
      */
-    protected $ordersModel = null;
+    protected $storeManager;
+    /**
+     * @var FeedClient
+     */
+    protected $feedClient;
 
     /**
-     * @var Magento\Store\Model\StoreManagerInterface
-     */
-    protected $storeManager = null;
-
-    /**
-     * Download constructor.
-     *
-     * @param \Magento\Backend\App\Action\Context     $context
-     * @param Orders                                  $ordersModel
-     * @param \TurnTo\SocialCommerce\Logger\Monolog   $logger
-     * @param \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory
+     * @param Context $context
+     * @param Orders $ordersExport
+     * @param Monolog $logger
+     * @param DateTimeFactory $dateTimeFactory
+     * @param StoreManagerInterface $storeManager
+     * @param FeedClient $feedClient
      */
     public function __construct(
-        \Magento\Backend\App\Action\Context $context,
-        \TurnTo\SocialCommerce\Model\Export\Orders $ordersModel,
-        \TurnTo\SocialCommerce\Logger\Monolog $logger,
-        \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        Context $context,
+        Orders $ordersExport,
+        Monolog $logger,
+        DateTimeFactory $dateTimeFactory,
+        StoreManagerInterface $storeManager,
+        FeedClient $feedClient
     ) {
         parent::__construct($context);
-
-        $this->ordersModel = $ordersModel;
+        $this->ordersExport = $ordersExport;
         $this->logger = $logger;
         $this->dateTimeFactory = $dateTimeFactory;
         $this->storeManager = $storeManager;
+        $this->feedClient = $feedClient;
     }
 
     /**
-     * @return \Magento\Framework\App\ResponseInterface
-     * @throws \Exception
+     * @return ResultInterface
      */
     public function execute()
     {
@@ -74,21 +76,21 @@ class Export extends \Magento\Backend\App\Action
         $toDate = $this->getRequest()->getParam('to_date');
         $storeId = $this->getRequest()->getParam('store_ids');
 
-        $fromDate = $this->dateTimeFactory->create($fromDate, new \DateTimeZone('UTC'));
-        // A normal user would expect the "To" date to include orders on that date. However, by default the field will
-        // hold a value where the time is YYYY-MM-DD 00:00:00.000000. The below code will add one day the "To" date then
-        // subtract 1 second so that all orders placed before YYYY-MM-DD 23:59:59:000000 will be picked up.
-        $toDate = $this->dateTimeFactory
-            ->create($toDate, new \DateTimeZone('UTC'))
-            ->add(new \DateInterval('P1D'))
-            ->sub(new \DateInterval('PT1S'));
-
         try {
-            $feedData = $this->ordersModel->getOrdersFeed($storeId, $fromDate, $toDate, true);
+            $fromDate = $this->dateTimeFactory->create($fromDate, new \DateTimeZone('UTC'));
+            // A normal user would expect the "To" date to include orders on that date. However, by default the field will
+            // hold a value where the time is YYYY-MM-DD 00:00:00.000000. The below code will add one day the "To" date then
+            // subtract 1 second so that all orders placed before YYYY-MM-DD 23:59:59:000000 will be picked up.
+            $toDate = $this->dateTimeFactory
+                ->create($toDate, new \DateTimeZone('UTC'))
+                ->add(new \DateInterval('P1D'))
+                ->sub(new \DateInterval('PT1S'));
+
+            $feedData = $this->ordersExport->getOrdersFeed($storeId, $fromDate, $toDate, true);
             $store = $this->storeManager->getStore($storeId);
-            $this->ordersModel->transmitFeed($feedData, $store);
+            $this->feedClient->transmitFeedFile($feedData, Orders::FEED_NAME, Orders::FEED_STYLE, $store->getCode());
             $this->messageManager->addSuccessMessage('Orders exported successfully.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->messageManager->addErrorMessage('There was an issue processing your request. Please try again later.');
             $this->logger->error($e->getMessage());
         }

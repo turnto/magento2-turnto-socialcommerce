@@ -20,7 +20,7 @@ define([
         $.widget('mage.SwatchRenderer', original, {
 
             /*
-             * If use child sku is enabled, pass the child sku to TurnTo after a swatch change.
+             * If useChild sku is enabled, pass the child sku to TurnTo after a swatch change.
              */
             _OnClick: function ($this, $widget) {
                 this._super($this, $widget);
@@ -35,15 +35,15 @@ define([
              */
             selectedProduct: function () {
                 var selected_options = {};
-                jQuery('div.swatch-attribute').each(function (k, v) {
+                $('div.swatch-attribute').each(function (k, v) {
                     // In Magento 2.4+ the div attributes are called "data-attribute-id" and "data-option-selected"
                     // In versions before 2.4, they're "attribute-id" and "option-selected". So check both.
-                    var attribute_id = jQuery(v).attr('data-attribute-id');
-                    var option_selected = jQuery(v).attr('data-option-selected');
+                    var attribute_id = $(v).attr('data-attribute-id');
+                    var option_selected = $(v).attr('data-option-selected');
                     if (!attribute_id || !option_selected) {
                         // Try this if they're using version < 2.4
-                        attribute_id = jQuery(v).attr('attribute-id');
-                        option_selected = jQuery(v).attr('option-selected');
+                        attribute_id = $(v).attr('attribute-id');
+                        option_selected = $(v).attr('option-selected');
                         // If we still don't have anything, now we can return
                         if (!attribute_id || !option_selected) {
                             return;
@@ -52,9 +52,9 @@ define([
                     selected_options[attribute_id] = option_selected;
                 });
 
-                var product_id_index = jQuery('[data-role=swatch-options]').data('mageSwatchRenderer').options.jsonConfig.index;
+                var product_id_index = $('[data-role=swatch-options]').data('mageSwatchRenderer').options.jsonConfig.index;
                 var self = this;
-                jQuery.each(product_id_index, function (product_id, attributes) {
+                $.each(product_id_index, function (product_id, attributes) {
                     var productIsSelected = function (attributes, selected_options) {
                         return _.isEqual(attributes, selected_options);
                     };

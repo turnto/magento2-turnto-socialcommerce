@@ -1,27 +1,34 @@
 <?php
 /**
- * TurnTo_SocialCommerce
- * NOTICE OF LICENSE
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- *
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
+use Exception;
+use Magento\Catalog\Helper\Image;
+use Magento\Catalog\Model\Product\Visibility;
+use Magento\Catalog\Model\ResourceModel\Product\Collection;
+use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
+use Magento\CatalogInventory\Model\Spi\StockRegistryProviderInterface;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+use Magento\Framework\Filesystem;
+use Magento\Framework\Intl\DateTimeFactory;
+use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\StoreManagerInterface;
+use SimpleXMLElement;
+use TurnTo\SocialCommerce\Api\FeedClient;
 use TurnTo\SocialCommerce\Helper\Config;
-use TurnTo\SocialCommerce\Helper\Product;
+use TurnTo\SocialCommerce\Helper\Product as ProductHelper;
+use TurnTo\SocialCommerce\Logger\Monolog;
 
 /**
  * Class Catalog
  * @package TurnTo\SocialCommerce\Model\Export
  */
-class Catalog extends AbstractExport
+class Catalog
 {
     /**
      * Feed Style used for the Product Feed
@@ -29,27 +36,17 @@ class Catalog extends AbstractExport
     const FEED_STYLE = 'google-product.xml';
 
     /**
-     * MIME Type used for the Product Feed
-     */
-    const FEED_MIME = 'application/atom+xml';
-
-    /**
-     * Response body from TurnTo servers on successful operation
-     */
-    const TURNTO_SUCCESS_RESPONSE = 'SUCCESS';
-
-    /**
-     * @var \Magento\Catalog\Helper\Image $imageHelper
+     * @var Image $imageHelper
      */
     protected $imageHelper = null;
 
     /**
-     * @var \Magento\CatalogInventory\Model\Spi\StockRegistryProviderInterface
+     * @var StockRegistryProviderInterface
      */
     protected $stockRegistryProvider;
 
     /**
-     * @var Product
+     * @var ProductHelper
      */
     protected $productHelper;
 
@@ -58,103 +55,75 @@ class Catalog extends AbstractExport
      * @var Int
      */
     protected $totalPages;
+    /**
+     * @var Filesystem
+     */
+    protected $filesystem;
+    /**
+     * @var StoreManagerInterface|null
+     */
+    protected $storeManager;
+    /**
+     * @var Config
+     */
+    protected $config;
+    /**
+     * @var FeedClient
+     */
+    protected $feedClient;
+    /**
+     * @var Monolog
+     */
+    protected $logger;
+    /**
+     * @var CollectionFactory
+     */
+    protected $productCollectionFactory;
+    /**
+     * @var DateTimeFactory
+     */
+    protected $dateTimeFactory;
+    /**
+     * @var Product
+     */
+    protected $product;
 
     /**
      * Catalog constructor.
      *
-     * @param Config                                                             $config
-     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory     $productCollectionFactory
-     * @param \TurnTo\SocialCommerce\Logger\Monolog                              $logger
-     * @param \Magento\Framework\Intl\DateTimeFactory                            $dateTimeFactory
-     * @param \Magento\Framework\Api\SearchCriteriaBuilder                       $searchCriteriaBuilder
-     * @param \Magento\Framework\Api\FilterBuilder                               $filterBuilder
-     * @param \Magento\Framework\Api\SortOrderBuilder                            $sortOrderBuilder
-     * @param \Magento\UrlRewrite\Model\UrlFinderInterface                       $urlFinder
-     * @param \Magento\Store\Model\StoreManagerInterface                         $storeManager
-     * @param \Magento\Catalog\Helper\Image                                      $imageHelper
-     * @param \Magento\CatalogInventory\Model\Spi\StockRegistryProviderInterface $stockRegistryProvider
-     * @param Product                                                            $productHelper
+     * @param Config $config
+     * @param StoreManagerInterface $storeManager
+     * @param CollectionFactory $productCollectionFactory
+     * @param DateTimeFactory $dateTimeFactory
+     * @param Image $imageHelper
+     * @param ProductHelper $productHelper
+     * @param Product $product
+     * @param FeedClient $feedClient
+     * @param Filesystem $filesystem
+     * @param Monolog $logger
      */
     public function __construct(
-        \TurnTo\SocialCommerce\Helper\Config $config,
-        \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
-        \TurnTo\SocialCommerce\Logger\Monolog $logger,
-        \Magento\Framework\Intl\DateTimeFactory $dateTimeFactory,
-        \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
-        \Magento\Framework\Api\FilterBuilder $filterBuilder,
-        \Magento\Framework\Api\SortOrderBuilder $sortOrderBuilder,
-        \Magento\UrlRewrite\Model\UrlFinderInterface $urlFinder,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Catalog\Helper\Image $imageHelper,
-        \Magento\CatalogInventory\Model\Spi\StockRegistryProviderInterface $stockRegistryProvider,
-        Product $productHelper
+        Config                $config,
+        StoreManagerInterface $storeManager,
+        CollectionFactory     $productCollectionFactory,
+        DateTimeFactory       $dateTimeFactory,
+        Image                 $imageHelper,
+        ProductHelper         $productHelper,
+        Product               $product,
+        FeedClient                $feedClient,
+        Filesystem            $filesystem,
+        Monolog               $logger
     ) {
-        parent::__construct(
-            $config,
-            $productCollectionFactory,
-            $logger,
-            $dateTimeFactory,
-            $searchCriteriaBuilder,
-            $filterBuilder,
-            $sortOrderBuilder,
-            $urlFinder,
-            $storeManager
-        );
-
+        $this->config = $config;
         $this->imageHelper = $imageHelper;
         $this->storeManager = $storeManager;
-        $this->stockRegistryProvider = $stockRegistryProvider;
         $this->productHelper = $productHelper;
-    }
-
-    /**
-     * Transmits an XML feed to the TurnTo Product Feed endpoint set in the TurnTo configuration
-     *
-     * @param \SimpleXMLElement                      $feed
-     * @param \Magento\Store\Api\Data\StoreInterface $store
-     *
-     * @throws \Exception
-     */
-    protected function transmitFeed(\SimpleXMLElement $feed, \Magento\Store\Api\Data\StoreInterface $store, $page = null)
-    {
-        $response = null;
-
-        try {
-            $zendClient = new \Magento\Framework\HTTP\ZendClient;
-            $zendClient->setUri(
-                $this->config->getFeedUploadAddress($store->getCode())
-            )->setMethod(\Zend_Http_Client::POST)->setParameterPost(
-                [
-                    'siteKey' => $this->config->getSiteKey($store->getCode()),
-                    'authKey' => $this->config->getAuthorizationKey($store->getCode()),
-                    'feedStyle' => self::FEED_STYLE
-                ]
-            )->setFileUpload($page . '_of_' . $this->totalPages . '_store_' . $store->getId() . '_' . self::FEED_STYLE, 'file', $feed->asXML(), self::FEED_MIME);
-
-            \file_put_contents(BP . "/var/google-product_storecode_{$store->getCode()}.xml", $feed->asXML());
-            $response = $zendClient->request();
-
-            if (!$response || !$response->isSuccessful()) {
-                throw new \Exception('TurnTo catalog feed submission failed silently');
-            }
-
-            $body = $response->getBody();
-            \file_put_contents(BP . "/var/google-product_storecode_{$store->getCode()}_request.xml", $body);
-
-            //It is possible to get a status 200 message who's body is an error message from TurnTo
-            if (empty($body) || $body != self::TURNTO_SUCCESS_RESPONSE) {
-                throw new \Exception("TurnTo catalog feed submission failed with message: $body");
-            }
-        } catch (\Exception $e) {
-            $this->logger->error(
-                'An error occurred while transmitting the catalog feed to TurnTo. Error:',
-                [
-                    'exception' => $e,
-                    'response' => $response ? $response->getBody() : 'null'
-                ]
-            );
-            throw $e;
-        }
+        $this->product = $product;
+        $this->feedClient = $feedClient;
+        $this->filesystem = $filesystem;
+        $this->logger = $logger;
+        $this->productCollectionFactory = $productCollectionFactory;
+        $this->dateTimeFactory = $dateTimeFactory;
     }
 
     /**
@@ -180,19 +149,22 @@ class Catalog extends AbstractExport
     /**
      * Writes all individually visible products to an ATOM 1.0 feed which is returned in a SimpleXMLElement Object
      *
-     * @param \Magento\Store\Api\Data\StoreInterface $store
-     *
-     * @return bool|\SimpleXMLElement
-     * @throws \Exception If feed could not be generated
+     * @param StoreInterface $store
+     * @param $page
+     * @return bool|SimpleXMLElement
+     * @throws Exception If feed could not be generated
      */
-    protected function generateProductFeed(\Magento\Store\Api\Data\StoreInterface $store, $page)
+    protected function generateProductFeed(StoreInterface $store, $page)
     {
         $feed = null;
         $progressCounter = 0;
         $products = [];
 
         try {
-            $feed = new \SimpleXMLElement(
+            if (!$products = $this->getProducts($store, $page)) {
+                return false;
+            }
+            $feed = new SimpleXMLElement(
                 '<?xml version="1.0" encoding="UTF-8"?>' . '<feed xmlns="http://www.w3.org/2005/Atom"' . ' xmlns:g="http://base.google.com/ns/1.0" xml:lang="en-US" />'
             );
 
@@ -211,117 +183,113 @@ class Catalog extends AbstractExport
                 $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB))
             );
 
-            if ($products = $this->getProducts($store, $page, 10000)) {
-                $childProducts = [];
+            $childProducts = [];
 
-                // TurnTo requires a product feed where children of configurable products are aware of their parent SKUs
-                // and include that parent SKU in the feed. This code is not very performant and therefore the feed will
-                // take longer to generate in large catalogs with many configurable products. However in the interest of
-                // development time, this simpler approach is being taken and if it proves to not scale well, can be
-                // refactored in the future to use a query that loads all child products for all configurable products
-                // at one time.
-                if ($this->config->getUseChildSku($store->getId())) {
-                    foreach ($products as $product) {
-                        if ($product->getTypeId() !== Configurable::TYPE_CODE) {
-                            continue;
-                        }
-
-                        $children = $product->getTypeInstance()->getUsedProducts($product);
-                        foreach ($children as $child) {
-                            $childProducts[$child->getSku()] = $product;
-                        }
-                    }
-                }
-
+            // TurnTo requires a product feed where children of configurable products are aware of their parent SKUs
+            // and include that parent SKU in the feed. This code is not very performant and therefore the feed will
+            // take longer to generate in large catalogs with many configurable products. However in the interest of
+            // development time, this simpler approach is being taken and if it proves to not scale well, can be
+            // refactored in the future to use a query that loads all child products for all configurable products
+            // at one time.
+            if ($this->config->getUseChildSku($store->getId())) {
                 foreach ($products as $product) {
-                    $parent = false;
-                    if ($this->config->getUseChildSku($store->getId()) && isset($childProducts[$product->getSku()])) {
-                        $parent = $childProducts[$product->getSku()];
+                    if ($product->getTypeId() !== Configurable::TYPE_CODE) {
+                        continue;
                     }
-                    try {
-                        $this->addProductToAtomFeed($feed->addChild('entry'), $product, $store, $parent);
-                    } catch (\Exception $entryException) {
-                        $this->logger->error(
-                            'Product failed to be added to feed',
-                            [
-                                'exception' => $entryException,
-                                'productSKU' => $product->getSku()
-                            ]
-                        );
-                    } finally {
-                        $progressCounter++;
+
+                    $children = $product->getTypeInstance()->getUsedProducts($product);
+                    foreach ($children as $child) {
+                        $childProducts[$child->getSku()] = $product;
                     }
                 }
-                return $feed;
-            } else {
-                //no more products to submit
-                return false;
             }
-        } catch (\Exception $feedException) {
+
+            foreach ($products as $product) {
+                $parent = false;
+                if ($this->config->getUseChildSku($store->getId()) && isset($childProducts[$product->getSku()])) {
+                    $parent = $childProducts[$product->getSku()];
+                }
+                try {
+                    $this->addProductToAtomFeed($feed->addChild('entry'), $product, $store, $parent);
+                } catch (Exception $entryException) {
+                    $this->logger->error(
+                        'Product failed to be added to feed',
+                        [
+                            'exception' => $entryException,
+                            'productSKU' => $product->getSku()
+                        ]
+                    );
+                }
+                $progressCounter++;
+            }
+
+            return $feed;
+        } catch (Exception $e) {
             if ($feed) {
                 $this->logger->error(
                     'An exception occurred while generating the catalog feed',
                     [
-                        'exception' => $feedException,
+                        'exception' => $e,
                         'productCount' => count($products),
                         'productsProcessed' => $progressCounter
                     ]
                 );
-            } elseif ($products) {
+                throw $e;
+            }
+            if ($products) {
                 $this->logger->error(
                     'An exception occurred that prevented the creation of the catalog feed due to invalid product data.',
                     [
-                        'exception' => $feedException,
+                        'exception' => $e,
                         'productCount' => count($products),
                         'productsProcessed' => $progressCounter
                     ]
                 );
-            } else {
-                $this->logger->error(
-                    'An exception occurred while retrieving the products for the catalog feed',
-                    [
-                        'exception' => $feedException,
-                        'productsProcessed' => $progressCounter
-                    ]
-                );
+                throw $e;
             }
-            throw $feedException;
-        }
+            $this->logger->error(
+                'An exception occurred while retrieving the products for the catalog feed',
+                [
+                    'exception' => $e,
+                    'productsProcessed' => $progressCounter
+                ]
+            );
 
-        return false;
+            throw $e;
+        }
     }
 
     /**
      * Adds a Magento catalog product to a Google Products ATOM 1.0 xml feed
      *
-     * @param \SimpleXMLElement              $entry
+     * @param SimpleXMLElement              $entry
      * @param \Magento\Catalog\Model\Product $product
      * @param                                $store
      * @param                                $parent bool|\Magento\Catalog\Model\Product
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function addProductToAtomFeed($entry, $product, $store, $parent)
     {
         if (empty($product)) {
-            throw new \Exception('Product can not be null or empty');
+            throw new Exception('Product can not be null or empty');
         }
 
         $sku = $this->productHelper->turnToSafeEncoding($product->getSku());
         if (empty($sku)) {
-            throw new \Exception('Product must have a valid sku');
+            throw new Exception('Product must have a valid sku');
         }
 
-        $productUrl = $this->getProductUrl($parent ?: $product, $store->getId());
+        $productUrl = $parent ? $parent->getProductUrl() : $product->getProductUrl();
         if (empty($productUrl)) {
-            throw new \Exception('Product must have a valid store-product url');
+            throw new Exception('Product must have a valid store-product url');
         }
-        // Replace spaces with dashes so we always have a valid URL
+        // Replace spaces with dashes, so we always have a valid URL
         $productUrl = str_replace(" ", "-", $productUrl);
 
         $productName = $product->getName();
         if (empty($productName)) {
-            throw new \Exception('Product must have a valid name');
+            throw new Exception('Product must have a valid name');
         }
         $productName = str_replace("\n", "", $productName);
 
@@ -476,6 +444,8 @@ class Catalog extends AbstractExport
 
     /**
      * Creates the product feed and pushes it to TurnTo
+     * @return void
+     * @throws Exception
      */
     public function cronUploadFeed()
     {
@@ -486,23 +456,21 @@ class Catalog extends AbstractExport
             ) {
                 $page = 1;
 
-                $feed = $this->generateProductFeed($store, $page);
-                while ($feed) {
+                do {
+                    $feed = $this->generateProductFeed($store, $page);
                     try {
-                        $this->transmitFeed($feed, $store, $page);
-                        $page++;
-                        $feed = $this->generateProductFeed($store, $page);
-                    } catch (\Exception $e) {
+                        $fileName = sprintf('%s_of_%s_store_%s_%s', $page, $this->totalPages, $store->getId(), self::FEED_STYLE);
+                        $this->feedClient->transmitFeedFile($feed, $fileName, self::FEED_STYLE, $store->getCode());                        $page++;
+                    } catch (Exception $e) {
                         $this->logger->error(
-                            "TurnTo catalog export error on page number $page.",
+                            "TurnTo catalog export error sending page $page.",
                             [
                                 'exception' => $e
                             ]
                         );
-                        $page++;
-                        $feed = $this->generateProductFeed($store, $page);
                     }
-                }
+                    $page++;
+                } while ($feed);
             }
         }
     }
@@ -513,7 +481,7 @@ class Catalog extends AbstractExport
      * @param \Magento\Catalog\Model\Product      $product
      * @param \Magento\Catalog\Model\Product|bool $parent
      *
-     * @return string|bool
+     * @return string
      */
     public function getItemGroupId($product, $parent)
     {
@@ -526,12 +494,14 @@ class Catalog extends AbstractExport
 
     /**
      * Retrieves a store/visibility filtered product collection selecting only attributes necessary for the TurnTo Feed
-     * over written to allow for pagination
+     * overwritten to allow for pagination
      *
-     * @param \Magento\Store\Api\Data\StoreInterface $store
-     * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
+     * @param StoreInterface $store
+     * @param int $page
+     * @param ?int $pageCount
+     * @return Collection|false
      */
-    public function getProducts(\Magento\Store\Api\Data\StoreInterface $store, $page = null, $pageCount = 10000)
+    public function getProducts(StoreInterface $store, $page, $pageCount = 10000)
     {
         $collection = $this->productCollectionFactory->create()
             ->addAttributeToSelect('id')
@@ -545,6 +515,7 @@ class Catalog extends AbstractExport
             ->addAttributeToSelect('price')
             ->addAttributeToSelect('status')
             ->addAttributeToSelect('turnto_disabled')
+            ->addUrlRewrite()
             ->setPage($page, $pageCount);
 
         $gtinMap = $this->config->getGtinAttributesMap($store->getCode());
@@ -560,8 +531,8 @@ class Catalog extends AbstractExport
                 'visibility',
                 [
                     'in' => [
-                            \Magento\Catalog\Model\Product\Visibility::VISIBILITY_BOTH,
-                            \Magento\Catalog\Model\Product\Visibility::VISIBILITY_IN_CATALOG
+                            Visibility::VISIBILITY_BOTH,
+                            Visibility::VISIBILITY_IN_CATALOG
                         ]
                 ]
             );
