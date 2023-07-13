@@ -20,7 +20,7 @@ Composer Package [turnto/social-commerce](https://packagist.org/packages/turnto/
     bin/magento cache:clean
     ```
 
-2. Configure the module to connect to your TurnTo account. Please see the General Configuration section bellow.
+2. Configure the module to connect to your TurnTo account. Please see the General Configuration section below.
 ### Install by copying files
 
 1. Create a `code/TurnTo/SocialCommerce` directory in the `app` directory of your Magento installation.
@@ -35,7 +35,7 @@ Composer Package [turnto/social-commerce](https://packagist.org/packages/turnto/
     bin/magento cache:clean
     ```
 
-5. Configure the module to connect to your TurnTo account. Please see the General Configuration section bellow.
+5. Configure the module to connect to your TurnTo account. Please see the General Configuration section below.
 
 ## Documentation
 
