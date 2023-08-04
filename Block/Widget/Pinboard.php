@@ -44,6 +44,7 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
         \Magento\Rule\Model\Condition\Sql\Builder $sqlBuilder,
         \Magento\CatalogWidget\Model\Rule $rule,
         \Magento\Widget\Helper\Conditions $conditionsHelper,
+        \Magento\Catalog\Api\CategoryRepositoryInterface $categoryRepository,
         array $data = [],
         Json $json = null,
         PinboardConfigFactory $pinboardConfigFactory = null,
