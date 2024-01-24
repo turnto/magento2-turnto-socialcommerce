@@ -1,8 +1,18 @@
 {
     "name": "turnto/social-commerce",
-    "version": "3.8.3",
     "description": "Social commerce platform to collect, manage, and display ratings and reviews to enhance your Magento store",
+    "version": "3.8.4",
     "type": "magento2-module",
+    "license": [
+        "OSL-3.0"
+    ],
+    "authors": [
+        {
+            "name": "Pixlee TurnTo an Emplifi Company",
+            "email": "ecomm-rr@emplifi.io",
+            "homepage": "https://emplifi.io/"
+        }
+    ],
     "require": {
         "magento/framework": "102.0.*||103.0.*",
         "magento/module-backend": "101.0.*||102.0.*",
@@ -21,9 +31,6 @@
         "magento/module-widget": "101.1.*||101.2.*",
         "php": "^7.1||~8.0.0||~8.1.0||~8.2.0"
     },
-    "license": [
-        "OSL-3.0"
-    ],
     "autoload": {
         "files": [
             "registration.php"
@@ -31,5 +38,15 @@
         "psr-4": {
             "TurnTo\\SocialCommerce\\": ""
         }
-    }
+    },
+    "keywords": [
+        "magento2",
+        "magento 2",
+        "pixlee turnto",
+        "turnto",
+        "emplifi",
+        "social commerce",
+        "ratings",
+        "reviews"
+    ]
 }
