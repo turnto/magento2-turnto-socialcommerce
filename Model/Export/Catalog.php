@@ -455,12 +455,10 @@ class Catalog
                 $this->config->getIsProductFeedSubmissionEnabled($store->getCode())
             ) {
                 $page = 1;
-
-                do {
-                    $feed = $this->generateProductFeed($store, $page);
+                while ($feed = $this->generateProductFeed($store, $page)) {
                     try {
                         $fileName = sprintf('%s_of_%s_store_%s_%s', $page, $this->totalPages, $store->getId(), self::FEED_STYLE);
-                        $this->feedClient->transmitFeedFile($feed, $fileName, self::FEED_STYLE, $store->getCode());                        $page++;
+                        $this->feedClient->transmitFeedFile($feed, $fileName, self::FEED_STYLE, $store->getCode());
                     } catch (Exception $e) {
                         $this->logger->error(
                             "TurnTo catalog export error sending page $page.",
@@ -470,7 +468,7 @@ class Catalog
                         );
                     }
                     $page++;
-                } while ($feed);
+                }
             }
         }
     }
@@ -531,9 +529,9 @@ class Catalog
                 'visibility',
                 [
                     'in' => [
-                            Visibility::VISIBILITY_BOTH,
-                            Visibility::VISIBILITY_IN_CATALOG
-                        ]
+                        Visibility::VISIBILITY_BOTH,
+                        Visibility::VISIBILITY_IN_CATALOG
+                    ]
                 ]
             );
         }

@@ -3,6 +3,7 @@
  * Copyright © Pixlee TurnTo, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
+
 declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Plugin\Review\Block\Product;
@@ -15,6 +16,7 @@ use Magento\Catalog\Model\ProductRepository;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
 use TurnTo\SocialCommerce\Helper\Config;
+use TurnTo\SocialCommerce\Setup\InstallHelper;
 
 class ReviewRenderer
 {
@@ -69,68 +71,42 @@ class ReviewRenderer
 
     /**
      * @param ReviewRendererInterface $subject
-     * @param $proceed
+     * @param string | null $result
      * @return string
      * @throws NoSuchEntityException
      */
-    public function aroundGetRatingSummary(ReviewRendererInterface $subject, $proceed)
+    public function afterGetRatingSummary(ReviewRendererInterface $subject, ?string $result)
     {
-        if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
-            $storeId = $this->storeManager->getStore()->getId();
-            $product = $this->productRepository->getById($subject->getProduct()->getId(), false, $storeId);
-            $rating = $product->getTurntoRating();
-            $result = (string)round(
-                $rating * self::RATING_TO_PERCENTILE_MULTIPLIER
-            );
-        } else {
-            $result = $proceed();
+        if ($this->isDisabled()) {
+            return $result;
         }
 
-        return $result;
+        $rating =  $subject->getProduct()->getData(InstallHelper::RATING_ATTRIBUTE_CODE);
+
+        return (string)round(
+            $rating * self::RATING_TO_PERCENTILE_MULTIPLIER
+        );
     }
 
     /**
      * @param ReviewRendererInterface $subject
-     * @param $proceed
-     * @return string
-     * @throws NoSuchEntityException
-     */
-    public function aroundGetReviewSummary(ReviewRendererInterface $subject, $proceed)
-    {
-        if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
-            $storeId = $this->storeManager->getStore()->getId();
-            $product = $this->productRepository->getById($subject->getProduct()->getId(), false, $storeId);
-            $rating = $product->getTurntoRating();
-            $result = (string)round(
-                $rating * self::RATING_TO_PERCENTILE_MULTIPLIER
-            );
-        } else {
-            $result = $proceed();
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param ReviewRendererInterface $subject
-     * @param $proceed
+     * @param int | null $result
      * @return int
      * @throws NoSuchEntityException
      */
-    public function aroundGetReviewsCount(ReviewRendererInterface $subject, $proceed)
+    public function afterGetReviewsCount(ReviewRendererInterface $subject, ?int $result)
     {
-        if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
-            $storeId = $this->storeManager->getStore()->getId();
-            $product = $this->productRepository->getById($subject->getProduct()->getId(), false, $storeId);
-            $result = $product->getData("turnto_review_count");
-        } else {
-            $result = $proceed();
+        if ($this->isDisabled()) {
+            return $result;
         }
 
-        return $result;
+        return $subject->getProduct()->getData(InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE);
     }
 
     /**
+     * trigger generation of the block contents but avoid using the
+     * standard checks for magento based product reviews
+     *
      * @param ReviewRendererInterface $subject
      * @param Closure $proceed
      * @param Product $product
@@ -145,23 +121,25 @@ class ReviewRenderer
         $templateType = false,
         $displayIfNoReviews = false
     ) {
-        /*
-         * if turnto module and reviews are enabled trigger generation of the block contents but avoid using the
-         * standard checks for magento based product reviews otherwise resolve as usual
-         */
-        if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
-            try {
-                $subject->setTemplate($this->_availableTemplates[$templateType]);
-                $subject->setDisplayIfEmpty($displayIfNoReviews);
-                $subject->setProduct($product);
-                $result = $subject->toHtml();
-            } catch (Exception $e) {
-                $result = $proceed($product, $templateType, $displayIfNoReviews, false);
-            }
-        } else {
-            $result = $proceed($product, $templateType, $displayIfNoReviews, false);
+        if ($this->isDisabled()) {
+            return $proceed($product, $templateType, $displayIfNoReviews, false);
         }
+        try {
+            $subject->setTemplate($this->_availableTemplates[$templateType]);
+            $subject->setDisplayIfEmpty($displayIfNoReviews);
+            $subject->setProduct($product);
 
-        return $result;
+            return $subject->toHtml();
+        } catch (Exception $e) {
+            return $proceed($product, $templateType, $displayIfNoReviews, false);
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDisabled()
+    {
+        return !($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled());
     }
 }

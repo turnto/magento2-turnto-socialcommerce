@@ -9,7 +9,7 @@ namespace TurnTo\SocialCommerce\Block;
 
 use Magento\Catalog\Helper\Data;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Locale\Resolver;
+use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
@@ -28,7 +28,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
      */
     protected $configHelper;
     /**
-     * @var Resolver
+     * @var ResolverInterface
      */
     protected $localeResolver;
     /**
@@ -47,7 +47,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
     /**
      * @param Context $context
      * @param TurnToConfigHelper $configHelper
-     * @param Resolver $localeResolver
+     * @param ResolverInterface $localeResolver
      * @param Data $helper
      * @param Version $versionHelper
      * @param Json $json
@@ -56,7 +56,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
     public function __construct(
         Template\Context $context,
         TurnToConfigHelper $configHelper,
-        Resolver $localeResolver,
+        ResolverInterface $localeResolver,
         Data $helper,
         Version $versionHelper,
         Json $json,
@@ -129,10 +129,10 @@ class TurnToConfig extends Template implements TurnToConfigInterface
     {
         $value = '%teaser%';
         $additionalConfigData['teaser'] = $value;
-        $teaser = '{
-            showReviews(){jQuery("#tab-label-reviews-title").click()},
-            showQa(){jQuery("#tab-label-turnto_qa-title").click()}
-        }';
+        $teaser = "{
+            \"showReviews\": function(){jQuery('#tab-label-reviews-title').click()},
+            \"showQa\": function(){jQuery('#tab-label-turnto_qa-title').click()}
+        }";
 
         $configData = array_merge($additionalConfigData, $configData);
         $json = $this->json->serialize($configData);

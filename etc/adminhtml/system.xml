@@ -217,7 +217,7 @@
                 </field>
                 <field id="product_feed_url" translate="label comment" type="text" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Product Ratings Feed URL</label>
-                    <comment>The URL from which to retrieve the TurnTo Average Rating by Product SKU Feed. Default is http://www.turnto.com/static/export/</comment>
+                    <comment>The URL from which to retrieve the TurnTo Average Rating by Product SKU Feed. Default is https://export.turnto.com/</comment>
                     <depends>
                         <field id="enable_automatic_submission">1</field>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
