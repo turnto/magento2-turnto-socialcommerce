@@ -1,33 +1,38 @@
 <?php
 /**
- * TurnTo_SocialCommerce
- * NOTICE OF LICENSE
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
 
 namespace TurnTo\SocialCommerce\Block;
 
+use Magento\Catalog\Helper\Image;
+use Magento\Checkout\Model\Session;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\View\Element\Template;
+use Magento\Framework\View\Element\Template\Context;
+use Magento\Sales\Model\Order\Item;
+use Magento\Store\Model\ScopeInterface;
+use TurnTo\SocialCommerce\Helper\Config;
 use TurnTo\SocialCommerce\Helper\Product;
+use TurnTo\SocialCommerce\Model\Config\Checkout as CheckoutConfig;
+use TurnTo\SocialCommerce\Model\Config\General as GeneralConfig;
+use TurnTo\SocialCommerce\Model\Config\Source\AddressFallback;
 
-class JSOrderFeed extends \Magento\Framework\View\Element\Template
+class JSOrderFeed extends Template
 {
     /**
-     * @var \TurnTo\SocialCommerce\Helper\Config
+     * @var Config
      */
     protected $config;
 
     /**
-     * @var \Magento\Checkout\Model\Session
+     * @var Session
      */
     protected $checkoutSession;
 
     /**
-     * @var \Magento\Catalog\Helper\Image
+     * @var Image
      */
     protected $imageHelper;
 
@@ -35,28 +40,36 @@ class JSOrderFeed extends \Magento\Framework\View\Element\Template
      * @var Product
      */
     protected $productHelper;
+    /**
+     * @var CheckoutConfig
+     */
+    protected $checkoutConfig;
+    /**
+     * @var GeneralConfig
+     */
+    protected $generalConfig;
 
     /**
-     * @param \Magento\Framework\View\Element\Template\Context $context
-     * @param \TurnTo\SocialCommerce\Helper\Config             $config
-     * @param \Magento\Checkout\Model\Session                  $checkoutSession
-     * @param \Magento\Catalog\Helper\Image                    $imageHelper
-     * @param Product                                          $productHelper
-     * @param array                                            $data
+     * @param Context $context
+     * @param CheckoutConfig $checkoutConfig
+     * @param GeneralConfig $generalConfig
+     * @param Session $checkoutSession
+     * @param Image $imageHelper
+     * @param Product $productHelper
+     * @param array $data
      */
     public function __construct(
-        \Magento\Framework\View\Element\Template\Context $context,
-        \TurnTo\SocialCommerce\Helper\Config $config,
-        \Magento\Checkout\Model\Session $checkoutSession,
-        \Magento\Catalog\Helper\Image $imageHelper,
+        Context $context,
+        CheckoutConfig $checkoutConfig,
+        GeneralConfig $generalConfig,
+        Session $checkoutSession,
+        Image   $imageHelper,
         Product $productHelper,
-        array $data = []
-    )
-    {
-
+        array   $data = []
+    ) {
         parent::__construct($context, $data);
-
-        $this->config = $config;
+        $this->checkoutConfig = $checkoutConfig;
+        $this->generalConfig = $generalConfig;
         $this->checkoutSession = $checkoutSession;
         $this->imageHelper = $imageHelper;
         $this->productHelper = $productHelper;
@@ -64,23 +77,21 @@ class JSOrderFeed extends \Magento\Framework\View\Element\Template
 
     /**
      * @return string
+     * @throws NoSuchEntityException
      */
     public function getFeedPurchaseOrderData()
     {
         // Get the customer's first and last name from their account if possible
         $order = $this->checkoutSession->getLastRealOrder();
+        $storeId = $order->getStoreId();
         $firstName = $order->getCustomerFirstname();
         $lastName = $order->getCustomerLastname();
 
-        // Determine which store the order was made from
-        $storeId = $order->getStoreId();
-
-        // If client doesn't have an account, fallback...
-        if (null === $order->getCustomer()) {
+        if (empty($firstName)) {
             // Depending on setting, fallback to Shipping Address name or Billing Address name first
-            $fallback = $this->config->getJSOrderFeedCustomerNameFallback();
+            $fallback = $this->checkoutConfig->getJSOrderFeedCustomerNameFallback(ScopeInterface::SCOPE_STORE, $storeId);
 
-            if ($fallback == \TurnTo\SocialCommerce\Model\Config\Source\AddressFallback::BILLING_ADDRESS_VALUE) {
+            if ($fallback === AddressFallback::BILLING_ADDRESS_VALUE) {
                 $address = $order->getBillingAddress();
                 if (null === $address) {
                     $address = $order->getShippingAddress();
@@ -98,23 +109,21 @@ class JSOrderFeed extends \Magento\Framework\View\Element\Template
 
         $orderItems = [];
 
-        /** @var \Magento\Sales\Model\Order\Item $item */
+        /** @var Item $item */
         foreach ($order->getAllVisibleItems() as $item) {
             $product = $item->getProduct();
-            $product->setStoreId($storeId);
-
             if ($product === null) {
                 continue;
             }
-
-            $sku = $this->config->getUseChildSku() ? $item->getSku() : $product->getSku();
-
+            $product->setStoreId($storeId);
+            $sku = $this->generalConfig->getUseChildSku(ScopeInterface::SCOPE_STORE, $storeId) ? $item->getSku() : $product->getSku();
             $orderItems[] = [
                 'title' => $product->getName(),
                 'url' => $product->getProductUrl(),
                 'sku' => $this->productHelper->turnToSafeEncoding($sku),
-                'getPrice' => $product->getFinalPrice(),
-                'itemImageUrl' => $this->imageHelper->init($product, 'product_small_image')->getUrl()
+                'itemImageUrl' => $this->imageHelper->init($product, 'product_small_image')->getUrl(),
+                'price' => $item->getPrice(),
+                'qty' => (int)$item->getQtyOrdered()
             ];
         }
 
@@ -124,42 +133,11 @@ class JSOrderFeed extends \Magento\Framework\View\Element\Template
                 'email' => $order->getCustomerEmail(),
                 'firstName' => $firstName,
                 'lastName' => $lastName,
+                'total' => (float)$order->getGrandTotal(),
+                'currency' => $order->getOrderCurrencyCode(),
                 'items' => $orderItems
             ],
             JSON_PRETTY_PRINT
         );
-    }
-
-    /**
-     * @return array
-     */
-    public function getOrderItemData()
-    {
-        $order = $this->checkoutSession->getLastRealOrder();
-        $orderItems = [];
-
-        /** @var \Magento\Sales\Model\Order\Item $item */
-        foreach ($order->getAllVisibleItems() as $item) {
-            $product = $item->getProduct();
-
-            if ($product === null) {
-                continue;
-            }
-
-            $sku = $this->config->getUseChildSku() ? $item->getSku() : $product->getSku();
-
-            $orderItems[] = json_encode(
-                [
-                    'title' => $product->getName(),
-                    'url' => $product->getProductUrl(),
-                    'sku' => $this->productHelper->turnToSafeEncoding($sku),
-                    'getPrice' => $product->getFinalPrice(),
-                    'itemImageUrl' => $this->imageHelper->init($product, 'product_small_image')->getUrl()
-                ],
-                JSON_PRETTY_PRINT
-            );
-        }
-
-        return $orderItems;
     }
 }
