@@ -1,13 +1,7 @@
 <?php
 /**
- * TurnTo_SocialCommerce
- * NOTICE OF LICENSE
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
 
 namespace TurnTo\SocialCommerce\Helper;
@@ -128,8 +122,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_PATH_SOCIALCOMMERCE_ENABLE_TOP_COMMENTS = 'turnto_socialcommerce_configuration/checkout_comments/enable_top_comments';
 
     const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_TEASER = 'turnto_socialcommerce_configuration/teaser/enable_comments_teaser';
-
-    const XML_PATH_SOCIALCOMMERCE_CUSTOMER_NAME_FALLBACK = 'turnto_socialcommerce_configuration/checkout_comments/js_order_feed_customer_name_fallback';
 
     /**
      * Visual Content
@@ -692,20 +684,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return (bool)$this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_TEASER,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * Gets the Comments Teaser Enabled configuration value
-     * @param null $store
-     * @return bool
-     */
-    public function getJSOrderFeedCustomerNameFallback($store = null)
-    {
-        return (bool)$this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_CUSTOMER_NAME_FALLBACK,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );
