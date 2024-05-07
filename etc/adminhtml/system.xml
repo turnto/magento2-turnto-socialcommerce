@@ -1,17 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 /**
- * TurnTo_SocialCommerce
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- *
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
@@ -48,7 +39,7 @@
                 </field>
                 <field id="image_store_base" translate="label comment" type="text" sortOrder="60" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Image Store Base</label>
-                    <comment>Default is http://wac.edgecastcdn.net/001A39/prod. Should not be changed, unless instructed by TurnTo.</comment>
+                    <comment>Default is https://wac.edgecastcdn.net/001A39/prod. Should not be changed, unless instructed by TurnTo.</comment>
                     <depends>
                         <field id="enabled">1</field>
                     </depends>
@@ -287,7 +278,7 @@
                 </field>
                 <field id="gtin_header" translate="label" type="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label><![CDATA[<strong>Additional Product Identifiers (GTIN)</strong>]]></label>
-                    <comment><![CDATA[It is unlikely that your store will use all/most of the attribute mappings below. Setup the mappings for the attribute types that you do use. The XML feed sent to TurnTo follows the Google Shopping Feed specification. <a href="https://support.google.com/merchants/answer/160161" target="_blank">That specification</a> dictates that the following attribute types belong to a "GTIN" classification. The following attributes will map to the "gtin" node in the XML feed that is sent to TurnTo. If a product has values for more than one of the attributes below, the first attribute with a value in the list below will be sent as the GTIN value.]]></comment>
+                    <comment><![CDATA[It is unlikely that your store will use all/most of the attribute mappings below. Set up the mappings for the attribute types that you do use. The XML feed sent to TurnTo follows the Google Shopping Feed specification. <a href="https://support.google.com/merchants/answer/160161" target="_blank">That specification</a> dictates that the following attribute types belong to a "GTIN" classification. The following attributes will map to the "gtin" node in the XML feed that is sent to TurnTo. If a product has values for more than one of the attributes below, the first attribute with a value in the list below will be sent as the GTIN value.]]></comment>
                 </field>
                 <field id="upc_attribute" translate="label comment" type="select" sortOrder="40" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>UPC Attribute</label>
@@ -428,25 +419,22 @@
                 <label>Cron Schedule</label>
                 <field id="export_catalog_cron_time" canRestore="1" type="text" translate="label comment" sortOrder="10" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Export Catalog Cron Time</label>
-                    <comment>Enter a valid cron schedule expression for ie. 0 1 * * *</comment>
+                    <comment>Enter a valid cron schedule expression, e.g. 0 1 * * *</comment>
                 </field>
                 <field id="export_orders_cron_time" canRestore="1" type="text" translate="label comment" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Export Orders Cron Time</label>
-                    <comment>Enter a valid cron schedule expression ie. 0 1 * * *</comment>
+                    <comment>Enter a valid cron schedule expression, e.g. 0 1 * * *</comment>
                 </field>
                 <field id="export_canceled_orders_cron_time" canRestore="1" type="text" translate="label comment" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Export Cancled Orders Cron Time</label>
-                    <comment>Enter a valid cron schedule expression ie. 0 1 * * *</comment>
+                    <label>Export Canceled Orders Cron Time</label>
+                    <comment>Enter a valid cron schedule expression, e.g. 0 1 * * *</comment>
                 </field>
                 <field id="import_ratings_cron_time" canRestore="1" type="text" translate="label comment" sortOrder="40" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Import Ratings Cron Time</label>
-                    <comment>Enter a valid cron schedule expression ie. 0 1 * * *</comment>
+                    <comment>Enter a valid cron schedule expression, e.g. 0 1 * * *</comment>
                 </field>
-
             </group>
-
         </section>
-
     </system>
 </config>
 

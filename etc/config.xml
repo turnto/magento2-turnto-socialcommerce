@@ -1,17 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
 /**
- * TurnTo_SocialCommerce
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- *
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -20,17 +11,17 @@
         <turnto_socialcommerce_configuration>
             <general>
                 <enabled>0</enabled>
-                <image_store_base>http://wac.edgecastcdn.net/001A39/prod</image_store_base>
+                <image_store_base>https://wac.edgecastcdn.net/001A39/prod</image_store_base>
                 <use_child_sku>0</use_child_sku>
             </general>
             <product_attribute_mappings>
-                <upc_attribute></upc_attribute>
-                <mpn_attribute></mpn_attribute>
-                <brand_attribute></brand_attribute>
-                <isbn_attribute></isbn_attribute>
-                <ean_attribute></ean_attribute>
-                <jan_attribute></jan_attribute>
-                <asin_attribute></asin_attribute>
+                <upc_attribute/>
+                <mpn_attribute/>
+                <brand_attribute/>
+                <isbn_attribute/>
+                <ean_attribute/>
+                <jan_attribute/>
+                <asin_attribute/>
             </product_attribute_mappings>
             <checkout_comments>
                 <enable_checkout_success>1</enable_checkout_success>
@@ -73,12 +64,12 @@
                 <import_aggregate_data>1</import_aggregate_data>
             </average_rating_import>
             <sso>
-                <review_msg>We need to know who you are before we post your review. Please login or register to continue.</review_msg>
-                <review_msg_pur_req>To ensure authenticity you may only write reviews for items you've purchased. Please login or register so we can look up your purchases.</review_msg_pur_req>
-                <question_msg>Please login or register to complete your submission and have answers emailed to you.</question_msg>
+                <review_msg>We need to know who you are before we post your review. Please log in or register to continue.</review_msg>
+                <review_msg_pur_req>To ensure authenticity you may only write reviews for items you've purchased. Please log in or register, so we can look up your purchases.</review_msg_pur_req>
+                <question_msg>Please log in or register to complete your submission and have answers emailed to you.</question_msg>
                 <question_msg_anon>Your question has been submitted. Please check back here for answers, or log in or register to have answers emailed to you.</question_msg_anon>
-                <answer_msg>Please login or register to complete your submission.</answer_msg>
-                <reply_msg>Please login or register to complete your submission.</reply_msg>
+                <answer_msg>Please log in or register to complete your submission.</answer_msg>
+                <reply_msg>Please log in or register to complete your submission.</reply_msg>
             </sso>
         </turnto_socialcommerce_configuration>
         <turnto_socialcommerce_cron_schedule>
@@ -86,7 +77,7 @@
                 <export_catalog_cron_time>0 1 * * *</export_catalog_cron_time>
                 <export_orders_cron_time>0 1 * * *</export_orders_cron_time>
                 <export_canceled_orders_cron_time>0 1 * * *</export_canceled_orders_cron_time>
-                <import_ratings_cron_time>0 * * * *</import_ratings_cron_time>
+                <import_ratings_cron_time>0 11,19 * * *</import_ratings_cron_time><!-- TT rating file updates are available at ~6am and ~2pm EST/EDT -->
             </cron_schedule>
         </turnto_socialcommerce_cron_schedule>
     </default>
