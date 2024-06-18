@@ -1,47 +1,49 @@
 <?php
 /**
- * TurnTo_SocialCommerce
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- *
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
 
 namespace TurnTo\SocialCommerce\Model\Config\Source;
+
+use Magento\Catalog\Api\Data\ProductAttributeInterface;
+use Magento\Eav\Api\AttributeRepositoryInterface;
+use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Api\SortOrderBuilder;
+use Magento\Framework\Data\OptionSourceInterface;
 
 /**
  * Class ProductAttributeSelect
  * @package TurnTo\SocialCommerce\Model\Config\Source
  */
-class ProductAttributeSelect implements \Magento\Framework\Option\ArrayInterface
+class ProductAttributeSelect implements OptionSourceInterface
 {
     /**
-     * @var null|\TurnTo\SocialCommerce\Helper\Config
+     * @var AttributeRepositoryInterface
      */
-    protected $config = null;
+    protected $attributeRepository;
+    /**
+     * @var SearchCriteriaBuilder
+     */
+    protected $searchCriteriaBuilder;
+    /**
+     * @var SortOrderBuilder
+     */
+    protected $sortOrderBuilder;
 
     /**
-     * @var \Magento\Catalog\Model\Product|null
-     */
-    protected $productFactory = null;
-
-    /**
-     * ProductAttributeSelect constructor.
-     * @param \Magento\Catalog\Model\ProductFactory $productFactory
-     * @param \TurnTo\SocialCommerce\Helper\Config $config
+     * @param AttributeRepositoryInterface $attributeRepository
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param SortOrderBuilder $sortOrderBuilder
      */
     public function __construct(
-        \Magento\Catalog\Model\ProductFactory $productFactory,
-        \TurnTo\SocialCommerce\Helper\Config $config
+        AttributeRepositoryInterface $attributeRepository,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        SortOrderBuilder $sortOrderBuilder
     ) {
-        $this->config = $config;
-        $this->productFactory = $productFactory;
+        $this->attributeRepository = $attributeRepository;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->sortOrderBuilder = $sortOrderBuilder;
     }
 
     /**
@@ -57,17 +59,23 @@ class ProductAttributeSelect implements \Magento\Framework\Option\ArrayInterface
             ]
         ];
 
-        foreach ($this->productFactory->create()->getAttributes() as $attribute) {
-            $attributeCode = $attribute->getAttributeCode();
+        $sortOrder = $this->sortOrderBuilder->setField('frontend_label')->setAscendingDirection()->create();
+        // Filter out system only attributes e.g. created_at, entity_id, etc.
+        $searchCriteria = $this->searchCriteriaBuilder
+            ->addFilter('frontend_label', null, 'neq')
+            ->addSortOrder($sortOrder)
+            ->create();
+        $attributeRepository = $this->attributeRepository->getList(
+            ProductAttributeInterface::ENTITY_TYPE_CODE,
+            $searchCriteria
+        );
 
-            //Prevents exposing system only attributes to user like (created_at, entity_id, etc)
-            if ($attributeCode != $attribute->getFrontend()->getLabel()) {
-                $optionArray[] = [
-                    'value' => $attributeCode,
-                    'label' => $attribute->getFrontend()->getLocalizedLabel() . " ($attributeCode)"
-                    //not utilizing the translation function as this is already returning the Locale specific variant.
-                ];
-            }
+        foreach ($attributeRepository->getItems() as $productAttribute) {
+            $attributeCode = $productAttribute->getAttributeCode();
+            $optionArray[] = [
+                'value' => $attributeCode,
+                'label' => $productAttribute->getFrontend()->getLocalizedLabel() . " ($attributeCode)"
+            ];
         }
 
         return $optionArray;

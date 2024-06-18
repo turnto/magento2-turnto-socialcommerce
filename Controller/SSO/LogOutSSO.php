@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @category    ClassyLlama
  * @package
@@ -6,7 +7,6 @@
  */
 
 namespace TurnTo\SocialCommerce\Controller\SSO;
-
 
 use Magento\Customer\Model\Session;
 use Magento\Framework\App\Action\Context;
@@ -37,9 +37,11 @@ class LogOutSSO extends \Magento\Customer\Controller\Account\Logout
      */
     public function __construct(
         Context $context,
+        CookieMetadataFactory $cookieMetadataFactory,
         Session $customerSession
     ) {
         $this->session = $customerSession;
+        $this->cookieMetadataFactory = $cookieMetadataFactory;
         parent::__construct($context, $customerSession);
     }
 
@@ -58,20 +60,6 @@ class LogOutSSO extends \Magento\Customer\Controller\Account\Logout
     }
 
     /**
-     * Retrieve cookie metadata factory
-     *
-     * @deprecated 100.1.0
-     * @return CookieMetadataFactory
-     */
-    private function getCookieMetadataFactory()
-    {
-        if (!$this->cookieMetadataFactory) {
-            $this->cookieMetadataFactory = ObjectManager::getInstance()->get(CookieMetadataFactory::class);
-        }
-        return $this->cookieMetadataFactory;
-    }
-
-    /**
      * Customer logout action
      *
      * @return \Magento\Framework\Controller\Result\Redirect
@@ -82,7 +70,7 @@ class LogOutSSO extends \Magento\Customer\Controller\Account\Logout
         $this->session->logout()->setBeforeAuthUrl($this->_redirect->getRefererUrl())
             ->setLastCustomerId($lastCustomerId);
         if ($this->getCookieManager()->getCookie('mage-cache-sessid')) {
-            $metadata = $this->getCookieMetadataFactory()->createCookieMetadata();
+            $metadata = $this->cookieMetadataFactory->createCookieMetadata();
             $metadata->setPath('/');
             $this->getCookieManager()->deleteCookie('mage-cache-sessid', $metadata);
         }

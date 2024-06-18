@@ -1,33 +1,19 @@
 <?php
 /**
- * @category    ClassyLlama
- * @copyright   Copyright (c) 2018 Classy Llama Studios, LLC
- * @author      sean.templeton
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Helper;
 
-
+use Magento\Catalog\Block\Product\View\Description;
+use Magento\Catalog\Model\Product as ProductModel;
 use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\App\Helper\Context;
 
 class Product extends AbstractHelper
 {
-    /**
-     * @var \Magento\Catalog\Model\Product
-     */
-    protected $product;
-
-    /**
-     * Product constructor.
-     * @param \Magento\Catalog\Block\Product\View\Description $descriptionBlock
-     */
-    public function __construct(
-        \Magento\Catalog\Block\Product\View\Description $descriptionBlock
-    )
-    {
-        $this->product = $descriptionBlock->getProduct();
-    }
-
     const TURNTO_CHARACTER_MAPPING = [
         '/' => 'FORWARDSLASH',
         '#' => 'HASH',
@@ -43,10 +29,27 @@ class Product extends AbstractHelper
     ];
 
     /**
+     * @var ProductModel
+     */
+    protected $product;
+
+    /**
+     * Product constructor.
+     * @param Context $context
+     * @param Description $descriptionBlock
+     */
+    public function __construct(
+        Context $context,
+        Description $descriptionBlock
+    ) {
+        parent::__construct($context);
+        $this->product = $descriptionBlock->getProduct();
+    }
+
+    /**
      * Converts characters from Magento that are not safe for TurnTo
      *
      * @param string $string
-     *
      * @return string
      */
     public function turnToSafeEncoding($string)
@@ -58,7 +61,6 @@ class Product extends AbstractHelper
      * Reverses encoding done for TurnTo to match what is in Magento
      *
      * @param string $string
-     *
      * @return string
      */
     public function turnToSafeDecoding($string)

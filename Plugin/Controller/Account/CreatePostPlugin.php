@@ -1,45 +1,52 @@
 <?php
 /**
- * @category    ClassyLlama
- * @package
- * @copyright   Copyright (c) 2019 Classy Llama Studios, LLC
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Plugin\Controller\Account;
+
+use Magento\Customer\Controller\Account\CreatePost;
+use Magento\Customer\Model\Session;
+use Magento\Framework\Controller\Result\Redirect;
+use Magento\Framework\Controller\Result\RedirectFactory;
+use Magento\Framework\Message\ManagerInterface;
+use TurnTo\SocialCommerce\Helper\Config;
 
 class CreatePostPlugin
 {
     /**
-     * @var \Magento\Customer\Model\Session
+     * @var Session
      */
     private $customerSession;
     /**
-     * @var \Magento\Framework\Controller\Result\RedirectFactory
+     * @var RedirectFactory
      */
     private $redirectFactory;
     /**
-     * @var \Magento\Framework\Message\ManagerInterface
+     * @var ManagerInterface
      */
     private $messageManager;
 
     /**
-     * @var TurnTo\SocialCommerce\Helper\Config
+     * @var Config
      */
     protected $config;
 
     /**
      * CreatePostPlugin constructor.
      *
-     * @param \Magento\Customer\Model\Session                      $customerSession
-     * @param \Magento\Framework\Controller\Result\RedirectFactory $redirectFactory
-     * @param \Magento\Framework\Message\ManagerInterface          $messageManager
-     * @param TurnTo\SocialCommerce\Helper\Config                  $config
+     * @param Session                      $customerSession
+     * @param RedirectFactory $redirectFactory
+     * @param ManagerInterface          $messageManager
+     * @param Config                  $config
      */
     public function __construct(
-        \Magento\Customer\Model\Session $customerSession,
-        \Magento\Framework\Controller\Result\RedirectFactory $redirectFactory,
-        \Magento\Framework\Message\ManagerInterface $messageManager,
-        \TurnTo\SocialCommerce\Helper\Config $config
+        Session $customerSession,
+        RedirectFactory $redirectFactory,
+        ManagerInterface $messageManager,
+        Config $config
     ) {
         $this->customerSession = $customerSession;
         $this->redirectFactory = $redirectFactory;
@@ -48,11 +55,11 @@ class CreatePostPlugin
     }
 
     /**
-     * @param \Magento\Customer\Controller\Account\CreatePost $subject
+     * @param CreatePost $subject
      * @param $result
-     * @return \Magento\Framework\Controller\Result\Redirect
+     * @return Redirect
      */
-    public function afterExecute(\Magento\Customer\Controller\Account\CreatePost $subject, $result)
+    public function afterExecute(CreatePost $subject, $result)
     {
         //check for error message on account creation
         $collection = $this->messageManager->getMessages(false);

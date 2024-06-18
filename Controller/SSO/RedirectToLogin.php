@@ -1,93 +1,87 @@
 <?php
 /**
- * @category    ClassyLlama
- * @package
- * @copyright   Copyright (c) 2019 Classy Llama Studios, LLC
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Controller\SSO;
 
-
+use Magento\Customer\Model\SessionFactory;
+use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
-use TurnTo\SocialCommerce\Helper\Config;
+use TurnTo\SocialCommerce\Model\Config\Sso;
 
-class RedirectToLogin extends \Magento\Framework\App\Action\Action
+class RedirectToLogin extends Action
 {
-
+    /**
+     * @var SessionFactory
+     */
+    protected $customerSessionFactory;
+    /**
+     * @var Sso
+     */
+    protected $ssoConfig;
 
     /**
-     * @var Magento\Framework\UrlInterface
+     * @param Context $context
+     * @param Sso $ssoConfig
+     * @param SessionFactory $customerSessionFactory
      */
-    private $uriInterface;
-    /**
-     * @var Config
-     */
-    private $config;
-    /**
-     * @var \Magento\Framework\Registry
-     */
-    private $registry;
-    /**
-     * @var \Magento\Customer\Model\SessionFactory
-     */
-    private $customerSessionFactory;
-
-
-    public function __construct(Context $context,
-                                \Magento\Framework\Message\ManagerInterface $messageManager,
-                                \Magento\Framework\UrlInterface $uriInterface,
-                                Config $config,
-                                \Magento\Customer\Model\SessionFactory $customerSessionFactory
-    )
-    {
-        $this->messageManager = $messageManager;
-        $this->uriInterface = $uriInterface;
-        $this->config = $config;
-        $this->customerSessionFactory = $customerSessionFactory;
+    public function __construct(
+        Context $context,
+        SessionFactory $customerSessionFactory,
+        Sso $ssoConfig,
+    ) {
         parent::__construct($context);
+        $this->customerSessionFactory = $customerSessionFactory;
+        $this->ssoConfig = $ssoConfig;
     }
 
     public function execute()
     {
         $url = $this->_redirect->getRefererUrl();
-
+        $login_url = $this->_url->getUrl(
+            'customer/account/login',
+            ['referer' => base64_encode($url)]
+        );
         $resultRedirect = $this->resultRedirectFactory->create();
-        $login_url = $this->uriInterface
-            ->getUrl('customer/account/login',
-                ['referer' => base64_encode($url)]
-            );
         $resultRedirect->setPath($login_url);
-        $this->messageManager->addNoticeMessage($this->getMessage());
+        if (!empty($message = $this->getMessage())) {
+            $this->messageManager->addNoticeMessage($message);
+        }
 
         //store the PDP in session
         $customerSession = $this->customerSessionFactory->create();
         $customerSession->setPdpUrl($url);
+
         return $resultRedirect;
     }
 
+    /**
+     * @return string
+     */
     public function getMessage()
     {
         $action = $this->getRequest()->getParam('action');
         switch ($action) {
             case "QUESTION_CREATE":
-                if($this->getRequest()->getParam('authSetting') == 'ANONYMOUS'){
-                    return $this->config->getQuestionMsgAnon();
+                if($this->getRequest()->getParam('authSetting') === 'ANONYMOUS'){
+                    return $this->ssoConfig->getQuestionMsgAnon();
                 }
-                return $this->config->getQuestionMsg();
+                return $this->ssoConfig->getQuestionMsg();
             case "ANSWER_CREATE":
-                return $this->config->getAnswerMessage();
+                return $this->ssoConfig->getAnswerMessage();
             case "REVIEW_CREATE":
-                if ($this->getRequest()->getParam('authSetting') == 'PURCHASE_REQUIRED') {
-                    return $this->config->getReviewMsgPurchaseReq();
+                if ($this->getRequest()->getParam('authSetting') === 'PURCHASE_REQUIRED') {
+                    return $this->ssoConfig->getReviewMsgPurchaseReq();
                 }
-                return $this->config->getReviewMsg();
+                return $this->ssoConfig->getReviewMsg();
             case "REPLY_CREATE":
-                return $this->config->getReplyMsg();
+                return $this->ssoConfig->getReplyMsg();
             default:
                 return "";
         }
-
     }
-
 }
 

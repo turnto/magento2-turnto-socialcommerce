@@ -23,6 +23,7 @@ var config = {
     map: {
         '*': {
             turnToConfig: 'TurnTo_SocialCommerce/js/turnto-config',
+            reviewsTab: 'TurnTo_SocialCommerce/js/reviews-tab',
         }
     }
 };

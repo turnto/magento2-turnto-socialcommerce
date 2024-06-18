@@ -1,13 +1,12 @@
 /**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 define([
-    'underscore',
     'ko',
     'uiComponent',
     'jquery'
-], function (_, ko, Component, jQuery) {
+], function (ko, Component, $) {
     'use strict';
 
     return Component.extend({
@@ -38,8 +37,6 @@ define([
                 this.loadTeaserCounts(this.teaserSku);
             }
 
-            // Map bridge the tabs widget to something we can manually call
-            jQuery.widget.bridge('mage_tabs', jQuery.mage.tabs);
             this.tabsContainer = document.querySelector('.product.data.items');
 
             return this;
@@ -54,14 +51,16 @@ define([
                     return;
                 }
                 this.reviewsData(JSON.parse(xhr.responseText));
-                this.populateReviewTabCount();
             }.bind(this));
             xhr.send();
         },
 
         getNumFullStars: function getFullStars() {
-            //if the reviews are 4.8 or above return 5 else return the reviews
-            return Math.floor(this.reviewsData().avgRating) >= 4.75 ? 5 : Math.floor(this.reviewsData().avgRating);
+            // this ends up being oddly complicated because we essentially want to do rounding, but also round to the
+            //    nearest half
+            return (this.reviewsData().avgRating - Math.floor(this.reviewsData().avgRating)) >= 0.75 ?
+                Math.round(this.reviewsData().avgRating) :
+                Math.floor(this.reviewsData().avgRating);
         },
 
         hasHalfStar: function hasHalfStar() {
@@ -71,6 +70,14 @@ define([
 
         getNumEmptyStars: function getNumEmptyStars() {
             return (5 - (this.getNumFullStars() + (this.hasHalfStar() ? 1 : 0)));
+        },
+
+        getStarDescriptionString: function getStarDescriptionString() {
+            let fullStars = this.getNumFullStars();
+            let halfStar = this.hasHalfStar();
+            let halfStarString = halfStar ? " and a half " : " ";
+
+            return "Rating: " + fullStars + halfStarString + "Stars";
         },
 
         writeReview: function writeReview() {
@@ -96,14 +103,11 @@ define([
         },
 
         openTab: function openTab(tabAnchor) {
-            jQuery(this.tabsContainer).mage_tabs('activate', this.getTabIndex(tabAnchor));
-            this.tabsContainer.scrollIntoView();
+            if (tabAnchor === '#reviews') {
+                $('#tab-label-reviews-title').click();
+            } else if (tabAnchor === '#turnto_qa') {
+                $('#tab-label-turnto_qa-title').click();
+            }
         },
-
-        populateReviewTabCount: function populateReviewTabCount(){
-            let reviewTab = document.getElementById('tab-label-reviews-title');
-            let reviewCount = this.reviewsData().reviews;
-            reviewTab.innerHTML = reviewTab.innerHTML + '<span class="counter">'+ reviewCount +'</span>';
-        }
     });
 });

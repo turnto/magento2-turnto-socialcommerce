@@ -1,13 +1,7 @@
 <?php
 /**
- * TurnTo_SocialCommerce
- * NOTICE OF LICENSE
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
 
 namespace TurnTo\SocialCommerce\Helper;
@@ -47,7 +41,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const WIDGET_URL = 'turnto_socialcommerce_configuration/product_feed/config_api_url';
 
-    const TEASER_URL = 'turnto_socialcommerce_configuration/product_feed/teaser_api_url';
+    const REVIEW_URL = 'turnto_socialcommerce_configuration/product_feed/review_api_url';
 
 
     const SOCIALCOMMERCE_MOBILE_TITLE_PAGE = 'TurnTo - Social Commerce';
@@ -85,14 +79,14 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     const XML_PATH_SOCIALCOMMERCE_ENABLE_QA = 'turnto_socialcommerce_configuration/qa/enable_qa';
 
-    const XML_PATH_SOCIALCOMMERCE_ENABLE_QA_TEASER = 'turnto_socialcommerce_configuration/qa/enable_qa_teaser';
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_QA_TEASER = 'turnto_socialcommerce_configuration/teaser/enable_qa_teaser';
 
     /**
      * Reviews
      */
     const XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS = 'turnto_socialcommerce_configuration/reviews/enable_reviews';
 
-    const XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS_TEASER = 'turnto_socialcommerce_configuration/reviews/enable_reviews_teaser';
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_REVIEWS_TEASER = 'turnto_socialcommerce_configuration/teaser/enable_reviews_teaser';
 
     const XML_PATH_SOCIALCOMMERCE_MOBILE_PAGE_TITLE = 'turnto_socialcommerce_configuration/mobile/mobile_page_title';
 
@@ -102,7 +96,15 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     const XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_ENABLED = 'turnto_socialcommerce_configuration/historical_orders_feed/enable_historical_feed';
 
+    const XML_PATH_SOCIALCOMMERCE_AVERAGE_RATING_IMPORT_ENABLED = 'turnto_socialcommerce_configuration/average_rating_import/enable_average_rating';
+
+    const XML_PATH_SOCIALCOMMERCE_AVERAGE_RATING_IMPORT_AGGREGATE_DATA = 'turnto_socialcommerce_configuration/average_rating_import/import_aggregate_data';
+
+    const XML_PATH_SOCIALCOMMERCE_CANCELLED_FEED_ENABLED = 'turnto_socialcommerce_configuration/historical_orders_feed/enable_cancelled_feed';
+
     const XML_PATH_SOCIALCOMMERCE_EXCLUDE_ITEMS_WITHOUT_DELIVERY_DATE = 'turnto_socialcommerce_configuration/historical_orders_feed/exclude_items_without_delivery_date';
+
+    const XML_PATH_SOCIALCOMMERCE_EXCLUDE_DELIVERY_DATE_ON_PARTIAL_SHIPMENT = 'turnto_socialcommerce_configuration/historical_orders_feed/exclude_delivery_date_until_all_items_shipped';
 
     const XML_PATH_EXPORT_FEED_URL = 'turnto_socialcommerce_configuration/product_feed/product_feed_url';
 
@@ -111,37 +113,25 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Checkout Comments
      */
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_CAPTURE = 'turnto_socialcommerce_configuration/checkout_comments/enable_checkout_comment_capture';
+
     const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_PINBOARD_TEASER = 'turnto_socialcommerce_configuration/checkout_comments/enable_comments_pinboard_teaser';
 
     const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_PDP = 'turnto_socialcommerce_configuration/checkout_comments/enable_comments_pdp';
 
     const XML_PATH_SOCIALCOMMERCE_ENABLE_TOP_COMMENTS = 'turnto_socialcommerce_configuration/checkout_comments/enable_top_comments';
 
-    const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_TEASER = 'turnto_socialcommerce_configuration/checkout_comments/enable_comments_teaser';
+    const XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_TEASER = 'turnto_socialcommerce_configuration/teaser/enable_comments_teaser';
 
     /**
      * Visual Content
      */
-    CONST XML_PATH_SOCIALCOMMERCE_VISUAL_CONTENT_GALLERY_ROW_WIDGET = 'turnto_socialcommerce_configuration/visual_content/visual_content_gallery_row';
+    const XML_PATH_SOCIALCOMMERCE_VISUAL_CONTENT_GALLERY_ROW_WIDGET = 'turnto_socialcommerce_configuration/visual_content/visual_content_gallery_row';
 
     /**
-     * SSO
+     *  Teaser
      */
-
-    CONST XML_PATH_SOCIALCOMMERCE_REVIEW_MSG = 'turnto_socialcommerce_configuration/sso/review_msg';
-
-    CONST XML_PATH_SOCIALCOMMERCE_REVIEW_MSG_PUR_REQ = 'turnto_socialcommerce_configuration/sso/review_msg_pur_req';
-
-    CONST XML_PATH_SOCIALCOMMERCE_QUESTION_MSG = 'turnto_socialcommerce_configuration/sso/question_msg';
-
-    CONST XML_PATH_SOCIALCOMMERCE_QUESTION_MSG_ANON = 'turnto_socialcommerce_configuration/sso/question_msg_anon';
-
-    CONST XML_PATH_SOCIALCOMMERCE_ANSWER_MSG = 'turnto_socialcommerce_configuration/sso/answer_msg';
-
-    CONST XML_PATH_SOCIALCOMMERCE_REPLY_MSG = 'turnto_socialcommerce_configuration/sso/reply_msg';
-
-
-
+    const XML_PATH_USE_LOCAL_TEASER_CODE= 'turnto_socialcommerce_configuration/teaser/use_local_teaser_code';
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface|null
@@ -191,8 +181,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the value of the setting that determines if TurnTo's configuration is enabled
      *
-     * @param null $scopeCode
-     *
+     * @param int|null|string $scopeCode
      * @return mixed
      */
     public function getIsEnabled($scopeCode = null)
@@ -207,8 +196,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the value of the setting that determines if automated Product Feed Submission is enabled
      *
-     * @param $store = null
-     *
+     * @param int|null|string $store
      * @return mixed
      */
     public function getIsProductFeedSubmissionEnabled($store = null)
@@ -223,8 +211,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the TurnTo Site Key
      *
-     * @param $scopeCode = null
-     *
+     * @param int|null|string $scopeCode
      * @return mixed
      */
     public function getSiteKey($scopeCode = null)
@@ -251,8 +238,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Static URL configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $scopeCode
      * @return mixed
      */
     public function getStaticUrl($scopeCode = null)
@@ -267,8 +253,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Widget URL configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $scopeCode
      * @return mixed
      */
     public function getWidgetUrl($scopeCode = null)
@@ -286,28 +271,23 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Teaser URL configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $scopeCode
      * @return mixed
      */
-    public function getTeaserUrl($scopeCode = null)
+    public function getReviewUrl($scopeCode = null)
     {
         return $this->scopeConfig->getValue(
-            self::TEASER_URL,
+            self::REVIEW_URL,
             ScopeInterface::SCOPE_STORE,
             $scopeCode ?: $this->getCurrentStoreCode()
         );
 
     }
 
-
-
-
     /**
      * Gets the URL configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $scopeCode
      * @return mixed
      */
     public function getUrl($scopeCode = null)
@@ -323,8 +303,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Use Child SKU configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return mixed
      */
     public function getUseChildSku($store = null)
@@ -340,8 +319,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Static URL configuration value with the protocol removed
      *
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return mixed
      */
     public function getStaticUrlWithoutProtocol($store = null)
@@ -352,8 +330,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the URL configuration value with the protocol removed
      *
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return mixed
      */
     public function getUrlWithoutProtocol($store = null)
@@ -365,7 +342,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the TurnTo API Authorization Key
      *
      * @param $store = null
-     *
      * @return mixed
      */
     public function getAuthorizationKey($store = null)
@@ -387,7 +363,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the TurnTo URL to send a feed to
      *
      * @param $store = null
-     *
      * @return mixed
      */
     public function getFeedUploadAddress($store = null)
@@ -400,8 +375,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return mixed
      */
     public function getExportFeedAddress($store = null)
@@ -456,8 +430,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Question and Answer Enabled configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return bool
      */
     public function getQaEnabled($store = null)
@@ -472,8 +445,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Question and Answer Teaser Enabled configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return bool
      */
     public function getQaTeaserEnabled($store = null)
@@ -488,8 +460,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Reviews Enabled configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return bool
      */
     public function getReviewsEnabled($store = null)
@@ -504,8 +475,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Reviews Teaser Enabled configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return bool
      */
     public function getReviewsTeaserEnabled($store = null)
@@ -520,8 +490,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Reviews Setup Type configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return mixed
      */
     public function getMobilePageTitle($store = null)
@@ -530,14 +499,52 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return mixed
      */
     public function getIsHistoricalOrdersFeedEnabled($store = null)
     {
         return $this->scopeConfig->getValue(
             self::XML_PATH_SOCIALCOMMERCE_HISTORICAL_FEED_ENABLED,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param int|null|string $store
+     * @return mixed
+     */
+    public function getIsCancelledOrdersFeedEnabled($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_CANCELLED_FEED_ENABLED,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param int|null|string $store
+     * @return mixed
+     */
+    public function getAverageRatingImportEnabled($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_AVERAGE_RATING_IMPORT_ENABLED,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * @param int|null|string $store
+     * @return mixed
+     */
+    public function getAverageRatingImportAggregateData($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_AVERAGE_RATING_IMPORT_AGGREGATE_DATA,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );
@@ -558,8 +565,36 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * @param $store
+     *
+     * @return mixed
+     */
+    public function getExcludeDeliveryDateUntilAllItemsShipped($store)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_EXCLUDE_DELIVERY_DATE_ON_PARTIAL_SHIPMENT,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
+     * Gets the Checkout Comments Captured Enabled configuration value
+     * @param int|null|string $store
+     * @return bool
+     */
+    public function getCommentsCaptureEnabled($store = null)
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::XML_PATH_SOCIALCOMMERCE_ENABLE_COMMENTS_CAPTURE,
+            ScopeInterface::SCOPE_STORE,
+            $store ?: $this->getCurrentStoreCode()
+        );
+    }
+
+    /**
      * Gets the Checkout Comments Pinboard Teaser Enabled configuration value
-     * @param null $store
+     * @param int|null|string $store
      * @return bool
      */
     public function getCommentsPinboardTeaserEnabled($store = null)
@@ -573,7 +608,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     /**
      * Gets the Comments Enabled on PDP configuration value
-     * @param null $store
+     * @param int|null|string $store
      * @return bool
      */
     public function getCommentsPdpEnabled($store = null)
@@ -587,7 +622,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     /**
      * Gets the Top Comments Enabled on PDP configuration value
-     * @param null $store
+     * @param int|null|string $store
      * @return bool
      */
     public function getTopCommentsEnabled($store = null)
@@ -601,7 +636,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     /**
      * Gets the Comments Teaser Enabled configuration value
-     * @param null $store
+     * @param int|null|string $store
      * @return bool
      */
     public function getCommentsTeaserEnabled($store = null)
@@ -614,85 +649,20 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param null $store
+     * @param int|null|string $store
      * @return bool
      */
-    public function getReviewMsg($store = null)
+    public function getUseLocalTeaserCode($store = null)
     {
         return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_REVIEW_MSG,
+            self::XML_PATH_USE_LOCAL_TEASER_CODE,
             ScopeInterface::SCOPE_STORE,
             $store ?: $this->getCurrentStoreCode()
         );
     }
 
     /**
-     * @param null $store
-     * @return bool
-     */
-    public function getReviewMsgPurchaseReq($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_REVIEW_MSG_PUR_REQ,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * @param null $store
-     * @return bool
-     */
-    public function getQuestionMsg($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_QUESTION_MSG,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * @param null $store
-     * @return bool
-     */
-    public function getQuestionMsgAnon($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_QUESTION_MSG_ANON,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * @param null $store
-     * @return bool
-     */
-    public function getAnswerMessage($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_ANSWER_MSG,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * @param null $store
-     * @return bool
-     */
-    public function getReplyMsg($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_REPLY_MSG,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * @param null $store
+     * @param int|null|string $store
      * @return mixed
      */
     public function getVisualContentGalleryRowWidget($store = null)
@@ -703,6 +673,4 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
             $store ?: $this->getCurrentStoreCode()
         );
     }
-
-
 }

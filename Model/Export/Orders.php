@@ -1,39 +1,42 @@
 <?php
 /**
- * TurnTo_SocialCommerce
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- *
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
-use Magento\Catalog\Helper\Product;
+use DateTime;
+use Exception;
+use Magento\Catalog\Helper\Product as ProductHelper;
+use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ProductRepository;
-use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
+use Magento\Framework\Api\AbstractSimpleObject;
+use Magento\Framework\Api\Filter;
 use Magento\Framework\Api\FilterBuilder;
+use Magento\Framework\Api\SearchCriteria;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Api\SortOrder;
 use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Filesystem\Io\File;
 use Magento\Framework\Intl\DateTimeFactory;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Api\ShipmentRepositoryInterface;
-use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactoryAlias;
+use Magento\Sales\Model\ResourceModel\Order\Collection;
+use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\UrlRewrite\Model\UrlFinderInterface;
+use TurnTo\SocialCommerce\Api\FeedClient;
 use TurnTo\SocialCommerce\Helper\Config;
 use TurnTo\SocialCommerce\Helper\Product as TurnToProductHelper;
 use TurnTo\SocialCommerce\Logger\Monolog;
+use TurnTo\SocialCommerce\Model\Export\Product as ExportProduct;
 
-class Orders extends AbstractExport
+class Orders
 {
     /**#@+
      * Field Id keys
@@ -64,36 +67,36 @@ class Orders extends AbstractExport
     /**#@-*/
 
     /**
-     * Path to temp file used for writing, maximum of 16MB is used as in memory buffer
+     * Default page size
      */
-    const TEMP_FILE_PATH = 'php://temp/maxmemory:16384';
+    const DEFAULT_PAGE_SIZE = 25;
 
     /**
-     * @var OrderRepositoryInterface|null
+     * @var OrderRepositoryInterface
      */
-    protected $orderService = null;
+    protected $orderService;
 
     /**
-     * @var ShipmentRepositoryInterface|null
+     * @var ShipmentRepositoryInterface
      */
-    protected $shipmentsService = null;
+    protected $shipmentsService;
 
     /**
-     * @var ProductRepository|null
+     * @var ProductRepository
      */
-    protected $productRepository = null;
+    protected $productRepository;
 
     /**
-     * @var Product|null
+     * @var ProductHelper
      */
-    protected $productHelper = null;
+    protected $productHelper;
 
     /**
-     * @var DirectoryList|null
+     * @var DirectoryList
      */
-    protected $directoryList = null;
+    protected $directoryList;
     /**
-     * @var Product
+     * @var TurnToProductHelper
      */
     protected $turnToProductHelper;
 
@@ -103,62 +106,89 @@ class Orders extends AbstractExport
     protected $fileSystem;
 
     /**
-     * @var OrderCollectionFactoryAlias
+     * @var OrderCollectionFactory
      */
-    protected $orderCollection;
+    protected $orderCollectionFactory;
+    /**
+     * @var ExportProduct
+     */
+    protected $exportProduct;
+    /**
+     * @var StoreManagerInterface
+     */
+    protected $storeManager;
+    /**
+     * @var Config
+     */
+    protected $config;
+    /**
+     * @var Monolog
+     */
+    protected $logger;
+    /**
+     * @var DateTimeFactory
+     */
+    protected $dateTimeFactory;
+    /**
+     * @var FeedClient
+     */
+    protected $feedClient;
+    /**
+     * @var SearchCriteriaBuilder
+     */
+    protected $searchCriteriaBuilder;
+    /**
+     * @var SortOrderBuilder
+     */
+    protected $sortOrderBuilder;
+    /**
+     * @var FilterBuilder
+     */
+    protected $filterBuilder;
 
     /**
      * Orders constructor.
      *
-     * @param Config                      $config
-     * @param CollectionFactory           $productCollectionFactory
-     * @param Monolog                     $logger
-     * @param DateTimeFactory             $dateTimeFactory
-     * @param SearchCriteriaBuilder       $searchCriteriaBuilder
-     * @param FilterBuilder               $filterBuilder
-     * @param SortOrderBuilder            $sortOrderBuilder
-     * @param UrlFinderInterface          $urlFinder
-     * @param StoreManagerInterface       $storeManager
-     * @param OrderRepositoryInterface    $orderRepositoryInterface
+     * @param Config $config
+     * @param Monolog $logger
+     * @param DateTimeFactory $dateTimeFactory
+     * @param OrderRepositoryInterface $orderRepositoryInterface
      * @param ShipmentRepositoryInterface $shipmentsService
-     * @param ProductRepository           $productRepository
-     * @param Product                     $productHelper
-     * @param DirectoryList               $directoryList
-     * @param TurnToProductHelper         $turnToProductHelper
-     * @param File                        $fileSystem
-     * @param OrderCollectionFactoryAlias $orderCollection
+     * @param ProductRepository $productRepository
+     * @param Product $productHelper
+     * @param StoreManagerInterface $storeManager
+     * @param DirectoryList $directoryList
+     * @param TurnToProductHelper $turnToProductHelper
+     * @param FeedClient $feedClient
+     * @param File $fileSystem
+     * @param OrderCollectionFactory $orderCollection
+     * @param ExportProduct $exportProduct
+     * @param FilterBuilder $filterBuilder
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param SortOrderBuilder $sortOrderBuilder
      */
     public function __construct(
         Config $config,
-        CollectionFactory $productCollectionFactory,
         Monolog $logger,
         DateTimeFactory $dateTimeFactory,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        FilterBuilder $filterBuilder,
-        SortOrderBuilder $sortOrderBuilder,
-        UrlFinderInterface $urlFinder,
-        StoreManagerInterface $storeManager,
         OrderRepositoryInterface $orderRepositoryInterface,
         ShipmentRepositoryInterface $shipmentsService,
         ProductRepository $productRepository,
         Product $productHelper,
+        StoreManagerInterface $storeManager,
         DirectoryList $directoryList,
         TurnToProductHelper $turnToProductHelper,
+        FeedClient $feedClient,
         File $fileSystem,
-        OrderCollectionFactoryAlias $orderCollection
+        OrderCollectionFactory $orderCollection,
+        ExportProduct $exportProduct,
+        FilterBuilder $filterBuilder,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        SortOrderBuilder $sortOrderBuilder
     ) {
-        parent::__construct(
-            $config,
-            $productCollectionFactory,
-            $logger,
-            $dateTimeFactory,
-            $searchCriteriaBuilder,
-            $filterBuilder,
-            $sortOrderBuilder,
-            $urlFinder,
-            $storeManager
-        );
-
+        $this->config = $config;
+        $this->logger = $logger;
+        $this->dateTimeFactory = $dateTimeFactory;
         $this->orderService = $orderRepositoryInterface;
         $this->shipmentsService = $shipmentsService;
         $this->productRepository = $productRepository;
@@ -166,12 +196,18 @@ class Orders extends AbstractExport
         $this->storeManager = $storeManager;
         $this->directoryList = $directoryList;
         $this->turnToProductHelper = $turnToProductHelper;
+        $this->feedClient = $feedClient;
         $this->fileSystem = $fileSystem;
-        $this->orderCollection = $orderCollection;
+        $this->orderCollectionFactory = $orderCollection;
+        $this->exportProduct = $exportProduct;
+        $this->filterBuilder = $filterBuilder;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->sortOrderBuilder = $sortOrderBuilder;
     }
 
     /**
      * CRON handler that sends the last 2 days of orders to TurnTo
+     * @return void
      */
     public function cronUploadFeed()
     {
@@ -182,17 +218,17 @@ class Orders extends AbstractExport
                 try {
                     $orderFeed =$this->getOrdersFeed(
                         $store->getId(),
-                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P2D')),
+                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P25D')),
                         $this->dateTimeFactory->create(
                             'now',
                             new \DateTimeZone('UTC')
 
                         )
                     );
-                    $this->transmitFeed($orderFeed,$store);
-                } catch (\Exception $e) {
+                    $this->feedClient->transmitFeedFile($orderFeed, self::FEED_NAME, self::FEED_STYLE, $store->getCode());
+                } catch (Exception $e) {
                     $this->logger->error(
-                        'An error occurred while processing Historical Orders Feed Cron',
+                        'An error occurred while sending the Historical Orders Feed report to TurnTo. Error:',
                         [
                             'storeId' => $store->getId(),
                             'exception' => $e
@@ -205,17 +241,17 @@ class Orders extends AbstractExport
 
     /**
      * @param           $storeId
-     * @param \DateTime $fromDate
-     * @param \DateTime $toDate
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
      * @param bool $forceIncludeAllItems
      *
      * @return null|string
      */
     public function getOrdersFeed(
         $storeId,
-        \DateTime $fromDate,
-        \DateTime $toDate,
-        $forceIncludeAllItems = false
+        DateTime $fromDate,
+        DateTime $toDate,
+        bool $forceIncludeAllItems = false
     ) {
         $csvData = null;
         try {
@@ -247,9 +283,9 @@ class Orders extends AbstractExport
             rewind($outputHandle);
             $csvData = stream_get_contents($outputHandle);
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error(
-                'An error occurred while processing Historical Orders Feed Cron',
+                'An error occurred while creating or writing data to the Historical Orders Feed export file. Error:',
                 [
                     'storeId' => $storeId,
                     'exception' => $e
@@ -264,57 +300,9 @@ class Orders extends AbstractExport
         return $csvData;
     }
 
-    /**
-     * @param                                        $feedData
-     * @param \Magento\Store\Api\Data\StoreInterface $store
-     *
-     * @throws \Exception
-     */
-    public function transmitFeed($feedData, \Magento\Store\Api\Data\StoreInterface $store)
-    {
-        $response = null;
-
-        try {
-            $zendClient = new \Magento\Framework\HTTP\ZendClient();
-            $zendClient
-                ->setUri($this->config
-                    ->getFeedUploadAddress($store->getCode()))
-                ->setMethod(\Zend_Http_Client::POST)
-                ->setParameterPost(
-                    [
-                        'siteKey' => $this->config->getSiteKey($store->getCode()),
-                        'authKey' => $this->config->getAuthorizationKey($store->getCode()),
-                        'feedStyle' => self::FEED_STYLE
-                    ]
-                )
-                ->setFileUpload(self::FEED_NAME, 'file', $feedData, self::FEED_MIME);
-
-            $response = $zendClient->request();
-
-            if (!$response || !$response->isSuccessful()) {
-                throw new \Exception('TurnTo order feed submission failed silently');
-            }
-
-            $body = $response->getBody();
-
-            //It is possible to get a status 200 message who's body is an error message from TurnTo
-            if (empty($body) || $body != Catalog::TURNTO_SUCCESS_RESPONSE) {
-                throw new \Exception("TurnTo order feed submission failed with message: $body");
-            }
-        } catch (\Exception $e) {
-            $this->logger->error(
-                'An error occurred while transmitting the order feed to TurnTo',
-                [
-                    'exception' => $e,
-                    'response' => $response ? $response->getBody() : 'null'
-                ]
-            );
-            throw $e;
-        }
-    }
 
     /**
-     * @param \Magento\Framework\Api\SearchCriteria $searchCriteria
+     * @param $orderList
      * @param                                       $outputHandle
      * @param bool $forceIncludeAllItems
      */
@@ -329,7 +317,6 @@ class Orders extends AbstractExport
             $this->writeOrdersToFeed($outputHandle, $orders, $forceIncludeAllItems);
             $page++;
         }
-
     }
 
     /**
@@ -341,7 +328,7 @@ class Orders extends AbstractExport
      */
     protected function writeOrdersToFeed($outputHandle, $orders, $forceIncludeAllItems)
     {
-        if (!isset($orders) || empty($orders)) {
+        if (empty($orders)) {
             return 0;
         }
 
@@ -349,9 +336,9 @@ class Orders extends AbstractExport
         foreach ($orders as $order) {
             try {
                 $this->writeOrderToFeed($outputHandle, $order, $forceIncludeAllItems);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->logger->error(
-                    'An error occurred while writing the historical orders feed',
+                    'An error occurred while writing order data to the historical orders feed. Error:',
                     [
                         'exception' => $e,
                     ]
@@ -366,10 +353,11 @@ class Orders extends AbstractExport
 
     /**
      * @param                                        $outputHandle
-     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @param OrderInterface $order
      * @param bool $forceIncludeAllItems
+     * @throws NoSuchEntityException
      */
-    protected function writeOrderToFeed($outputHandle, \Magento\Sales\Api\Data\OrderInterface $order, $forceIncludeAllItems)
+    protected function writeOrderToFeed($outputHandle, OrderInterface $order, $forceIncludeAllItems)
     {
         $items = $this->getItemData($order, $forceIncludeAllItems);
         if (empty($items)) {
@@ -390,12 +378,12 @@ class Orders extends AbstractExport
     }
 
     /**
-     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @param OrderInterface $order
      * @param bool $forceIncludeAllItems
      *
-     * @return array|mixed
+     * @return array
      */
-    public function getItemData(\Magento\Sales\Api\Data\OrderInterface $order, $forceIncludeAllItems)
+    public function getItemData(OrderInterface $order, $forceIncludeAllItems)
     {
         $items = [];
         $orderId = $order->getEntityId();
@@ -411,7 +399,7 @@ class Orders extends AbstractExport
                         self::SHIP_DATE_FIELD_ID => $order->getShipCreatedAt()
                     ];
                 }
-            } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
+            } catch (NoSuchEntityException $e) {
                 // Do nothing
             }
         }
@@ -430,28 +418,33 @@ class Orders extends AbstractExport
     }
 
     /**
-     * @param                                            $outputHandle
-     * @param \Magento\Sales\Api\Data\OrderInterface $order
-     * @param \Magento\Sales\Api\Data\OrderItemInterface $lineItem
-     * @param \Magento\Catalog\Model\Product $product
-     * @param                                            $lineItemNumber
-     * @param                                            $shipmentDate
+     * @param $outputHandle
+     * @param OrderInterface $order
+     * @param OrderItemInterface $lineItem
+     * @param Product $product
+     * @param $lineItemNumber
+     * @param $shipmentDate
+     * @return void
      */
     protected function writeLineToFeed(
         $outputHandle,
-        \Magento\Sales\Api\Data\OrderInterface $order,
-        \Magento\Sales\Api\Data\OrderItemInterface $lineItem,
-        \Magento\Catalog\Model\Product $product,
+        OrderInterface $order,
+        OrderItemInterface $lineItem,
+        Product $product,
         $lineItemNumber,
         $shipmentDate
     ) {
         $row = [];
 
+        $productName = $lineItem->getName();
+        $productName = str_replace("\"", "'", $productName);
+        $productName = str_replace("\n", "", $productName);
+
         $row[] = $order->getIncrementId();
         $row[] = $order->getCreatedAt();
         $row[] = $order->getCustomerEmail();
-        $row[] = $lineItem->getName();
-        $row[] = $this->getProductUrl($product, $order->getStoreId());
+        $row[] = $productName;
+        $row[] = $this->exportProduct->getProductUrl($product, $order->getStoreId());
         $row[] = $lineItemNumber;
         $row[] = $this->getOrderPostCode($order);
         $row[] = $order->getCustomerFirstname();
@@ -468,11 +461,11 @@ class Orders extends AbstractExport
     }
 
     /**
-     * @param \Magento\Sales\Api\Data\OrderInterface $order
+     * @param OrderInterface $order
      *
      * @return string
      */
-    protected function getOrderPostCode(\Magento\Sales\Api\Data\OrderInterface $order)
+    protected function getOrderPostCode(OrderInterface $order)
     {
         $postCode = '';
         $shippingAddress = $order->getShippingAddress();
@@ -483,8 +476,14 @@ class Orders extends AbstractExport
         return $postCode;
     }
 
+    /**
+     * @param $storeId
+     * @param $fromDate
+     * @param $toDate
+     * @return Collection
+     */
     protected function getOrders($storeId, $fromDate, $toDate){
-        $orderList = $this->orderCollection->create();
+        $orderList = $this->orderCollectionFactory->create();
 
         $select = $orderList->getSelect();
         $select->joinLeft(
@@ -497,7 +496,6 @@ class Orders extends AbstractExport
             ['ship_updated_at' => 'shipment_track.updated_at']
         );
 
-
         $orderList->addFieldToFilter(self::MAIN_TABLE_PREFIX . self::STORE_ID_FIELD_ID, ['eq' => $storeId]);
         $orderList->addFieldToFilter(
             [self::MAIN_TABLE_PREFIX . self::UPDATED_AT_FIELD_ID, 'shipment_track.updated_at'], [
@@ -509,6 +507,8 @@ class Orders extends AbstractExport
             self::MAIN_TABLE_PREFIX . self::UPDATED_AT_FIELD_ID,
             ['lteq' => $toDate->format(DATE_ATOM)]
         );
+        $orderList->getSelect()->group('main_table.entity_id');
+
         return $orderList;
     }
 }

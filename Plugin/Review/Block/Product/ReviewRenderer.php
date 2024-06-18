@@ -1,22 +1,22 @@
 <?php
 /**
- * TurnTo_SocialCommerce
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- *
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Plugin\Review\Block\Product;
 
+use Closure;
+use Exception;
 use Magento\Catalog\Block\Product\ReviewRendererInterface;
-use TurnTo\SocialCommerce\Setup\InstallData;
+use Magento\Catalog\Model\Product;
+use Magento\Catalog\Model\ProductRepository;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Store\Model\StoreManagerInterface;
+use TurnTo\SocialCommerce\Helper\Config;
+use TurnTo\SocialCommerce\Setup\InstallHelper;
 
 class ReviewRenderer
 {
@@ -26,9 +26,19 @@ class ReviewRenderer
     const RATING_TO_PERCENTILE_MULTIPLIER = 20;
 
     /**
-     * @var null|\TurnTo\SocialCommerce\Helper\Config
+     * @var Config
      */
-    protected $turnToConfigHelper = null;
+    protected $turnToConfigHelper;
+
+    /**
+     * @var ProductRepository
+     */
+    protected $productRepository;
+
+    /**
+     * @var StoreManagerInterface
+     */
+    protected $storeManager;
 
     /**
      * Array of available template name
@@ -39,104 +49,97 @@ class ReviewRenderer
      * @var array
      */
     protected $_availableTemplates = [
-        \Magento\Catalog\Block\Product\ReviewRendererInterface::FULL_VIEW => 'Magento_Review::helper/summary.phtml',
-        \Magento\Catalog\Block\Product\ReviewRendererInterface::SHORT_VIEW => 'Magento_Review::helper/summary_short.phtml',
+        ReviewRendererInterface::FULL_VIEW => 'Magento_Review::helper/summary.phtml',
+        ReviewRendererInterface::SHORT_VIEW => 'Magento_Review::helper/summary_short.phtml',
     ];
 
     /**
      * Plugin constructor.
-     * @param \TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper
+     * @param Config $turnToConfigHelper
+     * @param StoreManagerInterface $storeManager
+     * @param ProductRepository $productRepository
      */
-    public function __construct(\TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper)
-    {
+    public function __construct(
+        Config $turnToConfigHelper,
+        StoreManagerInterface $storeManager,
+        ProductRepository $productRepository
+    ) {
         $this->turnToConfigHelper = $turnToConfigHelper;
+        $this->storeManager = $storeManager;
+        $this->productRepository = $productRepository;
     }
 
     /**
-     * @param \Magento\Catalog\Block\Product\ReviewRendererInterface $subject
-     * @param $proceed
+     * @param ReviewRendererInterface $subject
+     * @param string | null $result
      * @return string
+     * @throws NoSuchEntityException
      */
-    public function aroundGetRatingSummary(\Magento\Catalog\Block\Product\ReviewRendererInterface $subject, $proceed)
+    public function afterGetRatingSummary(ReviewRendererInterface $subject, ?string $result)
     {
-        if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
-            $result = (string)round(
-                $subject->getProduct()->getTurntoRating() * self::RATING_TO_PERCENTILE_MULTIPLIER
-            );
-        } else {
-            $result = $proceed();
+        if ($this->isDisabled()) {
+            return $result;
         }
 
-        return $result;
+        $rating =  $subject->getProduct()->getData(InstallHelper::RATING_ATTRIBUTE_CODE);
+
+        return (string)round(
+            $rating * self::RATING_TO_PERCENTILE_MULTIPLIER
+        );
     }
 
     /**
-     * @param \Magento\Catalog\Block\Product\ReviewRendererInterface $subject
-     * @param $proceed
-     * @return string
-     */
-    public function aroundGetReviewSummary(\Magento\Catalog\Block\Product\ReviewRendererInterface $subject, $proceed)
-    {
-        if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
-            $result = (string)round(
-                $subject->getProduct()->getTurntoRating() * self::RATING_TO_PERCENTILE_MULTIPLIER
-            );
-        } else {
-            $result = $proceed();
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param \Magento\Catalog\Block\Product\ReviewRendererInterface $subject
-     * @param $proceed
+     * @param ReviewRendererInterface $subject
+     * @param int | null $result
      * @return int
+     * @throws NoSuchEntityException
      */
-    public function aroundGetReviewsCount(\Magento\Catalog\Block\Product\ReviewRendererInterface $subject, $proceed)
+    public function afterGetReviewsCount(ReviewRendererInterface $subject, ?int $result)
     {
-        if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
-            $result = $subject->getProduct()->getTurntoReviewCount();
-        } else {
-            $result = $proceed();
+        if ($this->isDisabled()) {
+            return $result;
         }
 
-        return $result;
+        return $subject->getProduct()->getData(InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE);
     }
 
     /**
-     * @param \Magento\Catalog\Block\Product\ReviewRendererInterface $subject
-     * @param \Closure $proceed
-     * @param \Magento\Catalog\Model\Product $product
+     * trigger generation of the block contents but avoid using the
+     * standard checks for magento based product reviews
+     *
+     * @param ReviewRendererInterface $subject
+     * @param Closure $proceed
+     * @param Product $product
      * @param bool $templateType
      * @param bool $displayIfNoReviews
      * @return string
      */
     public function aroundGetReviewsSummaryHtml(
-        \Magento\Catalog\Block\Product\ReviewRendererInterface $subject,
-        \Closure $proceed,
-        \Magento\Catalog\Model\Product $product,
+        ReviewRendererInterface $subject,
+        Closure $proceed,
+        Product $product,
         $templateType = false,
         $displayIfNoReviews = false
     ) {
-        /*
-         * if turnto module and reviews are enabled trigger generation of the block contents but avoid using the
-         * standard checks for magento based product reviews otherwise resolve as usual
-         */
-
-        if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
-            try {
-                $subject->setTemplate($this->_availableTemplates[$templateType]);
-                $subject->setDisplayIfEmpty($displayIfNoReviews);
-                $subject->setProduct($product);
-                $result = $subject->toHtml();
-            } catch (\Exception $e) {
-                $result = $proceed($product, $templateType, $displayIfNoReviews, false);
-            }
-        } else {
-            $result = $proceed($product, $templateType, $displayIfNoReviews, false);
+        if ($this->isDisabled()) {
+            return $proceed($product, $templateType, $displayIfNoReviews, false);
         }
+        try {
+            $subject->setTemplate($this->_availableTemplates[$templateType]);
+            $subject->setDisplayIfEmpty($displayIfNoReviews);
+            $subject->setProduct($product);
 
-        return $result;
+            return $subject->toHtml();
+        } catch (Exception $e) {
+            return $proceed($product, $templateType, $displayIfNoReviews, false);
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDisabled()
+    {
+        return !($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled());
     }
 }
