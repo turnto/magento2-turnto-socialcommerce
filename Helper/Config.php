@@ -126,31 +126,12 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Visual Content
      */
-    CONST XML_PATH_SOCIALCOMMERCE_VISUAL_CONTENT_GALLERY_ROW_WIDGET = 'turnto_socialcommerce_configuration/visual_content/visual_content_gallery_row';
-
-    /**
-     * SSO
-     */
-
-    CONST XML_PATH_SOCIALCOMMERCE_REVIEW_MSG = 'turnto_socialcommerce_configuration/sso/review_msg';
-
-    CONST XML_PATH_SOCIALCOMMERCE_REVIEW_MSG_PUR_REQ = 'turnto_socialcommerce_configuration/sso/review_msg_pur_req';
-
-    CONST XML_PATH_SOCIALCOMMERCE_QUESTION_MSG = 'turnto_socialcommerce_configuration/sso/question_msg';
-
-    CONST XML_PATH_SOCIALCOMMERCE_QUESTION_MSG_ANON = 'turnto_socialcommerce_configuration/sso/question_msg_anon';
-
-    CONST XML_PATH_SOCIALCOMMERCE_ANSWER_MSG = 'turnto_socialcommerce_configuration/sso/answer_msg';
-
-    CONST XML_PATH_SOCIALCOMMERCE_REPLY_MSG = 'turnto_socialcommerce_configuration/sso/reply_msg';
+    const XML_PATH_SOCIALCOMMERCE_VISUAL_CONTENT_GALLERY_ROW_WIDGET = 'turnto_socialcommerce_configuration/visual_content/visual_content_gallery_row';
 
     /**
      *  Teaser
      */
-    CONST XML_PATH_USE_LOCAL_TEASER_CODE= 'turnto_socialcommerce_configuration/teaser/use_local_teaser_code';
-
-
-
+    const XML_PATH_USE_LOCAL_TEASER_CODE= 'turnto_socialcommerce_configuration/teaser/use_local_teaser_code';
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface|null
@@ -200,8 +181,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the value of the setting that determines if TurnTo's configuration is enabled
      *
-     * @param null $scopeCode
-     *
+     * @param int|null|string $scopeCode
      * @return mixed
      */
     public function getIsEnabled($scopeCode = null)
@@ -216,8 +196,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the value of the setting that determines if automated Product Feed Submission is enabled
      *
-     * @param $store = null
-     *
+     * @param int|null|string $store
      * @return mixed
      */
     public function getIsProductFeedSubmissionEnabled($store = null)
@@ -232,8 +211,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the TurnTo Site Key
      *
-     * @param $scopeCode = null
-     *
+     * @param int|null|string $scopeCode
      * @return mixed
      */
     public function getSiteKey($scopeCode = null)
@@ -260,8 +238,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Static URL configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $scopeCode
      * @return mixed
      */
     public function getStaticUrl($scopeCode = null)
@@ -276,8 +253,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Widget URL configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $scopeCode
      * @return mixed
      */
     public function getWidgetUrl($scopeCode = null)
@@ -295,8 +271,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Teaser URL configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $scopeCode
      * @return mixed
      */
     public function getReviewUrl($scopeCode = null)
@@ -312,8 +287,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the URL configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $scopeCode
      * @return mixed
      */
     public function getUrl($scopeCode = null)
@@ -329,8 +303,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Use Child SKU configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return mixed
      */
     public function getUseChildSku($store = null)
@@ -346,8 +319,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Static URL configuration value with the protocol removed
      *
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return mixed
      */
     public function getStaticUrlWithoutProtocol($store = null)
@@ -358,8 +330,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the URL configuration value with the protocol removed
      *
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return mixed
      */
     public function getUrlWithoutProtocol($store = null)
@@ -371,7 +342,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the TurnTo API Authorization Key
      *
      * @param $store = null
-     *
      * @return mixed
      */
     public function getAuthorizationKey($store = null)
@@ -393,7 +363,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      * Gets the TurnTo URL to send a feed to
      *
      * @param $store = null
-     *
      * @return mixed
      */
     public function getFeedUploadAddress($store = null)
@@ -406,8 +375,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return mixed
      */
     public function getExportFeedAddress($store = null)
@@ -462,8 +430,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Question and Answer Enabled configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return bool
      */
     public function getQaEnabled($store = null)
@@ -478,8 +445,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Question and Answer Teaser Enabled configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return bool
      */
     public function getQaTeaserEnabled($store = null)
@@ -494,8 +460,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Reviews Enabled configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return bool
      */
     public function getReviewsEnabled($store = null)
@@ -510,8 +475,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Reviews Teaser Enabled configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return bool
      */
     public function getReviewsTeaserEnabled($store = null)
@@ -526,8 +490,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Gets the Reviews Setup Type configuration value
      *
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return mixed
      */
     public function getMobilePageTitle($store = null)
@@ -536,8 +499,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return mixed
      */
     public function getIsHistoricalOrdersFeedEnabled($store = null)
@@ -550,8 +512,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return mixed
      */
     public function getIsCancelledOrdersFeedEnabled($store = null)
@@ -564,8 +525,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return mixed
      */
     public function getAverageRatingImportEnabled($store = null)
@@ -578,8 +538,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param null $store
-     *
+     * @param int|null|string $store
      * @return mixed
      */
     public function getAverageRatingImportAggregateData($store = null)
@@ -621,7 +580,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     /**
      * Gets the Checkout Comments Captured Enabled configuration value
-     * @param null $store
+     * @param int|null|string $store
      * @return bool
      */
     public function getCommentsCaptureEnabled($store = null)
@@ -635,7 +594,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     /**
      * Gets the Checkout Comments Pinboard Teaser Enabled configuration value
-     * @param null $store
+     * @param int|null|string $store
      * @return bool
      */
     public function getCommentsPinboardTeaserEnabled($store = null)
@@ -649,7 +608,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     /**
      * Gets the Comments Enabled on PDP configuration value
-     * @param null $store
+     * @param int|null|string $store
      * @return bool
      */
     public function getCommentsPdpEnabled($store = null)
@@ -663,7 +622,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     /**
      * Gets the Top Comments Enabled on PDP configuration value
-     * @param null $store
+     * @param int|null|string $store
      * @return bool
      */
     public function getTopCommentsEnabled($store = null)
@@ -677,7 +636,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
 
     /**
      * Gets the Comments Teaser Enabled configuration value
-     * @param null $store
+     * @param int|null|string $store
      * @return bool
      */
     public function getCommentsTeaserEnabled($store = null)
@@ -690,85 +649,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param null $store
-     * @return bool
-     */
-    public function getReviewMsg($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_REVIEW_MSG,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * @param null $store
-     * @return bool
-     */
-    public function getReviewMsgPurchaseReq($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_REVIEW_MSG_PUR_REQ,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * @param null $store
-     * @return bool
-     */
-    public function getQuestionMsg($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_QUESTION_MSG,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * @param null $store
-     * @return bool
-     */
-    public function getQuestionMsgAnon($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_QUESTION_MSG_ANON,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * @param null $store
-     * @return bool
-     */
-    public function getAnswerMessage($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_ANSWER_MSG,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * @param null $store
-     * @return bool
-     */
-    public function getReplyMsg($store = null)
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_SOCIALCOMMERCE_REPLY_MSG,
-            ScopeInterface::SCOPE_STORE,
-            $store ?: $this->getCurrentStoreCode()
-        );
-    }
-
-    /**
-     * @param null $store
+     * @param int|null|string $store
      * @return bool
      */
     public function getUseLocalTeaserCode($store = null)
@@ -780,9 +661,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
-
     /**
-     * @param null $store
+     * @param int|null|string $store
      * @return mixed
      */
     public function getVisualContentGalleryRowWidget($store = null)
@@ -793,5 +673,4 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
             $store ?: $this->getCurrentStoreCode()
         );
     }
-
 }

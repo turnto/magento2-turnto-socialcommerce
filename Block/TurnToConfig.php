@@ -15,7 +15,7 @@ use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
 use TurnTo\SocialCommerce\Api\TurnToConfigDataSourceInterface;
 use TurnTo\SocialCommerce\Helper\Config as TurnToConfigHelper;
-use TurnTo\SocialCommerce\Helper\Version;
+use TurnTo\SocialCommerce\Model\Version;
 
 /**
  * @method void setConfigData(TurnToConfigDataSourceInterface|array $config)
@@ -38,7 +38,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
     /**
      * @var Version
      */
-    protected $versionHelper;
+    protected $version;
     /**
      * @var Json
      */
@@ -49,7 +49,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
      * @param TurnToConfigHelper $configHelper
      * @param ResolverInterface $localeResolver
      * @param Data $helper
-     * @param Version $versionHelper
+     * @param Version $version
      * @param Json $json
      * @param array $data
      */
@@ -58,7 +58,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         TurnToConfigHelper $configHelper,
         ResolverInterface $localeResolver,
         Data $helper,
-        Version $versionHelper,
+        Version $version,
         Json $json,
         array $data = []
     ) {
@@ -71,7 +71,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         $this->configHelper = $configHelper;
         $this->localeResolver = $localeResolver;
         $this->helper = $helper;
-        $this->versionHelper = $versionHelper;
+        $this->version = $version;
         $this->json = $json;
     }
 
@@ -91,7 +91,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         $additionalConfigData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
         $additionalConfigData['siteKey' ] = $this->configHelper->getSiteKey();
         $additionalConfigData = ['locale' => $this->localeResolver->getLocale()];
-        $additionalConfigData['extensionVersion'] = ['magentoVersion'=> $this->versionHelper->getMagentoVersion(), 'turnToCart' => $this->versionHelper->getTurnToVersion()];
+        $additionalConfigData['extensionVersion'] = ['magentoVersion'=> $this->version->getMagentoVersion(), 'turnToCart' => $this->version->getModuleVersion()];
         $additionalConfigData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
         $additionalConfigData['sso'] = ['userDataFn' => null];
 
