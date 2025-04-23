@@ -37,13 +37,6 @@
                     </depends>
                     <can_be_empty>0</can_be_empty>
                 </field>
-                <field id="image_store_base" translate="label comment" type="text" sortOrder="60" showInStore="1" showInWebsite="1" showInDefault="1">
-                    <label>Image Store Base</label>
-                    <comment>Default is https://wac.edgecastcdn.net/001A39/prod. Should not be changed, unless instructed by TurnTo.</comment>
-                    <depends>
-                        <field id="enabled">1</field>
-                    </depends>
-                </field>
                 <field id="use_child_sku" translate="label comment" type="select" sortOrder="70" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Use child SKU instead of parent SKU</label>
                     <comment><![CDATA[Default is "No". If set to "No", the parent SKU of configurable products will be used. If set to "Yes", the child SKU will be used everywhere that this extension references SKUs.]]></comment>

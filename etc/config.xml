@@ -11,7 +11,6 @@
         <turnto_socialcommerce_configuration>
             <general>
                 <enabled>0</enabled>
-                <image_store_base>https://wac.edgecastcdn.net/001A39/prod</image_store_base>
                 <use_child_sku>0</use_child_sku>
             </general>
             <product_attribute_mappings>
@@ -77,7 +76,7 @@
                 <export_catalog_cron_time>0 1 * * *</export_catalog_cron_time>
                 <export_orders_cron_time>0 1 * * *</export_orders_cron_time>
                 <export_canceled_orders_cron_time>0 1 * * *</export_canceled_orders_cron_time>
-                <import_ratings_cron_time>0 11,19 * * *</import_ratings_cron_time><!-- TT rating file updates are available at ~6am and ~2pm EST/EDT -->
+                <import_ratings_cron_time>0 1,12,20 * * *</import_ratings_cron_time><!-- TT rating file generates at 3am, 11am, 6pm EST/EDT and takes ~4hrs -->
             </cron_schedule>
         </turnto_socialcommerce_cron_schedule>
     </default>
