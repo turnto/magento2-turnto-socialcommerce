@@ -15,6 +15,7 @@ use Magento\CatalogWidget\Block\Product\ProductsList;
 use Magento\CatalogWidget\Model\Rule;
 use Magento\Framework\App\Http\Context as HttpContext;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Rule\Model\Condition\Sql\Builder;
 use Magento\Widget\Helper\Conditions;
 use TurnTo\SocialCommerce\Block\TurnToConfig;
@@ -56,7 +57,7 @@ class Pinboard extends ProductsList
         Rule $rule,
         Conditions $conditionsHelper,
         array $data = [],
-        Json $json = null,
+        Json $json = null
     ) {
         $this->config = $config;
         $this->pinboardConfigFactory = $pinboardConfigFactory;

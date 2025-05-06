@@ -16,6 +16,7 @@ use Magento\Catalog\Model\Product\Visibility;
 use Magento\Catalog\Model\ResourceModel\Product\Collection;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Intl\DateTimeFactory;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Api\Data\StoreInterface;
@@ -54,7 +55,7 @@ class Catalog
      */
     protected $totalPages;
     /**
-     * @var StoreManagerInterface|null
+     * @var StoreManagerInterface
      */
     protected $storeManager;
     /**
@@ -423,7 +424,7 @@ class Catalog
     {
         try {
             $parent = $category->getParentCategory();
-        } catch (\Magento\Framework\Exception\NoSuchEntityException $isRootEntity) {
+        } catch (NoSuchEntityException $isRootEntity) {
             $parent = null;
         } finally {
             $categoryBranch[] = $category;

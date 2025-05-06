@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
+use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Exception;
@@ -217,7 +218,7 @@ class Orders
                 try {
                     $orderFeed =$this->getOrdersFeed(
                         $store->getId(),
-                        $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))->sub(new \DateInterval('P25D')),
+                        $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))->sub(new DateInterval('P25D')),
                         $this->dateTimeFactory->create(
                             'now',
                             new DateTimeZone('UTC')

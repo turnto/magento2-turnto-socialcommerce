@@ -7,7 +7,9 @@ declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
+use DateInterval;
 use DateTime;
+use DateTimeZone;
 use Exception;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Filesystem\Io\File;
@@ -166,8 +168,8 @@ class CanceledOrders
                 try {
                     $feedData = $this->getCanceledOrdersFeed(
                         $store->getId(),
-                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P80D')),
-                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))
+                        $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))->sub(new DateInterval('P80D')),
+                        $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))
                     );
                     $this->feedClient->transmitFeedFile($feedData, self::FEED_NAME, self::FEED_STYLE, $store->getCode());
                 } catch (Exception $e) {

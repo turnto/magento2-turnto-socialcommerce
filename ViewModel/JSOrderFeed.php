@@ -47,7 +47,7 @@ class JSOrderFeed implements ArgumentInterface
         Config $config,
         Session $checkoutSession,
         Image   $imageHelper,
-        Product $product,
+        Product $product
     ) {
         $this->config = $config;
         $this->checkoutSession = $checkoutSession;

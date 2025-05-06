@@ -18,7 +18,7 @@
                     </argument>
                 </arguments>
             </block>
-            <block class="Magento\Framework\View\Element\Template" name="turnto.pdp" template="TurnTo_SocialCommerce::product/view/config.phtml">
+            <block name="turnto.pdp" template="TurnTo_SocialCommerce::product/view/config.phtml">
                 <arguments>
                     <argument name="data" xsi:type="array">
                         <item name="cache_lifetime" xsi:type="number">3600</item>
@@ -56,16 +56,16 @@
 
         <!-- Top Comments PDP Content -->
         <referenceContainer name="content">
-            <block class="Magento\Framework\View\Element\Template" name="turnto_checkout_comments" template="TurnTo_SocialCommerce::product/view/comments.phtml" after="product.info.details" ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_product_detail">
+            <block name="turnto_checkout_comments" template="TurnTo_SocialCommerce::product/view/comments.phtml" after="product.info.details" ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_product_detail">
                 <arguments>
                     <argument name="view_model" xsi:type="object">TurnTo\SocialCommerce\ViewModel\Widget</argument>
                 </arguments>
             </block>
         </referenceContainer>
 
-        <!-- Pinboard PDP Content -->
+        <!-- Gallery Row PDP Content -->
         <referenceContainer name="content">
-            <block class="TurnTo\SocialCommerce\Block\Widget\Pinboard" name="gallery_row_widget" template="TurnTo_SocialCommerce::widget/gallery_row.phtml" after="product.info.details"/>
+            <block name="gallery_row_widget" template="TurnTo_SocialCommerce::widget/gallery_row.phtml" after="product.info.details" ifconfig="turnto_socialcommerce_configuration/visual_content/visual_content_gallery_row"/>
         </referenceContainer>
     </body>
 </page>

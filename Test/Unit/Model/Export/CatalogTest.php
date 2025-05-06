@@ -42,7 +42,7 @@ class CatalogTest extends TestCase
             $this->createMock(Image::class),
             $this->createMock(Product::class),
             $this->createMock(FeedClient::class),
-            $this->createMock(Monolog::class),
+            $this->createMock(Monolog::class)
         );
     }
 

@@ -38,7 +38,7 @@ class CreatePostPlugin
     public function __construct(
         Session $customerSession,
         RedirectFactory $redirectFactory,
-        ManagerInterface $messageManager,
+        ManagerInterface $messageManager
     ) {
         $this->customerSession = $customerSession;
         $this->redirectFactory = $redirectFactory;

@@ -43,7 +43,7 @@ class Gtin
     protected $config;
 
     public function __construct(
-        Config $config,
+        Config $config
     ) {
         $this->config = $config;
     }

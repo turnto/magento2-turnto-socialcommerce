@@ -31,7 +31,7 @@ class RedirectToLogin extends Action
     public function __construct(
         Context $context,
         SessionFactory $customerSessionFactory,
-        Config $config,
+        Config $config
     ) {
         parent::__construct($context);
         $this->customerSessionFactory = $customerSessionFactory;
