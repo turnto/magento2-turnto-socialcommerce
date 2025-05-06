@@ -1,4 +1,9 @@
 <?php
+/**
+ * Copyright © Emplifi, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Setup\Patch\Data;
 
@@ -13,17 +18,17 @@ class AddTurnToDisabledAttribute implements DataPatchInterface
     /**
      * @var ModuleDataSetupInterface
      */
-    private $moduleDataSetup;
+    protected $moduleDataSetup;
 
     /**
      * @var EavSetupFactory
      */
-    private $eavSetupFactory;
+    protected $eavSetupFactory;
 
     /**
-     * @var \TurnTo\SocialCommerce\Setup\InstallHelper|null
+     * @var InstallHelper
      */
-    private $installHelper;
+    protected $installHelper;
 
     /**
      * InstallTurnToAttributes constructor.

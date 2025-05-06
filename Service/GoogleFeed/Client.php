@@ -1,4 +1,9 @@
 <?php
+/**
+ * Copyright © Emplifi, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Service\GoogleFeed;
 
@@ -6,7 +11,7 @@ use Exception;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\RequestOptions;
 use TurnTo\SocialCommerce\Api\FeedClient;
-use TurnTo\SocialCommerce\Helper\Config;
+use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Export\Catalog;
 use TurnTo\SocialCommerce\Model\File;
@@ -35,8 +40,8 @@ class Client implements FeedClient
     protected $file;
 
     public function __construct(
-        Config       $config,
-        Monolog      $logger,
+        Config $config,
+        Monolog $logger,
         GuzzleClient $client,
         File $file
     ){
@@ -59,7 +64,7 @@ class Client implements FeedClient
                 $this->file->writeFile($path, $feedData);
             }
 
-            $response = $this->client->request('POST', $this->config->getFeedUploadAddress($storeCode), [
+            $response = $this->client->request('POST', $this->config->getConfigValue(Config::PRODUCT_FEED_SUBMISSION_URL, $storeCode), [
                 RequestOptions::MULTIPART => [
                     [
                         'name' => 'siteKey',
@@ -89,7 +94,7 @@ class Client implements FeedClient
 
             //It is possible to get a status 200 message who's body is an error message from TurnTo
             if ($responseContents !== self::TURNTO_SUCCESS_RESPONSE) {
-                throw new Exception("TurnTo $fileName submission failed with message: $responseContents");
+                throw new Exception("Emplifi $fileName submission failed with message: $responseContents");
             }
         } catch (Exception $e) {
             $this->logger->error(

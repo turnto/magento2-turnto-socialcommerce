@@ -1,25 +1,21 @@
 <?php
 /**
- * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * Copyright © Emplifi, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
-namespace TurnTo\SocialCommerce\Block;
+namespace TurnTo\SocialCommerce\ViewModel;
 
 use Magento\Catalog\Helper\Image;
 use Magento\Checkout\Model\Session;
-use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\View\Element\Template;
-use Magento\Framework\View\Element\Template\Context;
+use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Sales\Model\Order\Item;
-use Magento\Store\Model\ScopeInterface;
-use TurnTo\SocialCommerce\Helper\Config;
-use TurnTo\SocialCommerce\Helper\Product;
-use TurnTo\SocialCommerce\Model\Config\Checkout as CheckoutConfig;
-use TurnTo\SocialCommerce\Model\Config\General as GeneralConfig;
+use TurnTo\SocialCommerce\Model\Config;
+use TurnTo\SocialCommerce\Model\Product;
 use TurnTo\SocialCommerce\Model\Config\Source\AddressFallback;
 
-class JSOrderFeed extends Template
+class JSOrderFeed implements ArgumentInterface
 {
     /**
      * @var Config
@@ -39,45 +35,28 @@ class JSOrderFeed extends Template
     /**
      * @var Product
      */
-    protected $productHelper;
-    /**
-     * @var CheckoutConfig
-     */
-    protected $checkoutConfig;
-    /**
-     * @var GeneralConfig
-     */
-    protected $generalConfig;
+    protected $product;
 
     /**
-     * @param Context $context
-     * @param CheckoutConfig $checkoutConfig
-     * @param GeneralConfig $generalConfig
+     * @param Config $config
      * @param Session $checkoutSession
      * @param Image $imageHelper
-     * @param Product $productHelper
-     * @param array $data
+     * @param Product $product
      */
     public function __construct(
-        Context $context,
-        CheckoutConfig $checkoutConfig,
-        GeneralConfig $generalConfig,
+        Config $config,
         Session $checkoutSession,
         Image   $imageHelper,
-        Product $productHelper,
-        array   $data = []
+        Product $product,
     ) {
-        parent::__construct($context, $data);
-        $this->checkoutConfig = $checkoutConfig;
-        $this->generalConfig = $generalConfig;
+        $this->config = $config;
         $this->checkoutSession = $checkoutSession;
         $this->imageHelper = $imageHelper;
-        $this->productHelper = $productHelper;
+        $this->product = $product;
     }
 
     /**
      * @return string
-     * @throws NoSuchEntityException
      */
     public function getFeedPurchaseOrderData()
     {
@@ -89,7 +68,7 @@ class JSOrderFeed extends Template
 
         if (empty($firstName)) {
             // Depending on setting, fallback to Shipping Address name or Billing Address name first
-            $fallback = $this->checkoutConfig->getJSOrderFeedCustomerNameFallback(ScopeInterface::SCOPE_STORE, $storeId);
+            $fallback = $this->config->getConfigValue(Config::CHECKOUT_CUSTOMER_NAME_FALLBACK, $storeId);
 
             if ($fallback === AddressFallback::BILLING_ADDRESS_VALUE) {
                 $address = $order->getBillingAddress();
@@ -116,11 +95,11 @@ class JSOrderFeed extends Template
                 continue;
             }
             $product->setStoreId($storeId);
-            $sku = $this->generalConfig->getUseChildSku(ScopeInterface::SCOPE_STORE, $storeId) ? $item->getSku() : $product->getSku();
+            $sku = $this->config->getUseChildSku($storeId) ? $item->getSku() : $product->getSku();
             $orderItems[] = [
                 'title' => $product->getName(),
                 'url' => $product->getProductUrl(),
-                'sku' => $this->productHelper->turnToSafeEncoding($sku),
+                'sku' => $this->product->turnToSafeEncoding($sku),
                 'itemImageUrl' => $this->imageHelper->init($product, 'product_small_image')->getUrl(),
                 'price' => $item->getPrice(),
                 'qty' => (int)$item->getQtyOrdered()

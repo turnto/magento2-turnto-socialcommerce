@@ -1,19 +1,20 @@
 <?php
 /**
- * @category    ClassyLlama
- * @package
- * @copyright   Copyright (c) 2020 Classy Llama Studios, LLC
+ * Copyright © Emplifi, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+declare(strict_types=1);
+
 namespace TurnTo\SocialCommerce\Plugin\Block\Product\View\Type;
 
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ProductRepository;
 use Magento\ConfigurableProduct\Block\Product\View\Type\Configurable;
-use TurnTo\SocialCommerce\Helper\Config;
+use Magento\Framework\Exception\NoSuchEntityException;
+use TurnTo\SocialCommerce\Model\Config;
 
 class ConfigurablePlugin
 {
-
     /**
      * @var Config
      */
@@ -38,19 +39,17 @@ class ConfigurablePlugin
 
     /**
      * @param Configurable $subject
-     * @param              $result
-     *
+     * @param $result
      * @return false|string
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws NoSuchEntityException
      */
     public function afterGetJsonConfig(
         Configurable $subject,
         $result
     ) {
-
         $result = json_decode($result,true);
         $parentProduct =  $this->product->getById($result['productId']);
-        $result['useChild'] = (bool)$this->config->getUseChildSku();
+        $result['useChild'] = $this->config->getUseChildSku();
         $result['parentSku'] = $parentProduct->getSku();
 
         $children = $parentProduct->getTypeInstance()->getUsedProducts($parentProduct);

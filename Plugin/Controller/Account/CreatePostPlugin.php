@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * Copyright © Emplifi, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 declare(strict_types=1);
@@ -12,46 +12,37 @@ use Magento\Customer\Model\Session;
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Framework\Message\ManagerInterface;
-use TurnTo\SocialCommerce\Helper\Config;
 
 class CreatePostPlugin
 {
     /**
      * @var Session
      */
-    private $customerSession;
+    protected $customerSession;
     /**
      * @var RedirectFactory
      */
-    private $redirectFactory;
+    protected $redirectFactory;
     /**
      * @var ManagerInterface
      */
-    private $messageManager;
-
-    /**
-     * @var Config
-     */
-    protected $config;
+    protected $messageManager;
 
     /**
      * CreatePostPlugin constructor.
      *
-     * @param Session                      $customerSession
+     * @param Session $customerSession
      * @param RedirectFactory $redirectFactory
-     * @param ManagerInterface          $messageManager
-     * @param Config                  $config
+     * @param ManagerInterface $messageManager
      */
     public function __construct(
         Session $customerSession,
         RedirectFactory $redirectFactory,
         ManagerInterface $messageManager,
-        Config $config
     ) {
         $this->customerSession = $customerSession;
         $this->redirectFactory = $redirectFactory;
         $this->messageManager = $messageManager;
-        $this->config = $config;
     }
 
     /**

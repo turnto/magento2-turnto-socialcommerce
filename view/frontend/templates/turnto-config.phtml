@@ -1,9 +1,16 @@
-<?php /** @var \TurnTo\SocialCommerce\Block\TurnToConfigInterface $block */ ?>
 <?php
-/** @var TurnTo\SocialCommerce\Helper\Config $configHelper */
-$configHelper = $this->helper(\TurnTo\SocialCommerce\Helper\Config::class);
-$siteKey = $configHelper->getSiteKey();
-$version = $configHelper->getTurnToVersion();
+/**
+ * Copyright © Emplifi, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+use TurnTo\SocialCommerce\Block\TurnToConfig;
+use TurnTo\SocialCommerce\Model\Config;
+
+/**
+ * @var TurnToConfig $block
+ */
+$siteKey = $block->getSiteKey();
 ?>
 <script type="text/javascript">
     (function (window) {
@@ -25,7 +32,7 @@ $version = $configHelper->getTurnToVersion();
 
 
 <?php if ($siteKey): ?>
-    <script src="<?= $configHelper->getWidgetUrl() ?><?= $version ? $version : 'v5' ?>/widgets/<?= $siteKey ?>/js/turnto.js"
+    <script src="<?= $block->getConfigValue(Config::PRODUCT_WIDGET_URL) ?><?= Config::SOCIALCOMMERCE_VERSION ?>/widgets/<?= $siteKey ?>/js/turnto.js"
             type="text/javascript" async></script>
 <?php endif; ?>
 

@@ -1,27 +1,30 @@
 <?php
 /**
- * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * Copyright © Emplifi, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
+use DateTimeZone;
 use Exception;
 use Magento\Catalog\Helper\Image;
+use Magento\Catalog\Model\Category;
+use Magento\Catalog\Model\Product as CatalogProduct;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\Catalog\Model\ResourceModel\Product\Collection;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
-use Magento\CatalogInventory\Model\Spi\StockRegistryProviderInterface;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
-use Magento\Framework\Filesystem;
 use Magento\Framework\Intl\DateTimeFactory;
+use Magento\Framework\UrlInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use SimpleXMLElement;
 use TurnTo\SocialCommerce\Api\FeedClient;
-use TurnTo\SocialCommerce\Helper\Config;
-use TurnTo\SocialCommerce\Helper\Product as ProductHelper;
+use TurnTo\SocialCommerce\Model\Config;
+use TurnTo\SocialCommerce\Model\Config\Gtin;
+use TurnTo\SocialCommerce\Model\Product;
 use TurnTo\SocialCommerce\Logger\Monolog;
 
 /**
@@ -41,24 +44,15 @@ class Catalog
     protected $imageHelper = null;
 
     /**
-     * @var StockRegistryProviderInterface
+     * @var Product
      */
-    protected $stockRegistryProvider;
-
-    /**
-     * @var ProductHelper
-     */
-    protected $productHelper;
+    protected $product;
 
     /**
      * Used to generate file name (x_of_totalPages_feed.xml)
      * @var Int
      */
     protected $totalPages;
-    /**
-     * @var Filesystem
-     */
-    protected $filesystem;
     /**
      * @var StoreManagerInterface|null
      */
@@ -84,43 +78,40 @@ class Catalog
      */
     protected $dateTimeFactory;
     /**
-     * @var Product
+     * @var Gtin
      */
-    protected $product;
+    protected $gtin;
 
     /**
      * Catalog constructor.
      *
      * @param Config $config
+     * @param Gtin $gtin
      * @param StoreManagerInterface $storeManager
      * @param CollectionFactory $productCollectionFactory
      * @param DateTimeFactory $dateTimeFactory
      * @param Image $imageHelper
-     * @param ProductHelper $productHelper
      * @param Product $product
      * @param FeedClient $feedClient
-     * @param Filesystem $filesystem
      * @param Monolog $logger
      */
     public function __construct(
         Config                $config,
+        Gtin                  $gtin,
         StoreManagerInterface $storeManager,
         CollectionFactory     $productCollectionFactory,
         DateTimeFactory       $dateTimeFactory,
         Image                 $imageHelper,
-        ProductHelper         $productHelper,
         Product               $product,
-        FeedClient                $feedClient,
-        Filesystem            $filesystem,
+        FeedClient            $feedClient,
         Monolog               $logger
     ) {
         $this->config = $config;
+        $this->gtin = $gtin;
         $this->imageHelper = $imageHelper;
         $this->storeManager = $storeManager;
-        $this->productHelper = $productHelper;
         $this->product = $product;
         $this->feedClient = $feedClient;
-        $this->filesystem = $filesystem;
         $this->logger = $logger;
         $this->productCollectionFactory = $productCollectionFactory;
         $this->dateTimeFactory = $dateTimeFactory;
@@ -171,16 +162,16 @@ class Catalog
             $feed->addChild('title', $this->sanitizeData($store->getName() . ' - Google Product Atom 1.0 Feed'));
             $feed->addChild(
                 'link',
-                $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK))
+                $this->sanitizeData($store->getBaseUrl(UrlInterface::URL_TYPE_LINK))
             );
             $feed->addChild(
                 'updated',
-                $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->format(DATE_ATOM)
+                $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))->format(DATE_ATOM)
             );
             $feed->addChild('author')->addChild('name', 'TurnTo');
             $feed->addChild(
                 'id',
-                $this->sanitizeData($store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB))
+                $this->sanitizeData($store->getBaseUrl(UrlInterface::URL_TYPE_WEB))
             );
 
             $childProducts = [];
@@ -262,10 +253,10 @@ class Catalog
     /**
      * Adds a Magento catalog product to a Google Products ATOM 1.0 xml feed
      *
-     * @param SimpleXMLElement              $entry
-     * @param \Magento\Catalog\Model\Product $product
-     * @param                                $store
-     * @param                                $parent bool|\Magento\Catalog\Model\Product
+     * @param SimpleXMLElement $entry
+     * @param CatalogProduct $product
+     * @param $store
+     * @param $parent bool|CatalogProduct
      *
      * @throws Exception
      */
@@ -275,7 +266,7 @@ class Catalog
             throw new Exception('Product can not be null or empty');
         }
 
-        $sku = $this->productHelper->turnToSafeEncoding($product->getSku());
+        $sku = $this->product->turnToSafeEncoding($product->getSku());
         if (empty($sku)) {
             throw new Exception('Product must have a valid sku');
         }
@@ -299,29 +290,31 @@ class Catalog
         $mpn = null;
         $brand = null;
         $identifierExists = 'FALSE';
-        $gtinMap = $this->config->getGtinAttributesMap($store->getCode());
+        $gtinMap = $this->gtin->getGtinAttributesMap($store->getCode());
 
         if (!empty($gtinMap)) {
-            if (isset($gtinMap[Config::MPN_ATTRIBUTE])) {
-                $mpn = $product->getData($gtinMap[Config::MPN_ATTRIBUTE]);
+            if (isset($gtinMap[Gtin::MPN_ATTRIBUTE])) {
+                $mpn = $product->getData($gtinMap[Gtin::MPN_ATTRIBUTE]);
             }
-            if (isset($gtinMap[Config::BRAND_ATTRIBUTE])) {
-                $brand = $product->getData($gtinMap[Config::BRAND_ATTRIBUTE]);
+            if (isset($gtinMap[Gtin::BRAND_ATTRIBUTE])) {
+                $brand = $product->getData($gtinMap[Gtin::BRAND_ATTRIBUTE]);
             }
-            if (empty($gtin) && isset($gtinMap[Config::UPC_ATTRIBUTE])) {
-                $gtin = $product->getData($gtinMap[Config::UPC_ATTRIBUTE]);
-            }
-            if (empty($gtin) && isset($gtinMap[Config::ISBN_ATTRIBUTE])) {
-                $gtin = $product->getData($gtinMap[Config::ISBN_ATTRIBUTE]);
-            }
-            if (empty($gtin) && isset($gtinMap[Config::EAN_ATTRIBUTE])) {
-                $gtin = $product->getData($gtinMap[Config::EAN_ATTRIBUTE]);
-            }
-            if (empty($gtin) && isset($gtinMap[Config::JAN_ATTRIBUTE])) {
-                $gtin = $product->getData($gtinMap[Config::JAN_ATTRIBUTE]);
-            }
-            if (empty($gtin) && isset($gtinMap[Config::ASIN_ATTRIBUTE])) {
-                $gtin = $product->getData($gtinMap[Config::ASIN_ATTRIBUTE]);
+            if (empty($gtin)) {
+                if (isset($gtinMap[Gtin::UPC_ATTRIBUTE])) {
+                    $gtin = $product->getData($gtinMap[Gtin::UPC_ATTRIBUTE]);
+                }
+                if (isset($gtinMap[Gtin::ISBN_ATTRIBUTE])) {
+                    $gtin = $product->getData($gtinMap[Gtin::ISBN_ATTRIBUTE]);
+                }
+                if (isset($gtinMap[Gtin::EAN_ATTRIBUTE])) {
+                    $gtin = $product->getData($gtinMap[Gtin::EAN_ATTRIBUTE]);
+                }
+                if (isset($gtinMap[Gtin::JAN_ATTRIBUTE])) {
+                    $gtin = $product->getData($gtinMap[Gtin::JAN_ATTRIBUTE]);
+                }
+                if (isset($gtinMap[Gtin::ASIN_ATTRIBUTE])) {
+                    $gtin = $product->getData($gtinMap[Gtin::ASIN_ATTRIBUTE]);
+                }
             }
             if (!empty($gtin)) {
                 $entry->addChild('g:gtin', $this->sanitizeData($gtin));
@@ -385,11 +378,11 @@ class Catalog
     /**
      * Gets the deepest tree for given product and returns as "rootNodeName > branchNodeName > leafNodeName"
      *
-     * @param \Magento\Catalog\Model\Product $product
+     * @param CatalogProduct $product
      *
      * @return string
      */
-    protected function getCategoryTreeString(\Magento\Catalog\Model\Product $product)
+    protected function getCategoryTreeString(CatalogProduct $product)
     {
         $categoryName = '';
         $categories = $product->getCategoryCollection();
@@ -421,12 +414,12 @@ class Catalog
     /**
      * Recursively walks category chain from leaf to root while writing the traversed branch to an array
      *
-     * @param \Magento\Catalog\Model\Category $category
+     * @param Category $category
      * @param array                           $categoryBranch
      *
      * @return array
      */
-    protected function getCategoryBranch(\Magento\Catalog\Model\Category $category, array $categoryBranch = [])
+    protected function getCategoryBranch(Category $category, array $categoryBranch = [])
     {
         try {
             $parent = $category->getParentCategory();
@@ -452,7 +445,7 @@ class Catalog
         foreach ($this->storeManager->getStores() as $store) {
             if (
                 $this->config->getIsEnabled($store->getCode()) &&
-                $this->config->getIsProductFeedSubmissionEnabled($store->getCode())
+                $this->config->getConfigValue(Config::PRODUCT_ENABLE_AUTOMATIC_SUBMISSION, $store->getCode())
             ) {
                 $page = 1;
                 while ($feed = $this->generateProductFeed($store, $page)) {
@@ -476,8 +469,8 @@ class Catalog
     /**
      * Get item group ID for a given product
      *
-     * @param \Magento\Catalog\Model\Product      $product
-     * @param \Magento\Catalog\Model\Product|bool $parent
+     * @param CatalogProduct $product
+     * @param CatalogProduct|bool $parent
      *
      * @return string
      */
@@ -516,7 +509,7 @@ class Catalog
             ->addUrlRewrite()
             ->setPage($page, $pageCount);
 
-        $gtinMap = $this->config->getGtinAttributesMap($store->getCode());
+        $gtinMap = $this->gtin->getGtinAttributesMap($store->getCode());
 
         if (!empty($gtinMap)) {
             foreach ($gtinMap as $attributeName) {

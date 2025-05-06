@@ -1,4 +1,9 @@
 <?php
+/**
+ * Copyright © Emplifi, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Setup\Patch\Data;
 
@@ -6,6 +11,7 @@ use Magento\Eav\Setup\EavSetupFactory;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
+use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Setup\InstallHelper;
 
 class InstallTurnToAttributes implements DataPatchInterface
@@ -13,22 +19,22 @@ class InstallTurnToAttributes implements DataPatchInterface
     /**
      * @var ModuleDataSetupInterface
      */
-    private $moduleDataSetup;
+    protected $moduleDataSetup;
 
     /**
      * @var EavSetupFactory
      */
-    private $eavSetupFactory;
+    protected $eavSetupFactory;
 
     /**
      * @var WriterInterface
      */
-    private $configWriter;
+    protected $configWriter;
 
     /**
-     * @var \TurnTo\SocialCommerce\Setup\InstallHelper|null
+     * @var InstallHelper
      */
-    private $installHelper;
+    protected $installHelper;
 
     /**
      * InstallTurnToAttributes constructor.
@@ -118,7 +124,7 @@ class InstallTurnToAttributes implements DataPatchInterface
             ]
         );
 
-        // use turnto's remote teaser code rather then local code for new installs
-        $this->configWriter->save('turnto_socialcommerce_configuration/teaser/use_local_teaser_code', 0);
+        // Use remote teaser code rather than local code for new installs
+        $this->configWriter->save(Config::TEASER_LOCAL_TEASER_CODE, 0);
     }
 }

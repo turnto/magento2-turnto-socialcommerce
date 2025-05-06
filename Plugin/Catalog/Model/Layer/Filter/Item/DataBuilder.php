@@ -1,20 +1,14 @@
 <?php
 /**
- * TurnTo_SocialCommerce
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- *
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Emplifi, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Plugin\Catalog\Model\Layer\Filter\Item;
 
+use Magento\Catalog\Model\Layer\Filter\Item\DataBuilder as MagentoDataBuilder;
+use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Setup\InstallHelper;
 use TurnTo\SocialCommerce\Plugin\Review\Block\Product\ReviewRenderer;
 
@@ -26,17 +20,17 @@ class DataBuilder
     const RATING_APPEND_AND_UP = '& Up';
 
     /**
-     * @var null|\TurnTo\SocialCommerce\Helper\Config
+     * @var Config
      */
-    protected $turnToConfigHelper = null;
+    protected $config;
 
     /**
      * DataBuilder constructor.
-     * @param \TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper
+     * @param Config $config
      */
-    public function __construct(\TurnTo\SocialCommerce\Helper\Config $turnToConfigHelper)
+    public function __construct(Config $config)
     {
-        $this->turnToConfigHelper = $turnToConfigHelper;
+        $this->config = $config;
     }
 
     /**
@@ -66,22 +60,21 @@ class DataBuilder
     }
 
     /**
-     * @param \Magento\Catalog\Model\Layer\Filter\Item\DataBuilder $subject
-     * @param \Closure $proceed
-     * @param $label
-     * @param $value
-     * @param $count
+     * @param MagentoDataBuilder $subject
+     * @param string $label
+     * @param string $value
+     * @param int $count
+     * @return array
      */
-    public function aroundAddItemData(
-        \Magento\Catalog\Model\Layer\Filter\Item\DataBuilder $subject,
-        \Closure $proceed,
+    public function beforeAddItemData(
+        MagentoDataBuilder $subject,
         $label,
         $value,
         $count
     ) {
-        if ($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled()) {
+        if ($this->config->getIsEnabled() && $this->config->getConfigBool(Config::REVIEWS_ENABLE)) {
             $label = $this->getRatingLabel($label);
         }
-        $proceed($label, $value, $count);
+        return [$label, $value, $count];
     }
 }

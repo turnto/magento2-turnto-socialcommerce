@@ -1,83 +1,87 @@
 <?php
 /**
- * TurnTo_SocialCommerce
- * NOTICE OF LICENSE
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+f * Copyright © Emplifi, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Block\Widget;
 
-use Magento\Framework\App\ObjectManager;
+use Magento\Catalog\Block\Product\Context;
+use Magento\Catalog\Model\Product\Visibility;
+use Magento\Catalog\Model\ResourceModel\Product\Collection;
+use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
+use Magento\CatalogWidget\Block\Product\ProductsList;
+use Magento\CatalogWidget\Model\Rule;
+use Magento\Framework\App\Http\Context as HttpContext;
 use Magento\Framework\Exception\LocalizedException;
-use TurnTo\SocialCommerce\Helper\Product;
+use Magento\Rule\Model\Condition\Sql\Builder;
+use Magento\Widget\Helper\Conditions;
+use TurnTo\SocialCommerce\Block\TurnToConfig;
+use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Model\Data\PinboardConfigFactory;
 
-/**
- * @method getContentType(): string
- * @method getTitle(): string
- * @method getLimit(): string
- * @method getMaxDaysOld(): string
- * @method getMaxCommentsPerBox(): string
- * @method getProgressiveLoading(): string
- */
-class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
+class Pinboard extends ProductsList
 {
+    /**
+     * @var Config
+     */
+    protected $config;
     /**
      * @var PinboardConfigFactory
      */
     protected $pinboardConfigFactory;
-    /**
-     * @var Product
-     */
-    protected $productHelper;
 
+    /**
+     * @param Config $config
+     * @param PinboardConfigFactory $pinboardConfigFactory
+     * @param Context $context
+     * @param CollectionFactory $productCollectionFactory
+     * @param Visibility $catalogProductVisibility
+     * @param HttpContext $httpContext
+     * @param Builder $sqlBuilder
+     * @param Rule $rule
+     * @param Conditions $conditionsHelper
+     * @param array $data
+     * @param Json|null $json
+     */
     public function __construct(
-        \Magento\Catalog\Block\Product\Context $context,
-        \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
-        \Magento\Catalog\Model\Product\Visibility $catalogProductVisibility,
-        \Magento\Framework\App\Http\Context $httpContext,
-        \Magento\Rule\Model\Condition\Sql\Builder $sqlBuilder,
-        \Magento\CatalogWidget\Model\Rule $rule,
-        \Magento\Widget\Helper\Conditions $conditionsHelper,
+        Config $config,
+        PinboardConfigFactory $pinboardConfigFactory,
+        Context $context,
+        CollectionFactory $productCollectionFactory,
+        Visibility $catalogProductVisibility,
+        HttpContext $httpContext,
+        Builder $sqlBuilder,
+        Rule $rule,
+        Conditions $conditionsHelper,
         array $data = [],
         Json $json = null,
-        PinboardConfigFactory $pinboardConfigFactory = null,
-        Product $productHelper = null
-    )
-    {
-        // Call the parent class with the proper arguments based on the availability of a Magento 2.2.x class
-        call_user_func_array(
-            [__CLASS__, 'parent::__construct'],
-            array_slice(
-                func_get_args(),
-                0,
-                // 9 excludes our custom classes, 8 excludes both our classes and the JSON class that doesn't exist
-                class_exists('Magento\Framework\Serialize\Serializer\Json') ? 9 : 8
-            )
+    ) {
+        $this->config = $config;
+        $this->pinboardConfigFactory = $pinboardConfigFactory;
+        parent::__construct(
+            $context,
+            $productCollectionFactory,
+            $catalogProductVisibility,
+            $httpContext,
+            $sqlBuilder,
+            $rule,
+            $conditionsHelper,
+            $data,
+            $json
         );
-
-        $this->pinboardConfigFactory = $pinboardConfigFactory ?: ObjectManager::getInstance()->get(
-            PinboardConfigFactory::class
-        );
-        $this->productHelper = $productHelper ?: ObjectManager::getInstance()->get(Product::class);
     }
 
     /**
      * Prepare and return product collection
      *
-     * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
+     * @return Collection
      * @SuppressWarnings(PHPMD.RequestAwareBlockMethod)
      */
     public function createCollection()
     {
-        /** @var $collection \Magento\Catalog\Model\ResourceModel\Product\Collection */
         $collection = $this->productCollectionFactory->create();
-
         if ($this->getData('store_id') !== null) {
             $collection->setStoreId($this->getData('store_id'));
         }
@@ -86,9 +90,11 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
 
         $collection = $this->_addProductAttributesAndPrices($collection)
             ->addStoreFilter()
-            ->addAttributeToSort('created_at', 'desc')
+            ->addAttributeToSort('entity_id', 'desc')
             ->setPageSize($this->getPageSize())
             ->setCurPage($this->getRequest()->getParam($this->getData('page_var_name'), 1));
+
+        // Removed conditions; getBaseCollection doesn't exist in Magento 3.3
 
         /**
          * Prevent retrieval of duplicate records. This may occur when multiselect product attribute matches
@@ -138,10 +144,10 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
      */
     public function getTurnToConfigHtml()
     {
-        /** @var \TurnTo\SocialCommerce\Block\TurnToConfig $pinboardBlock */
+        /** @var TurnToConfig $pinboardBlock */
         try {
             $pinboardBlock = $this->getLayout()->createBlock(
-                \TurnTo\SocialCommerce\Block\TurnToConfig::class,
+                TurnToConfig::class,
                 'turnto.config.pinboard'
             );
         } catch (LocalizedException $e) {
@@ -158,4 +164,12 @@ class Pinboard extends \Magento\CatalogWidget\Block\Product\ProductsList
         return $this->getData('title');
     }
 
+    /**
+     * @param $path
+     * @return mixed|null
+     */
+    public function getConfigValue($path)
+    {
+        return $this->config->getConfigValue($path);
+    }
 }
