@@ -103,7 +103,6 @@ These are the following locations where the `turnToConfig` object gets output on
 * Product detail pages (reviews, Q&A, checkout comment display widget, visual gallery widget)
 * Checkout comments on checkout confirmation page
 * Pinboard widget
-* Mobile landing page
 
 When you add values to this configuration field, it is critical that you enter a valid JS object and that you test to ensure you didn't cause any JS errors. 
 

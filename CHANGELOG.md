@@ -1,24 +1,26 @@
-##3.1.1 (2019-12-17)
+See GitHub [releases](https://github.com/turnto/magento2-turnto-socialcommerce/releases) for current changelog.
+
+## 3.1.1 (2019-12-17)
 * Fixed bug that caused setup:di:compile to fail 
 
-##3.1.0 (2019-12-17)
+## 3.1.0 (2019-12-17)
 * Added checkout comment pinboards ([documentation](https://docs.turnto.com/en/ecommerce-platforms/magento.html#al_UUID-e25540c2-ef56-12c7-f40d-597ebd2bc751_section-idm13153034345814))
 * Added visual content pinboards ([documentation](https://docs.turnto.com/en/ecommerce-platforms/magento.html#al_UUID-e25540c2-ef56-12c7-f40d-597ebd2bc751_section-idm13153034343116))
 * Added the Magento and TurnTo module version to turnToConfig object ([documentation](https://docs.turnto.com/en/ecommerce-platforms/magento.html#al_UUID-e25540c2-ef56-12c7-f40d-597ebd2bc751_section-idm4650205841459231530342733983))
 
-##3.0.4 (2019-10-16)
+## 3.0.4 (2019-10-16)
 * Module now searches for Magento 2 root and appends it to export file paths. This fixes some read/write errors for servers running in a non-standard configuration. 
   
-##3.0.3 (2019-10-10)
+## 3.0.3 (2019-10-10)
 * Added version to composer.json
 
-##3.0.2 (2019-08-02)
+## 3.0.2 (2019-08-02)
 * Fixed historical order feed cron job upload.
 
-##3.0.1 (2019-05-14)
+## 3.0.1 (2019-05-14)
 * Added Magento 2.3 Compatibility
 
-##3.0.0 (2019-05-07)
+## 3.0.0 (2019-05-07)
 * New version release for compatibility with JS widget v5
 
 ## 2.1.3 (2019-04-18)

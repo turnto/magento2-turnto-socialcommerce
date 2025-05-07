@@ -181,15 +181,4 @@ class Config
     {
         return $this->getConfigBool(self::GENERAL_USE_CHILD_SKU, $scopeCode, $scopeType);
     }
-
-    /**
-     * @param string $path
-     * @param string|int|null $scopeCode
-     * @param string $scopeType
-     * @return string|null
-     */
-    public function getUrlWithoutProtocol($path, $scopeCode = null, $scopeType = ScopeInterface::SCOPE_STORES)
-    {
-        return preg_replace("(^https?://)", "", $this->getConfigValue($path, $scopeCode, $scopeType));
-    }
 }
