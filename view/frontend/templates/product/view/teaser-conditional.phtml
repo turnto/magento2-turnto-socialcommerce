@@ -1,24 +1,21 @@
 <?php
 /**
- * TurnTo_SocialCommerce
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- *
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Emplifi, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
 
-/** @var \Magento\Catalog\Block\Product\View $block */
-$configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
-$productHelper = $this->helper('TurnTo\SocialCommerce\Helper\Product');
+use Magento\Catalog\Block\Product\View;
+use TurnTo\SocialCommerce\Model\Config;
+use TurnTo\SocialCommerce\Model\Config\Source\TeaserType;
+use TurnTo\SocialCommerce\ViewModel\Widget as ViewModel;
 
-if ($configHelper->getUseLocalTeaserCode() == 1):
+/**
+ * @var View $block
+ * @var ViewModel $viewModel
+ */
+$viewModel = $block->getViewModel();
 ?>
+<?php if ($viewModel->getConfigValue(Config::TEASER_LOCAL_TEASER_CODE) == TeaserType::TEASER_LOCAL): ?>
     <div id="tt-teaser" class="TTteaser" data-bind="scope:'teaser'">
         <!-- ko template: getTemplate() --><!-- /ko -->
         <script type="text/x-magento-init">
@@ -29,14 +26,14 @@ if ($configHelper->getUseLocalTeaserCode() == 1):
                             "teaser": {
                                 "component": "TurnTo_SocialCommerce/js/teaser",
                                 "config": {
-                                    "siteKey": "<?= $configHelper->getSiteKey() ?>",
-                                    "teaserSku": "<?= $productHelper->turnToSafeEncoding($block->getProduct()->getSku()) ?>",
-                                    "reviewsEnabled": "<?= $configHelper->getReviewsEnabled() ? 'true' : 'false' ?>",
-                                    "reviewsTeaserEnabled": "<?= $configHelper->getReviewsTeaserEnabled() ? 'true' : 'false' ?>",
-                                    "qaEnabled": "<?= $configHelper->getQaEnabled() ? 'true' : 'false' ?>",
-                                    "qaTeaserEnabled": "<?= $configHelper->getQaTeaserEnabled() ? 'true' : 'false' ?>",
-                                    "commentsTeaserEnabled": "<?= $configHelper->getCommentsTeaserEnabled() ? 'true' : 'false' ?>",
-                                    "teaserUrl": "<?= $configHelper->getReviewUrl()?>"
+                                    "siteKey": "<?= $viewModel->getSiteKey() ?>",
+                                    "teaserSku": "<?= $viewModel->turnToSafeEncoding($block->getProduct()->getSku()) ?>",
+                                    "reviewsEnabled": "<?= $viewModel->getConfigBool(Config::REVIEWS_ENABLE) ? 'true' : 'false' ?>",
+                                    "reviewsTeaserEnabled": "<?= $viewModel->getConfigBool(Config::TEASER_REVIEWS_TEASER_ENABLE) ? 'true' : 'false' ?>",
+                                    "qaEnabled": "<?= $viewModel->getConfigBool(Config::QA_ENABLE) ? 'true' : 'false' ?>",
+                                    "qaTeaserEnabled": "<?= $viewModel->getConfigBool(Config::TEASER_ENABLE_QA_TEASER) ? 'true' : 'false' ?>",
+                                    "commentsTeaserEnabled": "<?= $viewModel->getConfigBool(Config::TEASER_ENABLE_COMMENTS_TEASER) ? 'true' : 'false' ?>",
+                                    "teaserUrl": "<?= $viewModel->getConfigValue(Config::PRODUCT_REVIEW_URL) ?>"
                                 }
                             }
                         }

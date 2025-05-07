@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
 /**
- * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * Copyright © Emplifi, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 -->
@@ -34,7 +34,6 @@
         <plugin name="turnto_socialcommerce_plugin_add_sku_to_product_images" type="TurnTo\SocialCommerce\Plugin\Product\View\Type\Configurable" />
         <plugin name="turnto_socialcommerce_configurable_json_add_skus" type="TurnTo\SocialCommerce\Plugin\Block\Product\View\Type\ConfigurablePlugin" sortOrder="1" />
     </type>
-    <preference for="Magento\Swatches\Controller\Ajax\Media" type="TurnTo\SocialCommerce\Controller\Ajax\Media"/>
     <type name="Magento\Customer\Controller\Account\CreatePost">
         <plugin name="turnto_socialcommerce_account_create" type="TurnTo\SocialCommerce\Plugin\Controller\Account\CreatePostPlugin" sortOrder="1" />
     </type>

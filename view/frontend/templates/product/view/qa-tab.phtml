@@ -1,8 +1,21 @@
 <?php
-$configHelper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
+/**
+ * Copyright © Emplifi, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+use Magento\Backend\Block\Template;
+use TurnTo\SocialCommerce\Model\Config;
+use TurnTo\SocialCommerce\ViewModel\Widget as ViewModel;
+
+/**
+ * @var Template $block
+ * @var ViewModel $viewModel
+ */
+$viewModel = $block->getViewModel();
 ?>
 <div id="tt-instant-answers-widget"></div>
 <div id="tt-qa-list"></div>
-<?php if ($configHelper->getCommentsPdpEnabled()): ?>
+<?php if ($viewModel->getConfigValue(Config::CHECKOUT_ENABLE_COMMENTS_PDP)): ?>
 <div id="tt-chatter-widget"></div>
 <?php endif; ?>

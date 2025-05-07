@@ -1,9 +1,8 @@
 <?php
 /**
- * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * Copyright © Emplifi, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Plugin\Review\Block\Product;
@@ -13,9 +12,9 @@ use Exception;
 use Magento\Catalog\Block\Product\ReviewRendererInterface;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ProductRepository;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
-use TurnTo\SocialCommerce\Helper\Config;
+use TurnTo\SocialCommerce\Logger\Monolog;
+use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Setup\InstallHelper;
 
 class ReviewRenderer
@@ -28,7 +27,7 @@ class ReviewRenderer
     /**
      * @var Config
      */
-    protected $turnToConfigHelper;
+    protected $config;
 
     /**
      * @var ProductRepository
@@ -39,6 +38,10 @@ class ReviewRenderer
      * @var StoreManagerInterface
      */
     protected $storeManager;
+    /**
+     * @var Monolog
+     */
+    protected $logger;
 
     /**
      * Array of available template name
@@ -55,52 +58,61 @@ class ReviewRenderer
 
     /**
      * Plugin constructor.
-     * @param Config $turnToConfigHelper
+     * @param Config $config
      * @param StoreManagerInterface $storeManager
      * @param ProductRepository $productRepository
+     * @param Monolog $logger
      */
     public function __construct(
-        Config $turnToConfigHelper,
+        Config $config,
         StoreManagerInterface $storeManager,
-        ProductRepository $productRepository
+        ProductRepository $productRepository,
+        Monolog $logger
     ) {
-        $this->turnToConfigHelper = $turnToConfigHelper;
+        $this->config = $config;
         $this->storeManager = $storeManager;
         $this->productRepository = $productRepository;
+        $this->logger = $logger;
     }
 
     /**
      * @param ReviewRendererInterface $subject
-     * @param string | null $result
-     * @return string
-     * @throws NoSuchEntityException
+     * @param string|null $result
+     * @return string|null
      */
     public function afterGetRatingSummary(ReviewRendererInterface $subject, ?string $result)
     {
-        if ($this->isDisabled()) {
-            return $result;
+        try {
+            if ($this->isEnabled()) {
+                $rating =  $subject->getProduct()->getData(InstallHelper::RATING_ATTRIBUTE_CODE);
+
+                return (string)round(
+                    $rating * self::RATING_TO_PERCENTILE_MULTIPLIER
+                );
+            }
+        } catch (Exception $e) {
+            $this->logger->error($e, ['exception' => $e]);
         }
 
-        $rating =  $subject->getProduct()->getData(InstallHelper::RATING_ATTRIBUTE_CODE);
-
-        return (string)round(
-            $rating * self::RATING_TO_PERCENTILE_MULTIPLIER
-        );
+        return $result;
     }
 
     /**
      * @param ReviewRendererInterface $subject
-     * @param int | null $result
-     * @return int
-     * @throws NoSuchEntityException
+     * @param int|null $result
+     * @return int|null
      */
     public function afterGetReviewsCount(ReviewRendererInterface $subject, ?int $result)
     {
-        if ($this->isDisabled()) {
-            return $result;
+        try {
+            if ($this->isEnabled()) {
+                return $subject->getProduct()->getData(InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE);
+            }
+        } catch (Exception $e) {
+            $this->logger->error($e, ['exception' => $e]);
         }
 
-        return $subject->getProduct()->getData(InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE);
+        return $result;
     }
 
     /**
@@ -121,25 +133,26 @@ class ReviewRenderer
         $templateType = false,
         $displayIfNoReviews = false
     ) {
-        if ($this->isDisabled()) {
-            return $proceed($product, $templateType, $displayIfNoReviews, false);
-        }
         try {
-            $subject->setTemplate($this->_availableTemplates[$templateType]);
-            $subject->setDisplayIfEmpty($displayIfNoReviews);
-            $subject->setProduct($product);
+            if ($this->isEnabled()) {
+                $subject->setTemplate($this->_availableTemplates[$templateType]);
+                $subject->setDisplayIfEmpty($displayIfNoReviews);
+                $subject->setProduct($product);
 
-            return $subject->toHtml();
+                return $subject->toHtml();
+            }
         } catch (Exception $e) {
-            return $proceed($product, $templateType, $displayIfNoReviews, false);
+            $this->logger->error($e, ['exception' => $e]);
         }
+
+        return $proceed($product, $templateType, $displayIfNoReviews, false);
     }
 
     /**
      * @return bool
      */
-    public function isDisabled()
+    public function isEnabled()
     {
-        return !($this->turnToConfigHelper->getIsEnabled() && $this->turnToConfigHelper->getReviewsEnabled());
+        return ($this->config->getIsEnabled() && $this->config->getConfigBool(Config::REVIEWS_ENABLE));
     }
 }

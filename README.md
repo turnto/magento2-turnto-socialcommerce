@@ -1,6 +1,8 @@
-## Pixlee TurnTo Ratings & Reviews plugin for Magento 2
+## Emplifi Ratings & Reviews plugin for Magento 2
 
-Use this Magento 2 extension to connects to Emplifi's Pixlee TurnTo Ratings & Reviews service. Compatible with Magento Open Source and Adobe Commerce, versions 2.3.x - 2.4.6.
+#### Formerly TurnTo Social Commerce
+
+Use this Magento 2 extension to connects to [Emplifi Ratings & Reviews](https://emplifi.io/product/online-customer-reviews). Compatible with Magento Open Source and Adobe Commerce, versions 2.3 - 2.4.
 
 ## Installation Instructions
 
@@ -20,7 +22,7 @@ Composer Package [turnto/social-commerce](https://packagist.org/packages/turnto/
     bin/magento cache:clean
     ```
 
-2. Configure the module to connect to your TurnTo account. Please see the General Configuration section below.
+2. Configure the module to connect to your Emplifi account. Please see the General Configuration section below.
 ### Install by copying files
 
 1. Create a `code/TurnTo/SocialCommerce` directory in the `app` directory of your Magento installation.
@@ -41,8 +43,8 @@ Composer Package [turnto/social-commerce](https://packagist.org/packages/turnto/
 
 ### General Configuration
 
-It is imperative that you add your TurnTo site key and auth key. TurnTo Site keys allow the Magento extension to connect to your TurnTo account.
-You can find your Site Key and Auth Key in the [TurnTo portal](https://www.turnto.com/secure/login/auth) or by contacting your Emplifi Customer Success team.
+It is imperative that you add your Emplifi Ratings & Reviews site key and auth key. Emplifi Ratings & Reviews site keys allow the Magento extension to connect to your Emplifi account.
+You can find your Site Key and Auth Key in the [Emplifi portal](https://emplifi.io/login) or by contacting your Emplifi Customer Success team.
 
 After installing the extension, login to the backend and configure the extension in **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration**. Here is a screenshot of the extension as of version 3.2.2 (click to zoom):
 
@@ -50,11 +52,11 @@ After installing the extension, login to the backend and configure the extension
 
 ### CRON Configuration
 
-This extension depends on the Magento CRON being configured in order to work properly. Reference the [Adobe Docs](https://experienceleague.adobe.com/docs/commerce-operations/configuration-guide/cli/configure-cron-jobs.html?lang=en) for details on how to configure the Magento CRON.
+This extension depends on the Magento CRON being configured in order to work properly. Reference the [Adobe Documentation](https://experienceleague.adobe.com/docs/commerce-operations/configuration-guide/cli/configure-cron-jobs.html?lang=en) for details on how to configure the Magento CRON.
 
-### Catalog Feed Export to TurnTo
+### Catalog Feed Export to Emplifi
 
-If the **Enable Automated Feed Submission** configuration option is set to **Yes**, on a nightly basis, Magento will export a feed of all products to TurnTo. This feed will include links to product images. In order for this link to be accurate, you will need to do the following:
+If the **Enable Automated Feed Submission** configuration option is set to **Yes**, on a nightly basis, Magento will export a feed of all products to Emplifi. This feed will include links to product images. In order for this link to be accurate, you will need to do the following:
 
 1. Login to the backend.
 2. Go to **STORES > Configuration > GENERAL > Web**
@@ -70,20 +72,20 @@ If your catalog has 10,000 or more items, the size of the export file can reach 
 that **upload_max_filesize** and **post_max_size** are set to a large enough value. We recommend setting them both to 10M. 
  
 
-### Rating Import from TurnTo
+### Rating Import from Emplifi
 
 If the **Enable Reviews** configuration option is set to **Yes**:
 
-1. The reviews that display on product detail pages will be loaded directly from TurnTo. Exactly how the review data gets pull from TurnTo is determined by the **Setup Type** setting.
+1. The reviews that display on product detail pages will be loaded directly from Emplifi. Exactly how the review data gets pull from Emplifi is determined by the **Setup Type** setting.
 
-2. The reviews that display on product listing pages will be loaded from the "Review Count" and "Rating" product attributes. Those attributes get updated on a CRON job that runs hourly. The CRON job will request an XML feed from TurnTo and will update those product attributes. If you encounter issues where those attributes are not updated like you'd expect, you can manually review the contents of the XML feed that Magento is retrieving from TurnTo by creating a url that matches this pattern: `https://export.turnto.com/<SITE_KEY>/<AUTHORIZATION_KEY>/turnto-skuaveragerating.xml` where `<SITE_KEY>` and `<AUTHORIZATION_KEY>` are the values you entered into the corresponding fields in the TurnTo configuration fields in the admin. The XML file is generated by TurnTo twice daily (at 3AM EST and 11AM EST), so once you approve a new review for a product, you'll need to wait a while to see the changes reflected in the XML file.
+2. The reviews that display on product listing pages will be loaded from the "Review Count" and "Rating" product attributes. Those attributes get updated on a CRON job that runs hourly. The CRON job will request an XML feed from Emplifi and will update those product attributes. If you encounter issues where those attributes are not updated like you'd expect, you can manually review the contents of the XML feed that Magento is retrieving from Emplifi by creating a url that matches this pattern: `https://export.turnto.com/<SITE_KEY>/<AUTHORIZATION_KEY>/turnto-skuaveragerating.xml` where `<SITE_KEY>` and `<AUTHORIZATION_KEY>` are the values you entered into the corresponding fields in the extension configuration fields in the Magento admin. The XML file is generated by Emplifi three times daily (at 3AM, 11AM, and 6PM EST/EDT). Once you approve a new review for a product, you'll need to wait a while to see the changes reflected in the XML file.
 
 
 ### Custom Configuration
 
 Note: This is an advanced configuration option and should only be configured by a developer.
 
-If you'd to customize the `turnToConfig` JS object that gets output whenever TurnTo is used on the frontend, you can do so by adding a JS object to the **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration > Custom Configuration** field. You must enter a valid JS object into this field, as the contents of the JS object that you enter will get __merged__ with the contents of the existing `turnToConfig` object. Here is an example of a valid value that could be added to the **Custom Configuration** field:
+If you need to customize the `turnToConfig` JS object which used by the extension to display content on the frontend, you can do so by adding a JS object to the **STORES > Configuration > TURNTO SOCIAL COMMERCE > Configuration > Custom Configuration** field. You must enter a valid JS object into this field, as the contents of the JS object that you enter will get __merged__ with the contents of the existing `turnToConfig` object. Here is an example of a valid value that could be added to the **Custom Configuration** field:
 
 ```
 {
@@ -101,33 +103,32 @@ These are the following locations where the `turnToConfig` object gets output on
 * Product detail pages (reviews, Q&A, checkout comment display widget, visual gallery widget)
 * Checkout comments on checkout confirmation page
 * Pinboard widget
-* Mobile landing page
 
 When you add values to this configuration field, it is critical that you enter a valid JS object and that you test to ensure you didn't cause any JS errors. 
 
 ### Visual Content and Checkout Comment Pinboards
 
-The TurnTo extension implements a custom widget that allows an admin to insert "Visual Content" pinboards or "Checkout Comment" pinboards. To insert this widget, edit a CMS page or CMS block and click the "Insert Widget…" button and select "TurnTo SpeedFlex". You'll then be able to configure and insert the widget using these options:
+The Emplifi extension implements a custom widget that allows an admin to insert "Visual Content" pinboards or "Checkout Comment" pinboards. To insert this widget, edit a CMS page or CMS block and click the "Insert Widget…" button and select "TurnTo SpeedFlex". You'll then be able to configure and insert the widget using these options:
 
 [<img alt="Pinboard widget" src="README/pinboard_widget.png" width="550"/>](https://raw.githubusercontent.com/turnto/magento2-turnto-socialcommerce/master/README/pinboard_widget.png)
 
 ### Visual Content Gallery Row Widget
 
-The TurnTo extension implements a custom widget that allows a user to toggle a gallery row of user submitted images on the product page. To enable this widget, go to Stores -> Configuration -> TurnTo SocialCommerce -> Configuration -> Visual Content -> Enable PDP Gallery Row and set the value to "Yes."
+The Emplifi extension implements a custom widget that allows a user to toggle a gallery row of user submitted images on the product page. To enable this widget, go to Stores -> Configuration -> TurnTo SocialCommerce -> Configuration -> Visual Content -> Enable PDP Gallery Row and set the value to "Yes."
 
 [<img alt="Gallery Row widget" src="README/gallery_row_config.png" width="550"/>](https://raw.githubusercontent.com/turnto/magento2-turnto-socialcommerce/master/README/gallery_row_config.png)
 
 ### Troubleshooting
 
-* **General** - If you experience issues with the extension, review the errors in the `var/log/turnto.log` file, as that is where all TurnTo errors are logged.
+* **General** - If you experience issues with the extension, review the errors in the `var/log/turnto.log` file, as that is where all extension errors are logged.
 * **Issue when "Minify JavaScript Files" is enabled** - If you're using Magento's "Minify JavaScript Files" feature, see [this page](https://github.com/turnto/magento2-turnto-socialcommerce/issues/22#issuecomment-337093756) for details on how to get it working with this extension.
-* **How to review product feed that is sent to TurnTo** - See this Github issue: [#27](https://github.com/turnto/magento2-turnto-socialcommerce/issues/27)
+* **How to review product feed that is sent to Emplifi** - See this Github issue: [#27](https://github.com/turnto/magento2-turnto-socialcommerce/issues/27)
 
-## About Emplifi's Pixlee TurnTo Social Commerce
+## About Emplifi's Rating & Reviews
 
-Emplifi's Pixlee TurnTo is a premier provider of customer content solutions to top merchants and brands. With a unique suite of 4 innovative products that work beautifully together - Ratings & Reviews, Community Q&A, Visual Reviews, and Checkout Comments - Pixlee TurnTo produces more content of more different types, delivering greater conversion lift, better SEO, and deeper merchandising insights. 
+Emplifi is a premier provider of customer content solutions to top merchants and brands. With a unique suite of 4 innovative products that work beautifully together - Ratings & Reviews, Community Q&A, Visual Reviews, and Checkout Comments - Emplifi produces more content of more different types, delivering greater conversion lift, better SEO, and deeper merchandising insights. 
 
-Pixlee TurnTo clients enjoy a world-class Ratings & Reviews platform, a Q&A system designed to maximize customer engagement and help shoppers find fast answers from a variety of sources, a highly engaging source of real-time customer content with Checkout Comments, and a permissions-cleared source of customer photos and videos through Visual Reviews. Pixlee TurnTo offers integrations with major eCommerce platforms and is built for the new world, reimagined for mobile, visual content, and messaging. ECommerce leaders like Saks Fifth Avenue, Newegg, Sur La Table, and GNC, and brands like Cole Haan, Jockey, and Clarins rely on Pixlee TurnTo for their customer-voice programs.
+Emplifi clients enjoy a world-class Ratings & Reviews platform, a Q&A system designed to maximize customer engagement and help shoppers find fast answers from a variety of sources, a highly engaging source of real-time customer content with Checkout Comments, and a permissions-cleared source of customer photos and videos through Visual Reviews. Emplifi offers integrations with major eCommerce platforms and is built for the new world, reimagined for mobile, visual content, and messaging.
 
 ## License
 

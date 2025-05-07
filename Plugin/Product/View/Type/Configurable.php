@@ -10,28 +10,28 @@ namespace TurnTo\SocialCommerce\Plugin\Product\View\Type;
 use InvalidArgumentException;
 use Magento\ConfigurableProduct\Block\Product\View\Type\Configurable as ConfigurableProductTypeBlock;
 use Magento\Framework\Serialize\Serializer\Json;
-use TurnTo\SocialCommerce\Helper\Product;
+use TurnTo\SocialCommerce\Model\Product;
 
 class Configurable
 {
     /**
      * @var Product
      */
-    protected $productHelper;
+    protected $product;
     /**
      * @var Json
      */
     protected $json;
 
     /**
-     * @param Product $productHelper
+     * @param Product $product
      * @param Json $json
      */
     public function __construct(
-        Product $productHelper,
+        Product $product,
         Json $json
     ) {
-        $this->productHelper = $productHelper;
+        $this->product = $product;
         $this->json = $json;
     }
 
@@ -53,7 +53,7 @@ class Configurable
         if (!empty($data['images'])) {
             foreach ($subject->getAllowProducts() as $product) {
                 if (isset($data['images'][$product->getId()][0])) {
-                    $data['images'][$product->getId()][0]['sku'] = $this->productHelper->turnToSafeEncoding(
+                    $data['images'][$product->getId()][0]['sku'] = $this->product->turnToSafeEncoding(
                         $product->getSku()
                     );
                 }

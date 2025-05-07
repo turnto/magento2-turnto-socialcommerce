@@ -1,36 +1,39 @@
 <?php
 /**
- * @category    ClassyLlama
- * @copyright   Copyright (c) 2019 Classy Llama Studios, LLC
- * @author      sean.templeton
+ * Copyright © Emplifi, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+declare(strict_types=1);
+
 namespace TurnTo\SocialCommerce\Plugin\Block\Product;
+
+use Magento\Review\Block\Product\Review;
+use TurnTo\SocialCommerce\Model\Config;
 
 class ReviewPlugin
 {
     /**
-     * @var \TurnTo\SocialCommerce\Helper\Config
+     * @var Config
      */
     protected $config;
 
     /**
      * Description constructor.
-     * @param \TurnTo\SocialCommerce\Helper\Config $config
+     * @param Config $config
      */
-    public function __construct(\TurnTo\SocialCommerce\Helper\Config $config)
+    public function __construct(Config $config)
     {
         $this->config = $config;
     }
 
     /**
-     * @param \Magento\Review\Block\Product\Review $subject
-     * @param callable                             $proceed
-     *
+     * @param Review $subject
+     * @param callable $proceed
      * @return string
      */
-    public function aroundGetTemplate(\Magento\Review\Block\Product\Review $subject, callable $proceed)
+    public function aroundGetTemplate(Review $subject, callable $proceed)
     {
-        if (!$this->config->getIsEnabled() || !$this->config->getReviewsEnabled()) {
+        if (!$this->config->getIsEnabled() || !$this->config->getConfigBool(Config::REVIEWS_ENABLE)) {
             return $proceed();
         }
 
@@ -39,12 +42,12 @@ class ReviewPlugin
 
     /**
      * Used to insert the TurnTo review count
-     * rather then the native magento review count
+     * rather than the native Magento review count
      *
-     * @param \Magento\Review\Block\Product\Review $subject
-     * @param                                      $result
+     * @param Review $subject
+     * @param $result
      */
-    public function afterSetTabTitle(\Magento\Review\Block\Product\Review $subject, $result)
+    public function afterSetTabTitle(Review $subject, $result)
     {
         if ($this->config->getIsEnabled()) {
             $subject->setTitle(__('Reviews '));
