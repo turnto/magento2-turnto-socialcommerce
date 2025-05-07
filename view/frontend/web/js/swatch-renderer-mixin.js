@@ -24,7 +24,12 @@ define([
              * Get the product sku and pass it to TurnTo by using the selected swatch
              */
             selectedProduct: function () {
-                let selected_options = {};
+                const selectors = {
+                        swatchSelector: '.swatch-opt'
+                    }
+                const swatchWidgetName = 'mage-SwatchRenderer'
+                const swatchWidgetNameOld = 'mageSwatchRenderer'
+                const selected_options = {};
                 $('div.swatch-attribute').each(function (k, v) {
                     // In Magento 2.4+ the div attributes are called "data-attribute-id" and "data-option-selected"
                     // In versions before 2.4, they're "attribute-id" and "option-selected". So check both.
@@ -42,18 +47,22 @@ define([
                     selected_options[attribute_id] = option_selected;
                 });
 
-                let product_id_index = $('[data-role=swatch-options]').data('mage-SwatchRenderer').options.jsonConfig.index;
-                let self = this;
+                const swatchWidget = $(selectors.swatchSelector).data(swatchWidgetName) || $(selectors.swatchSelector).data(swatchWidgetNameOld);
+                if (!swatchWidget) {
+                    return;
+                }
+                const product_id_index = swatchWidget.options.jsonConfig.index;
+                const self = this;
                 $.each(product_id_index, function (product_id, attributes) {
-                    let productIsSelected = function (attributes, selected_options) {
+                    const productIsSelected = function (attributes, selected_options) {
                         return _.isEqual(attributes, selected_options);
                     };
                     if (productIsSelected(attributes, selected_options)) {
                         // Update the TurnTo SKU
-                        let sku_value = self.options.jsonConfig.childSkuMap[product_id];
+                        const sku_value = self.options.jsonConfig.childSkuMap[product_id];
                         TurnToCmd('set', {"sku": sku_value});
                         // Update Top Comment Widget
-                        let comments = document.getElementsByClassName('tt-top-comment')[0];
+                        const comments = document.getElementsByClassName('tt-top-comment')[0];
                         if (typeof comments !== 'undefined') {
                             comments.setAttribute('data-ttsku',sku_value);
                             comments.setAttribute("data-ttprocessed", "");
