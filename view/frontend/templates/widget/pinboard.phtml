@@ -5,13 +5,11 @@
  */
 
 use TurnTo\SocialCommerce\Block\Widget\Pinboard;
-use TurnTo\SocialCommerce\Model\Config;
 
 /**
  * @var Pinboard $block
  */
 $viewModel = $block->getViewModel();
-$staticUrl = $block->getConfigValue(Config::PRODUCT_STATIC_API_URL);
 ?>
 <?= $block->getTurnToConfigHtml(); ?>
 
