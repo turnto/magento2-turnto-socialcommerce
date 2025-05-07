@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * Copyright © Emplifi, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 declare(strict_types=1);
@@ -14,19 +14,15 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
 use TurnTo\SocialCommerce\Api\TurnToConfigDataSourceInterface;
-use TurnTo\SocialCommerce\Helper\Config as TurnToConfigHelper;
+use TurnTo\SocialCommerce\Model\Config as ConfigModel;
 use TurnTo\SocialCommerce\Model\Version;
 
-/**
- * @method void setConfigData(TurnToConfigDataSourceInterface|array $config)
- * @method TurnToConfigDataSourceInterface|array getConfigData()
- */
-class TurnToConfig extends Template implements TurnToConfigInterface
+class TurnToConfig extends Template
 {
     /**
-     * @var TurnToConfigHelper
+     * @var ConfigModel
      */
-    protected $configHelper;
+    protected $config;
     /**
      * @var ResolverInterface
      */
@@ -46,7 +42,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
 
     /**
      * @param Context $context
-     * @param TurnToConfigHelper $configHelper
+     * @param ConfigModel $config
      * @param ResolverInterface $localeResolver
      * @param Data $helper
      * @param Version $version
@@ -54,8 +50,8 @@ class TurnToConfig extends Template implements TurnToConfigInterface
      * @param array $data
      */
     public function __construct(
-        Template\Context $context,
-        TurnToConfigHelper $configHelper,
+        Context $context,
+        ConfigModel $config,
         ResolverInterface $localeResolver,
         Data $helper,
         Version $version,
@@ -68,7 +64,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
 
         parent::__construct($context, $data);
 
-        $this->configHelper = $configHelper;
+        $this->config = $config;
         $this->localeResolver = $localeResolver;
         $this->helper = $helper;
         $this->version = $version;
@@ -89,20 +85,20 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         }
 
         $additionalConfigData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
-        $additionalConfigData['siteKey' ] = $this->configHelper->getSiteKey();
+        $additionalConfigData['siteKey' ] = $this->config->getSiteKey();
         $additionalConfigData = ['locale' => $this->localeResolver->getLocale()];
         $additionalConfigData['extensionVersion'] = ['magentoVersion'=> $this->version->getMagentoVersion(), 'turnToCart' => $this->version->getModuleVersion()];
         $additionalConfigData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
         $additionalConfigData['sso'] = ['userDataFn' => null];
 
-        if ($this->configHelper->getQaEnabled()) {
+        if ($this->config->getConfigBool(ConfigModel::QA_ENABLE)) {
             $additionalConfigData['qa'] = [];
         }
 
-        if ($this->configHelper->getCommentsPinboardTeaserEnabled() ) {
+        if ($this->config->getConfigBool(ConfigModel::CHECKOUT_ENABLE_COMMENTS_PINBOARD_TEASER)) {
             $additionalConfigData['commentsPinboardTeaser'] = [];
         }
-        if ($this->configHelper->getVisualContentGalleryRowWidget()) {
+        if ($this->config->getConfigBool(ConfigModel::VISUAL_CONTENT_ENABLE_GALLERY_ROW)) {
             $product = $this->helper->getProduct();
             if ($product) {
                 $skus = [$product->getSku()];
@@ -111,7 +107,7 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         }
 
         // Remove comment capture if disabled
-        if (!$this->configHelper->getCommentsCaptureEnabled()) {
+        if (!$this->config->getConfigBool(ConfigModel::CHECKOUT_ENABLE_COMMENTS_CAPTURE)) {
             $additionalConfigData['commentCapture'] = ['suppress' => true];
         }
 
@@ -138,5 +134,22 @@ class TurnToConfig extends Template implements TurnToConfigInterface
         $json = $this->json->serialize($configData);
 
         return str_replace('"' . $value . '"', $teaser, $json);
+    }
+
+    /**
+     * @param $path
+     * @return mixed|null
+     */
+    public function getConfigValue($path)
+    {
+        return $this->config->getConfigValue($path);
+    }
+
+    /**
+     * @return string
+     */
+    public function getSiteKey()
+    {
+        return $this->config->getSiteKey();
     }
 }

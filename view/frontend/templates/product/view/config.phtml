@@ -1,18 +1,20 @@
 <?php
 /**
- * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * Copyright © Emplifi, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
-/** @var \TurnTo\SocialCommerce\Block\Config $block */
-?>
-<?php
-/** @var \TurnTo\SocialCommerce\Helper\Config $configHelper */
-$configHelper = $this->helper(\TurnTo\SocialCommerce\Helper\Config::class);
-$productSku = $block->getProductSku();
+use Magento\Backend\Block\Template;
+use TurnTo\SocialCommerce\ViewModel\ConfigJs as ViewModel;
+
+/**
+ * @var Template $block
+ * @var ViewModel $viewModel
+ */
+$viewModel = $block->getViewModel();
 ?>
 
-<?php if ($configHelper->getIsEnabled()): ?>
+<?php if ($viewModel->getIsEnabled()): ?>
 <script type="text/javascript">
     (function (window) {
         window.scrollToTab = function scrollToTab(teaserContainer, clickElement, container, tab) {
@@ -27,7 +29,7 @@ $productSku = $block->getProductSku();
             });
         };
 
-        <?php if ($productSku): ?>
+        <?php if ($productSku = $viewModel->getProductSku()): ?>
         window.TurnToCmd('set', {'sku': '<?= $block->escapeJsQuote($productSku) ?>'});
         <?php endif; ?>
     })(window);

@@ -1,27 +1,20 @@
 <?php
 /**
- * TurnTo_SocialCommerce
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- *
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Emplifi, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
 
-/** @var \TurnTo\SocialCommerce\Block\Widget\Pinboard $block */
-/** @var TurnTo\SocialCommerce\Helper\Config $configHelper */
-$configHelper = $this->helper(\TurnTo\SocialCommerce\Helper\Config::class);
+use TurnTo\SocialCommerce\Block\Widget\Pinboard;
+use TurnTo\SocialCommerce\Model\Config;
 
-$staticUrl = preg_replace("(^https?://)", "//", $configHelper->getStaticUrl());
-
-echo $block->getTurnToConfigHtml();
-
+/**
+ * @var Pinboard $block
+ */
+$viewModel = $block->getViewModel();
+$staticUrl = $block->getConfigValue(Config::PRODUCT_STATIC_API_URL);
 ?>
+<?= $block->getTurnToConfigHtml(); ?>
+
 <?php if ($block->getContentType() === 'vcPinboard'): ?>
 <div id="tt-vc-pinboard-widget">
 <?php elseif($block->getContentType() === 'commentsPinboardTeaser'): ?>
@@ -29,4 +22,3 @@ echo $block->getTurnToConfigHtml();
 <?php else: ?>
 <div id="tt-comments-pinboard-widget"></div>
 <?php endif; ?>
-

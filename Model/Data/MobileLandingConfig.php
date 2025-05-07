@@ -1,32 +1,28 @@
 <?php
 /**
- * @category    ClassyLlama
- * @package
- * @copyright   Copyright (c) 2018 Classy Llama Studios, LLC
+ * Copyright © Emplifi, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Model\Data;
 
 use TurnTo\SocialCommerce\Api\TurnToConfigDataSourceInterface;
-use TurnTo\SocialCommerce\Helper\Config as TurnToConfigHelper;
+use TurnTo\SocialCommerce\Model\Config;
 
 class MobileLandingConfig implements TurnToConfigDataSourceInterface
 {
     /**
-     * @var TurnToConfigHelper
+     * @var Config
      */
-    protected $configHelper;
-
-
+    protected $config;
 
     /**
-     * @param TurnToConfigHelper   $configHelper
-     * @param ConfigProviderHelper $configProviderHelper
+     * @param Config $config
      */
-    public function __construct(TurnToConfigHelper $configHelper)
+    public function __construct(Config $config)
     {
-        $this->configHelper = $configHelper;
-
+        $this->config = $config;
     }
 
     /**
@@ -34,15 +30,12 @@ class MobileLandingConfig implements TurnToConfigDataSourceInterface
      */
     public function getData()
     {
-        $config = [
-            'siteKey' => $this->configHelper->getSiteKey(),
-            'host' => $this->configHelper->getUrlWithoutProtocol(),
-            'staticHost' => $this->configHelper->getStaticUrlWithoutProtocol(),
+        return [
+            'siteKey' => $this->config->getSiteKey(),
+            'host' => $this->config->getUrlWithoutProtocol(Config::PRODUCT_API_URL),
+            'staticHost' => $this->config->getUrlWithoutProtocol(Config::PRODUCT_STATIC_API_URL),
             'skipCssLoad' => false,
             'setupType' => 'mobileTT'
         ];
-
-
-        return $config;
     }
 }

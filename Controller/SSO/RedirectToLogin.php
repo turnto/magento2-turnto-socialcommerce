@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * Copyright © Emplifi, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 declare(strict_types=1);
@@ -10,7 +10,7 @@ namespace TurnTo\SocialCommerce\Controller\SSO;
 use Magento\Customer\Model\SessionFactory;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
-use TurnTo\SocialCommerce\Model\Config\Sso;
+use TurnTo\SocialCommerce\Model\Config;
 
 class RedirectToLogin extends Action
 {
@@ -19,23 +19,23 @@ class RedirectToLogin extends Action
      */
     protected $customerSessionFactory;
     /**
-     * @var Sso
+     * @var Config
      */
-    protected $ssoConfig;
+    protected $config;
 
     /**
      * @param Context $context
-     * @param Sso $ssoConfig
      * @param SessionFactory $customerSessionFactory
+     * @param Config $config
      */
     public function __construct(
         Context $context,
         SessionFactory $customerSessionFactory,
-        Sso $ssoConfig,
+        Config $config
     ) {
         parent::__construct($context);
         $this->customerSessionFactory = $customerSessionFactory;
-        $this->ssoConfig = $ssoConfig;
+        $this->config = $config;
     }
 
     public function execute()
@@ -67,18 +67,18 @@ class RedirectToLogin extends Action
         switch ($action) {
             case "QUESTION_CREATE":
                 if($this->getRequest()->getParam('authSetting') === 'ANONYMOUS'){
-                    return $this->ssoConfig->getQuestionMsgAnon();
+                    return $this->config->getConfigValue(Config::SSO_QUESTION_MSG_ANON);
                 }
-                return $this->ssoConfig->getQuestionMsg();
+                return $this->config->getConfigValue(Config::SSO_QUESTION_MSG);
             case "ANSWER_CREATE":
-                return $this->ssoConfig->getAnswerMessage();
+                return $this->config->getConfigValue(Config::SSO_ANSWER_MSG);
             case "REVIEW_CREATE":
                 if ($this->getRequest()->getParam('authSetting') === 'PURCHASE_REQUIRED') {
-                    return $this->ssoConfig->getReviewMsgPurchaseReq();
+                    return $this->config->getConfigValue(Config::SSO_REVIEW_MSG_PUR_REQ);
                 }
-                return $this->ssoConfig->getReviewMsg();
+                return $this->config->getConfigValue(Config::SSO_REVIEW_MSG);
             case "REPLY_CREATE":
-                return $this->ssoConfig->getReplyMsg();
+                return $this->config->getConfigValue(Config::SSO_REPLY_MSG);
             default:
                 return "";
         }

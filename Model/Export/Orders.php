@@ -1,13 +1,15 @@
 <?php
 /**
- * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * Copyright © Emplifi, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
+use DateInterval;
 use DateTime;
+use DateTimeZone;
 use Exception;
 use Magento\Catalog\Helper\Product as ProductHelper;
 use Magento\Catalog\Model\Product;
@@ -31,8 +33,8 @@ use Magento\Sales\Model\ResourceModel\Order\Collection;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
 use TurnTo\SocialCommerce\Api\FeedClient;
-use TurnTo\SocialCommerce\Helper\Config;
-use TurnTo\SocialCommerce\Helper\Product as TurnToProductHelper;
+use TurnTo\SocialCommerce\Model\Config;
+use TurnTo\SocialCommerce\Model\Product as ProductModel;
 use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Export\Product as ExportProduct;
 
@@ -62,8 +64,6 @@ class Orders
     const FEED_NAME = 'historical-orders-feed.tsv';
 
     const FEED_STYLE = 'tab-style.1';
-
-    const FEED_MIME = 'text/tab-separated-values';
     /**#@-*/
 
     /**
@@ -96,9 +96,9 @@ class Orders
      */
     protected $directoryList;
     /**
-     * @var TurnToProductHelper
+     * @var ProductModel
      */
-    protected $turnToProductHelper;
+    protected $productModel;
 
     /**
      * @var File
@@ -158,7 +158,7 @@ class Orders
      * @param Product $productHelper
      * @param StoreManagerInterface $storeManager
      * @param DirectoryList $directoryList
-     * @param TurnToProductHelper $turnToProductHelper
+     * @param ProductModel $productModel
      * @param FeedClient $feedClient
      * @param File $fileSystem
      * @param OrderCollectionFactory $orderCollection
@@ -177,7 +177,7 @@ class Orders
         Product $productHelper,
         StoreManagerInterface $storeManager,
         DirectoryList $directoryList,
-        TurnToProductHelper $turnToProductHelper,
+        ProductModel $productModel,
         FeedClient $feedClient,
         File $fileSystem,
         OrderCollectionFactory $orderCollection,
@@ -195,7 +195,7 @@ class Orders
         $this->productHelper = $productHelper;
         $this->storeManager = $storeManager;
         $this->directoryList = $directoryList;
-        $this->turnToProductHelper = $turnToProductHelper;
+        $this->productModel = $productModel;
         $this->feedClient = $feedClient;
         $this->fileSystem = $fileSystem;
         $this->orderCollectionFactory = $orderCollection;
@@ -213,15 +213,15 @@ class Orders
     {
         foreach ($this->storeManager->getStores() as $store) {
             if ($this->config->getIsEnabled($store->getCode())
-                && $this->config->getIsHistoricalOrdersFeedEnabled($store->getCode())
+                && $this->config->getConfigValue(Config::ORDER_ENABLE_FEED, $store->getCode())
             ) {
                 try {
                     $orderFeed =$this->getOrdersFeed(
                         $store->getId(),
-                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P25D')),
+                        $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))->sub(new DateInterval('P25D')),
                         $this->dateTimeFactory->create(
                             'now',
-                            new \DateTimeZone('UTC')
+                            new DateTimeZone('UTC')
 
                         )
                     );
@@ -276,7 +276,10 @@ class Orders
                     'ITEMIMAGEURL',
                     'DELIVERYDATE'
                 ],
-                "\t"
+                "\t",
+                '"',
+                "\\",
+                PHP_EOL
             );
             $orderFeed = $this->getOrders($storeId, $fromDate, $toDate);
             $this->writeOrdersFeed($orderFeed, $outputHandle, $forceIncludeAllItems);
@@ -420,7 +423,7 @@ class Orders
         $items = $this->addShipDateToItemData($items, $orderId, $order->getStoreId());
         if (
             !$forceIncludeAllItems
-            && $this->config->getExcludeItemsWithoutDeliveryDate($order->getStore()->getCode())
+            && $this->config->getConfigValue(Config::ORDER_EXCLUDE_ITEMS_WITHOUT_DELIVERY_DATE, $order->getStore()->getCode())
         ) {
             foreach ($items as $key => $item) {
                 if (empty($item['shipDate'])) {
@@ -447,7 +450,7 @@ class Orders
         $pageSize = $shipmentsList->getPageSize();
 
         // If this setting is on, we only send shipment data if the whole order has shipped
-        $configExcludeDeliveryDateUntilAllItemsShipped = $this->config->getExcludeDeliveryDateUntilAllItemsShipped($storeId);
+        $configExcludeDeliveryDateUntilAllItemsShipped = $this->config->getConfigValue(Config::ORDER_EXCLUDE_DELIVERY_DATE_ON_PARTIAL_SHIPMENT, $storeId);
         $allItemsShipped = false;
         if ($configExcludeDeliveryDateUntilAllItemsShipped) {
             $allItemsShipped = $this->getAllOrdersShipped($orderId);
@@ -569,7 +572,7 @@ class Orders
         $row[] = $order->getCustomerLastname();
 
         $sku = $this->config->getUseChildSku($order->getStoreId()) ? $lineItem->getSku() : $product->getSku();
-        $row[] = $this->turnToProductHelper->turnToSafeEncoding($sku);
+        $row[] = $this->productModel->turnToSafeEncoding($sku);
 
         $row[] = $lineItem->getOriginalPrice();
         $row[] = $this->productHelper->getImageUrl($product);

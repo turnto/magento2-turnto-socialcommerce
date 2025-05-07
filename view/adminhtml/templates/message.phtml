@@ -1,13 +1,30 @@
 <?php
-$helper = $this->helper('TurnTo\SocialCommerce\Helper\Config');
-$backendUrl = $this->helper('Magento\Backend\Helper\Data')->getHomePageUrl() .
-    'system_config/edit/section/turnto_socialcommerce_configuration/';
-if (empty($helper->getSiteKey()) || empty($helper->getAuthorizationKey())): ?>
+/**
+ * Copyright © Emplifi, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+use Magento\Backend\Block\Template;
+use TurnTo\SocialCommerce\ViewModel\Widget as ViewModel;
+
+/**
+ * @var Template $block
+ * @var ViewModel $viewModel
+ */
+$viewModel = $block->getViewModel();
+?>
+<?php if (empty($viewModel->getSiteKey()) || empty($viewModel->getAuthorizationKey())): ?>
     <div class="messages">
         <div class="message message-warning warning">
             <div data-ui-id="messages-message-warning">
-                <p>This feature requires that you enter a TurnTo site key and auth key in the <a href="<?= $backendUrl ?>">system configuration</a>.</p>
-               <p>You can find your Site Key and Auth Key in the <a href="https://www.turnto.com/secure/login/auth" class="external-link" target="_blank" rel="nofollow noopener" title="Follow link">TurnTo portal</a> or by contacting your TurnTo Customer Success team.</p>
+                <p>This feature requires that you enter your Emplifi Ratings & Reviews Site Key and Authorization Key in
+                    the <a href="<?= $viewModel->storeConfigUrl() ?>">system configuration</a>.
+                </p>
+                <p>You can find your Site Key and Auth Key in the
+                    <a href="https://emplifi.io/login" class="external-link" target="_blank"
+                       rel="nofollow noopener" title="Follow link">Emplifi portal</a>
+                    or by contacting your Customer Success team.
+                </p>
             </div>
         </div>
     </div>

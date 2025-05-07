@@ -1,13 +1,15 @@
 <?php
 /**
- * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * Copyright © Emplifi, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Model\Export;
 
+use DateInterval;
 use DateTime;
+use DateTimeZone;
 use Exception;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Filesystem\Io\File;
@@ -16,8 +18,8 @@ use Magento\Sales\Model\ResourceModel\Order\Collection;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
 use TurnTo\SocialCommerce\Api\FeedClient;
-use TurnTo\SocialCommerce\Helper\Config;
-use TurnTo\SocialCommerce\Helper\Product as TurnToProductHelper;
+use TurnTo\SocialCommerce\Model\Config;
+use TurnTo\SocialCommerce\Model\Product;
 use TurnTo\SocialCommerce\Logger\Monolog;
 
 class CanceledOrders
@@ -41,9 +43,9 @@ class CanceledOrders
      */
     protected $storeManager;
     /**
-     * @var TurnToProductHelper
+     * @var Product
      */
-    protected $turnToProductHelper;
+    protected $product;
     /**
      * @var DirectoryList
      */
@@ -72,7 +74,7 @@ class CanceledOrders
      * @param Monolog $logger
      * @param DateTimeFactory $dateTimeFactory
      * @param StoreManagerInterface $storeManager
-     * @param TurnToProductHelper $turnToProductHelper
+     * @param Product $product
      * @param DirectoryList $directoryList
      * @param FeedClient $feedClient
      * @param File $fileSystem
@@ -84,7 +86,7 @@ class CanceledOrders
         Monolog                     $logger,
         DateTimeFactory             $dateTimeFactory,
         StoreManagerInterface       $storeManager,
-        TurnToProductHelper         $turnToProductHelper,
+        Product         $product,
         DirectoryList               $directoryList,
         FeedClient                  $feedClient,
         File                        $fileSystem,
@@ -95,7 +97,7 @@ class CanceledOrders
         $this->logger = $logger;
         $this->dateTimeFactory = $dateTimeFactory;
         $this->storeManager = $storeManager;
-        $this->turnToProductHelper = $turnToProductHelper;
+        $this->product = $product;
         $this->directoryList = $directoryList;
         $this->feedClient = $feedClient;
         $this->fileSystem = $fileSystem;
@@ -160,14 +162,14 @@ class CanceledOrders
     public function cronUploadFeed()
     {
         foreach ($this->storeManager->getStores() as $store) {
-            if ($this->config->getIsEnabled($store->getCode()) && $this->config->getIsCancelledOrdersFeedEnabled(
-                $store->getCode()
-            )) {
+            if ($this->config->getIsEnabled($store->getCode()) &&
+                $this->config->getConfigValue(Config::ORDER_ENABLE_CANCELLED_FEED, $store->getCode())
+            ) {
                 try {
                     $feedData = $this->getCanceledOrdersFeed(
                         $store->getId(),
-                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))->sub(new \DateInterval('P80D')),
-                        $this->dateTimeFactory->create('now', new \DateTimeZone('UTC'))
+                        $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))->sub(new DateInterval('P80D')),
+                        $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))
                     );
                     $this->feedClient->transmitFeedFile($feedData, self::FEED_NAME, self::FEED_STYLE, $store->getCode());
                 } catch (Exception $e) {
@@ -218,7 +220,7 @@ class CanceledOrders
                     $sku = $this->config->getUseChildSku($order->getStoreId()) ? $lineItem->getSku() : $product->getSku();
 
                     $row[] = $order->getIncrementId();
-                    $row[] = $this->turnToProductHelper->turnToSafeEncoding($sku);
+                    $row[] = $this->product->turnToSafeEncoding($sku);
 
                     fputcsv($outputHandle, $row, "\t");
                 }

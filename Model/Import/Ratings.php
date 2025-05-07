@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * Copyright © Emplifi, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 declare(strict_types=1);
@@ -14,10 +14,11 @@ use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use TurnTo\SocialCommerce\Helper\Config;
-use TurnTo\SocialCommerce\Helper\Product;
+use TurnTo\SocialCommerce\Model\Config;
+use TurnTo\SocialCommerce\Model\Product;
 use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Setup\InstallHelper;
+use UnexpectedValueException;
 
 class Ratings
 {
@@ -39,7 +40,7 @@ class Ratings
     /**
      * @var Product
      */
-    protected $productHelper;
+    protected $product;
     /**#@-*/
 
     /**
@@ -74,7 +75,7 @@ class Ratings
      * @param ProductResource $productResource
      * @param StoreManagerInterface $storeManager
      * @param CollectionFactory $productCollectionFactory
-     * @param Product $productHelper
+     * @param Product $product
      */
     public function __construct(
         Config                $config,
@@ -83,7 +84,7 @@ class Ratings
         ProductResource       $productResource,
         StoreManagerInterface $storeManager,
         CollectionFactory     $productCollectionFactory,
-        Product               $productHelper
+        Product               $product
     ) {
         $this->config = $config;
         $this->logger = $logger;
@@ -91,7 +92,7 @@ class Ratings
         $this->productResource = $productResource;
         $this->storeManager = $storeManager;
         $this->productCollectionFactory = $productCollectionFactory;
-        $this->productHelper = $productHelper;
+        $this->product = $product;
     }
 
     /**
@@ -116,6 +117,7 @@ class Ratings
      * @param $reviewCount
      * @param $averageRating
      * @return bool
+     * @throws Exception
      */
     public function updateProduct(
         StoreInterface $store,
@@ -158,7 +160,7 @@ class Ratings
             $product->setData(InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE, "0");
         } else {
             foreach ($this->getRatingFilterAttributeValuesFromAverage($averageRating) as $optionText) {
-                $filterValues[] = $product->getResource()->getAttribute(InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE)->getSource()->getOptionId($optionText);
+                $filterValues[] = $this->productResource->getAttribute(InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE)->getSource()->getOptionId($optionText);
             }
             $product->setData(InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE, implode(',', $filterValues));
         }
@@ -166,7 +168,7 @@ class Ratings
 
         //Set website_ids in OrigData to fix issue with ProductProcessUrlRewriteSavingObserver
         if (!$product->getOrigData(self::WEBSITE_IDS)) {
-            $websiteIds = $product->getResource()->getWebsiteIds($product);
+            $websiteIds = $product->getWebsiteIds();
             $product->setOrigData(self::WEBSITE_IDS, $websiteIds);
         }
 
@@ -205,7 +207,7 @@ class Ratings
             $feedProducts = [];
             foreach ($this->storeManager->getStores() as $store) {
                 $feedAddress = 'UNK';
-                if (!$this->config->getIsEnabled($store->getCode()) || !$this->config->getAverageRatingImportEnabled($store->getCode())) {
+                if (!$this->config->getIsEnabled($store->getCode()) || !$this->config->getConfigValue(Config::AVERAGE_RATING_IMPORT_ENABLED, $store->getCode())) {
                     continue;
                 }
                 // Create an array for reach store
@@ -225,7 +227,7 @@ class Ratings
                             $sku = null;
                             $reviewCount = null;
 
-                            $sku = $this->productHelper->turnToSafeDecoding(
+                            $sku = $this->product->turnToSafeDecoding(
                                 (string)$turnToProduct[self::TURNTO_FEED_KEY_SKU]
                             );
                             if (empty($sku)) {
@@ -236,7 +238,7 @@ class Ratings
                             $feedProducts[$store->getId()][$sku] = true;
 
                             // If the Import Average Rating Aggregate Data setting is on, include related reviews
-                            if ($this->config->getAverageRatingImportAggregateData()) {
+                            if ($this->config->getConfigValue(Config::AVERAGE_RATING_IMPORT_AGGREGATE_DATA)) {
                                 $reviewCount = (int)$turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT] +
                                     $turnToProduct[self::TURNTO_FEED_KEY_RELATED_REVIEW_COUNT];
                             } else {
@@ -248,7 +250,7 @@ class Ratings
                                 if ($averageRating > 0.0) {
                                     $this->updateProduct($store, $sku, $reviewCount, $averageRating);
                                 } else {
-                                    throw new \UnexpectedValueException('Average rating is a non-positive '
+                                    throw new UnexpectedValueException('Average rating is a non-positive '
                                         . 'number despite product having reviews');
                                 }
                             }
@@ -291,8 +293,9 @@ class Ratings
      *
      * @param $feedProducts
      * @param $store
+     * @throws Exception
      */
-    private function resetProducts($feedProducts, $store)
+    protected function resetProducts($feedProducts, $store)
     {
         $collection = $this->productCollectionFactory->create()
             ->addAttributeToSelect('id')
@@ -308,12 +311,12 @@ class Ratings
             ->addAttributeToFilter(
                 [
                     [
-                        'attribute' => \TurnTo\SocialCommerce\Setup\InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE,
+                        'attribute' => InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE,
                         'notnull' => true,
                         'left'
                     ],
                     [
-                        'attribute' => \TurnTo\SocialCommerce\Setup\InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE,
+                        'attribute' => InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE,
                         'notnull' => true,
                         'left'
                     ],

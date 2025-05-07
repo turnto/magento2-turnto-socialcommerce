@@ -1,32 +1,27 @@
 <?php
 /**
- * TurnTo_SocialCommerce
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- *
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Emplifi, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Plugin\Catalog\Block\Product\View;
+
+use Magento\Catalog\Block\Product\View\Description as ProductDescription;
+use TurnTo\SocialCommerce\Model\Config;
 
 class Description
 {
     /**
-     * @var \TurnTo\SocialCommerce\Helper\Config
+     * @var Config
      */
     protected $config;
 
     /**
      * Description constructor.
-     * @param \TurnTo\SocialCommerce\Helper\Config $config
+     * @param Config $config
      */
-    public function __construct(\TurnTo\SocialCommerce\Helper\Config $config)
+    public function __construct(Config $config)
     {
         $this->config = $config;
     }
@@ -40,11 +35,11 @@ class Description
      * the template that renders all blocks assigned to the detailed_info group to prevent conflicts with other modules
      * or themes.
      *
-     * @param \Magento\Catalog\Block\Product\View\Description $subject
+     * @param ProductDescription $subject
      * @param $result
      * @return array
      */
-    public function afterGetGroupChildNames(\Magento\Catalog\Block\Product\View\Description $subject, $result)
+    public function afterGetGroupChildNames(ProductDescription $subject, $result)
     {
         if (!$this->config->getIsEnabled()) {
             $result = array_diff($result, ['turnto.qa.tab']);

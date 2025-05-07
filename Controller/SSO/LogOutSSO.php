@@ -1,20 +1,23 @@
 <?php
-
 /**
- * @category    ClassyLlama
- * @package
- * @copyright   Copyright (c) 2020 Classy Llama Studios, LLC
+ * Copyright © Emplifi, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Controller\SSO;
 
+use Magento\Customer\Controller\Account\Logout;
 use Magento\Customer\Model\Session;
 use Magento\Framework\App\Action\Context;
-use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Controller\Result\Redirect;
+use Magento\Framework\Exception\InputException;
 use Magento\Framework\Stdlib\Cookie\CookieMetadataFactory;
+use Magento\Framework\Stdlib\Cookie\FailureToSendException;
 use Magento\Framework\Stdlib\Cookie\PhpCookieManager;
+use Magento\Framework\Stdlib\CookieManagerInterface;
 
-class LogOutSSO extends \Magento\Customer\Controller\Account\Logout
+class LogOutSSO extends Logout
 {
     /**
      * @var Session
@@ -24,61 +27,49 @@ class LogOutSSO extends \Magento\Customer\Controller\Account\Logout
     /**
      * @var CookieMetadataFactory
      */
-    private $cookieMetadataFactory;
+    protected $cookieMetadataFactory;
 
     /**
-     * @var PhpCookieManager
+     * @var CookieManagerInterface
      */
-    private $cookieMetadataManager;
+    protected $cookieManager;
 
     /**
      * @param Context $context
+     * @param CookieMetadataFactory $cookieMetadataFactory
+     * @param CookieManagerInterface $cookieManager
      * @param Session $customerSession
      */
     public function __construct(
         Context $context,
         CookieMetadataFactory $cookieMetadataFactory,
+        CookieManagerInterface $cookieManager,
         Session $customerSession
     ) {
         $this->session = $customerSession;
         $this->cookieMetadataFactory = $cookieMetadataFactory;
+        $this->cookieManager = $cookieManager;
         parent::__construct($context, $customerSession);
     }
 
     /**
-     * Retrieve cookie manager
-     *
-     * @deprecated 100.1.0
-     * @return PhpCookieManager
-     */
-    private function getCookieManager()
-    {
-        if (!$this->cookieMetadataManager) {
-            $this->cookieMetadataManager = ObjectManager::getInstance()->get(PhpCookieManager::class);
-        }
-        return $this->cookieMetadataManager;
-    }
-
-    /**
-     * Customer logout action
-     *
-     * @return \Magento\Framework\Controller\Result\Redirect
+     * @return Redirect
+     * @throws FailureToSendException
+     * @throws InputException
      */
     public function execute()
     {
         $lastCustomerId = $this->session->getId();
         $this->session->logout()->setBeforeAuthUrl($this->_redirect->getRefererUrl())
             ->setLastCustomerId($lastCustomerId);
-        if ($this->getCookieManager()->getCookie('mage-cache-sessid')) {
+        if ($this->cookieManager->getCookie('mage-cache-sessid')) {
             $metadata = $this->cookieMetadataFactory->createCookieMetadata();
             $metadata->setPath('/');
-            $this->getCookieManager()->deleteCookie('mage-cache-sessid', $metadata);
+            $this->cookieManager->deleteCookie('mage-cache-sessid', $metadata);
         }
 
-        /** @var \Magento\Framework\Controller\Result\Redirect $resultRedirect */
         $resultRedirect = $this->resultRedirectFactory->create();
         $resultRedirect->setPath($this->_redirect->getRefererUrl());
         return $resultRedirect;
     }
-
 }

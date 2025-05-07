@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
 /**
- * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * Copyright © Emplifi, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 -->
@@ -9,6 +9,9 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <type name="Magento\Review\Block\Product\Review">
         <plugin sortOrder="1" name="turnToSocialCommerceReview" type="TurnTo\SocialCommerce\Plugin\Block\Product\ReviewPlugin"/>
+    </type>
+    <type name="Magento\Swatches\Helper\Data">
+        <plugin name="turnto_socialcommerce_swatch_media_sku" type="TurnTo\SocialCommerce\Plugin\AddSkuToSwatchMediaPlugin" sortOrder="1" />
     </type>
 </config>
 
