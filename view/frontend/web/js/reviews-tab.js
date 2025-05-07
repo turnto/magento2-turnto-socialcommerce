@@ -1,11 +1,10 @@
 /**
- * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * Copyright © Emplifi, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 define([
     'ko',
-    'uiComponent',
-    'jquery'
+    'uiComponent'
 ], function (ko, Component) {
     'use strict';
 
@@ -16,7 +15,6 @@ define([
             reviewsData: {},
             reviewsEnabled: null,
             reviewsUrl: null
-
         },
 
         /**
@@ -26,9 +24,11 @@ define([
          */
         initialize: function initialize() {
             this._super();
-
             this.observe(['reviewsData']);
-
+            if (!this.siteKey) {
+                console.error('siteKey is not set');
+                return this;
+            }
             if (this.reviewSku !== null && this.reviewsEnabled === "true") {
                 this.loadReviewCount(this.reviewSku);
             }
@@ -37,8 +37,7 @@ define([
         },
 
         loadReviewCount: function loadTeaserCounts(sku) {
-            var xhr = new XMLHttpRequest();
-
+            let xhr = new XMLHttpRequest();
             xhr.open('GET', this.reviewsUrl + this.siteKey + '/' + sku + '/d/ugc/counts/en_US', true);
             xhr.addEventListener('load', function () {
                 if (!xhr.responseText) {

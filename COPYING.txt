@@ -1,4 +1,4 @@
-Copyright © 2016-present Pixlee TurnTo, Inc.
+Copyright © 2016-present Emplifi, Inc.
 
 Each source file included in this distribution is licensed under OSL 3.0
 

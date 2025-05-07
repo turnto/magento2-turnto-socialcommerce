@@ -1,24 +1,15 @@
 /**
- * TurnTo_SocialCommerce
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- *
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Emplifi, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
 define([
     'jquery',
-    'jquery/ui'
-], function ($) {
+    'underscore',
+    'jquery-ui-modules/widget',
+], function ($, _) {
     'use strict';
     return function (original) {
         $.widget('mage.SwatchRenderer', original, {
-
             /*
              * If useChild sku is enabled, pass the child sku to TurnTo after a swatch change.
              */
@@ -27,19 +18,18 @@ define([
                 if (this.options.jsonConfig.useChild) {
                     this.selectedProduct();
                 }
-
             },
 
             /*
              * Get the product sku and pass it to TurnTo by using the selected swatch
              */
             selectedProduct: function () {
-                var selected_options = {};
+                let selected_options = {};
                 $('div.swatch-attribute').each(function (k, v) {
                     // In Magento 2.4+ the div attributes are called "data-attribute-id" and "data-option-selected"
                     // In versions before 2.4, they're "attribute-id" and "option-selected". So check both.
-                    var attribute_id = $(v).attr('data-attribute-id');
-                    var option_selected = $(v).attr('data-option-selected');
+                    let attribute_id = $(v).attr('data-attribute-id');
+                    let option_selected = $(v).attr('data-option-selected');
                     if (!attribute_id || !option_selected) {
                         // Try this if they're using version < 2.4
                         attribute_id = $(v).attr('attribute-id');
@@ -52,10 +42,10 @@ define([
                     selected_options[attribute_id] = option_selected;
                 });
 
-                var product_id_index = $('[data-role=swatch-options]').data('mageSwatchRenderer').options.jsonConfig.index;
-                var self = this;
+                let product_id_index = $('[data-role=swatch-options]').data('mage-SwatchRenderer').options.jsonConfig.index;
+                let self = this;
                 $.each(product_id_index, function (product_id, attributes) {
-                    var productIsSelected = function (attributes, selected_options) {
+                    let productIsSelected = function (attributes, selected_options) {
                         return _.isEqual(attributes, selected_options);
                     };
                     if (productIsSelected(attributes, selected_options)) {
@@ -75,8 +65,6 @@ define([
                         return false;
                     }
                 });
-
-
             },
         });
 
