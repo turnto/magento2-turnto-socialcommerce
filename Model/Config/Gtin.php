@@ -62,7 +62,7 @@ class Gtin
                 self::PRODUCT_ATTRIBUTE_MAPPINGS . $mappingKey,
                 $scopeCode
             );
-            if (!empty($tempResult)) {
+            if (!empty($value)) {
                 $gtinMap[$mappingKey] = $value;
             }
         }

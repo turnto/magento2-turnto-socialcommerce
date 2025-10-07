@@ -9,9 +9,11 @@ namespace TurnTo\SocialCommerce\Model\Export;
 
 use DateTimeZone;
 use Exception;
+use Magento\Catalog\Api\Data\ProductAttributeInterface;
 use Magento\Catalog\Helper\Image;
 use Magento\Catalog\Model\Category;
 use Magento\Catalog\Model\Product as CatalogProduct;
+use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\Catalog\Model\ResourceModel\Product\Collection;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
@@ -19,6 +21,7 @@ use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Intl\DateTimeFactory;
 use Magento\Framework\UrlInterface;
+use Magento\Eav\Model\Config as EavConfig;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use SimpleXMLElement;
@@ -81,37 +84,44 @@ class Catalog
     /**
      * @var Gtin
      */
-    protected $gtin;
+    protected $gtinConfig;
+    /**
+     * @var EavConfig
+     */
+    protected $eavConfig;
 
     /**
      * Catalog constructor.
      *
      * @param Config $config
-     * @param Gtin $gtin
+     * @param Gtin $gtinConfig
      * @param StoreManagerInterface $storeManager
      * @param CollectionFactory $productCollectionFactory
      * @param DateTimeFactory $dateTimeFactory
      * @param Image $imageHelper
      * @param Product $product
+     * @param EavConfig $eavConfig
      * @param FeedClient $feedClient
      * @param Monolog $logger
      */
     public function __construct(
         Config                $config,
-        Gtin                  $gtin,
+        Gtin                  $gtinConfig,
         StoreManagerInterface $storeManager,
         CollectionFactory     $productCollectionFactory,
         DateTimeFactory       $dateTimeFactory,
         Image                 $imageHelper,
         Product               $product,
+        EavConfig             $eavConfig,
         FeedClient            $feedClient,
         Monolog               $logger
     ) {
         $this->config = $config;
-        $this->gtin = $gtin;
+        $this->gtinConfig = $gtinConfig;
         $this->imageHelper = $imageHelper;
         $this->storeManager = $storeManager;
         $this->product = $product;
+        $this->eavConfig = $eavConfig;
         $this->feedClient = $feedClient;
         $this->logger = $logger;
         $this->productCollectionFactory = $productCollectionFactory;
@@ -127,15 +137,110 @@ class Catalog
      */
     protected function sanitizeData($dirtyString)
     {
-        $replacementMap = [
-            '&' => '&amp;',
-            '"' => '&quot;',
-            '\'' => '&apos;',
-            '<' => '&lt;',
-            '>' => '&gt;',
-        ];
+        return htmlspecialchars($dirtyString, ENT_XML1 | ENT_COMPAT | ENT_SUBSTITUTE, 'UTF-8');
+    }
 
-        return str_replace(array_keys($replacementMap), array_values($replacementMap), $dirtyString);
+	/**
+	 * Resolves a product attribute value, returning the display label for
+	 * EAV select/multiselect attributes instead of the raw option ID.
+	 *
+	 * @param CatalogProduct $product
+	 * @param string $attributeCode
+	 * @return string|null
+	 */
+    protected function getProductAttributeValue(CatalogProduct $product, string $attributeCode)
+    {
+        if (empty($attributeCode)) {
+            return null;
+        }
+
+        try {
+            $attribute = $this->eavConfig->getAttribute(ProductAttributeInterface::ENTITY_TYPE_CODE, $attributeCode);
+            if ($attribute && $attribute->usesSource()) {
+                $label = $product->getAttributeText($attributeCode);
+                if (is_array($label)) {
+                    return implode(', ', $label);
+                }
+                return $label;
+            }
+        } catch (Exception $e) {
+            $this->logger->error(
+                'Error retrieving product attribute',
+                [
+                    'exception' => $e,
+                    'attributeCode' => $attributeCode,
+                    'productId' => $product->getId()
+                ]
+            );
+        }
+
+        $value = $product->getData($attributeCode);
+        if (is_array($value)) {
+            return implode(', ', array_map('strval', $value));
+        }
+        return !empty($value) ? (string)$value : null;
+    }
+
+    /**
+     * @param $product
+     * @param $gtinMap
+     * @return string|null
+     */
+    public function getGtinValue($product, $gtinMap)
+    {
+        if (isset($gtinMap[Gtin::UPC_ATTRIBUTE])) {
+             return $this->getProductAttributeValue($product, $gtinMap[Gtin::UPC_ATTRIBUTE]);
+        }
+        if (isset($gtinMap[Gtin::ISBN_ATTRIBUTE])) {
+            return$this->getProductAttributeValue($product, $gtinMap[Gtin::ISBN_ATTRIBUTE]);
+        }
+        if (isset($gtinMap[Gtin::EAN_ATTRIBUTE])) {
+            return$this->getProductAttributeValue($product, $gtinMap[Gtin::EAN_ATTRIBUTE]);
+        }
+        if (isset($gtinMap[Gtin::JAN_ATTRIBUTE])) {
+            return$this->getProductAttributeValue($product, $gtinMap[Gtin::JAN_ATTRIBUTE]);
+        }
+        if (isset($gtinMap[Gtin::ASIN_ATTRIBUTE])) {
+            return$this->getProductAttributeValue($product, $gtinMap[Gtin::ASIN_ATTRIBUTE]);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param $product
+     * @param $storeId
+     * @return string
+     */
+    public function getProductImageUrl($product, $storeId)
+    {
+        $productImageUrl = '';
+        try {
+            // In order for the product image url to use the url from the proper store view, temporarily change the store
+            $currentStore = $this->storeManager->getStore();
+            $this->storeManager->setCurrentStore($storeId);
+            // Don't return placeholder image if product does not have an image
+            $productImage = $product->getImage();
+            if ($productImage) {
+                $productImageUrl = $this->imageHelper->init($product, 'product_page_main_image')
+                    ->setImageFile($productImage)->getUrl();
+                $productImageUrl = str_replace(" ", "-", $productImageUrl);
+            }
+        } catch (Exception $e) {
+            $this->logger->error(
+                'Error retrieving product image url',
+                [
+                    'exception' => $e,
+                    'productId' => $product->getId(),
+                    'storeId' => $storeId
+                ]
+            );
+        }
+        if (isset($currentStore)) {
+            $this->storeManager->setCurrentStore($currentStore);
+        }
+
+        return $productImageUrl;
     }
 
     /**
@@ -276,8 +381,6 @@ class Catalog
         if (empty($productUrl)) {
             throw new Exception('Product must have a valid store-product url');
         }
-        // Replace spaces with dashes, so we always have a valid URL
-        $productUrl = str_replace(" ", "-", $productUrl);
 
         $productName = $product->getName();
         if (empty($productName)) {
@@ -287,44 +390,26 @@ class Catalog
 
         $entry->addChild('id', $this->sanitizeData($sku));
 
-        $gtin = null;
-        $mpn = null;
-        $brand = null;
         $identifierExists = 'FALSE';
-        $gtinMap = $this->gtin->getGtinAttributesMap($store->getCode());
-
+        $gtinMap = $this->gtinConfig->getGtinAttributesMap($store->getCode());
         if (!empty($gtinMap)) {
-            if (isset($gtinMap[Gtin::MPN_ATTRIBUTE])) {
-                $mpn = $product->getData($gtinMap[Gtin::MPN_ATTRIBUTE]);
+            $gtinValue = $this->getGtinValue($product, $gtinMap);
+            if (!empty($gtinValue)) {
+                $entry->addChild('g:gtin', $this->sanitizeData($gtinValue));
             }
+            $brand = null;
             if (isset($gtinMap[Gtin::BRAND_ATTRIBUTE])) {
-                $brand = $product->getData($gtinMap[Gtin::BRAND_ATTRIBUTE]);
-            }
-            if (empty($gtin)) {
-                if (isset($gtinMap[Gtin::UPC_ATTRIBUTE])) {
-                    $gtin = $product->getData($gtinMap[Gtin::UPC_ATTRIBUTE]);
-                }
-                if (isset($gtinMap[Gtin::ISBN_ATTRIBUTE])) {
-                    $gtin = $product->getData($gtinMap[Gtin::ISBN_ATTRIBUTE]);
-                }
-                if (isset($gtinMap[Gtin::EAN_ATTRIBUTE])) {
-                    $gtin = $product->getData($gtinMap[Gtin::EAN_ATTRIBUTE]);
-                }
-                if (isset($gtinMap[Gtin::JAN_ATTRIBUTE])) {
-                    $gtin = $product->getData($gtinMap[Gtin::JAN_ATTRIBUTE]);
-                }
-                if (isset($gtinMap[Gtin::ASIN_ATTRIBUTE])) {
-                    $gtin = $product->getData($gtinMap[Gtin::ASIN_ATTRIBUTE]);
+                $brand = $this->getProductAttributeValue($product, $gtinMap[Gtin::BRAND_ATTRIBUTE]);
+                if (!empty($brand)) {
+                    $entry->addChild('g:brand', $this->sanitizeData($brand));
                 }
             }
-            if (!empty($gtin)) {
-                $entry->addChild('g:gtin', $this->sanitizeData($gtin));
-            }
-            if (!empty($brand)) {
-                $entry->addChild('g:brand', $this->sanitizeData($brand));
-            }
-            if (!empty($mpn)) {
-                $entry->addChild('g:mpn', $this->sanitizeData($mpn));
+            $mpn = null;
+            if (isset($gtinMap[Gtin::MPN_ATTRIBUTE])) {
+                $mpn = $this->getProductAttributeValue($product, $gtinMap[Gtin::MPN_ATTRIBUTE]);
+                if (!empty($mpn)) {
+                    $entry->addChild('g:mpn', $this->sanitizeData($mpn));
+                }
             }
             if (!empty($brand) && (!empty($gtin) || !empty($mpn))) {
                 $identifierExists = 'TRUE';
@@ -332,7 +417,7 @@ class Catalog
         }
 
         $entry->addChild('g:identifier_exists', $identifierExists);
-        $entry->addChild('g:link', $productUrl);
+        $entry->addChild('g:link', $this->sanitizeData($productUrl));
         $entry->addChild('g:title', $this->sanitizeData($productName));
 
         $categoryName = $this->getCategoryTreeString($product);
@@ -342,36 +427,19 @@ class Catalog
             $entry->addChild('g:product_type', $cleanCategoryName);
         }
 
-        // In order for the product image url to use the url from the proper store view, temporarily change the store
-        $currentStore = $this->storeManager->getStore();
-        $this->storeManager->setCurrentStore($store->getStoreId());
-
-        // Check if the product has an image. If it does NOT, we don't send an image URL, so TurnTo doesn't
-        // just process the placeholder image
-        $productHasImage = (bool) $product->getData('image');
-        if (!$productHasImage) {
-            $productImageUrl = '';
-        } else {
-            $productImageUrl = $this->imageHelper->init($product, 'product_page_main_image')->setImageFile(
-                $product->getImage()
-            )->getUrl();
-            $productImageUrl = str_replace(" ", "-", $productImageUrl);
-        }
-
-        // Restore the "current store"
-        $this->storeManager->setCurrentStore($currentStore);
-
         // Availability is normally determined by status, but can be overridden by custom "turnto_disabled" attribute
         $turntoDisable = $product->getCustomAttribute('turnto_disabled') ?
             $product->getCustomAttribute('turnto_disabled')->getValue() :
             false;
         $availability = $turntoDisable ? 'out of stock' :
-            (($product->getStatus() == 1) ? 'in stock' : 'out of stock');
+            (($product->getStatus() == Status::STATUS_ENABLED) ? 'in stock' : 'out of stock');
 
         $entry->addChild('g:availability', $availability);
+        $productImageUrl = $this->getProductImageUrl($product, $store->getId());
         $entry->addChild('g:image_link', $this->sanitizeData($productImageUrl));
         $entry->addChild('g:condition', 'new');
-        $entry->addChild('g:price', $product->getPrice() . ' ' . $store->getBaseCurrencyCode());
+        $price = number_format($product->getPrice(), 2, '.', '');
+        $entry->addChild('g:price', $price . ' ' . $store->getBaseCurrencyCode());
         $itemGroupId = $this->getItemGroupId($product, $parent);
         $entry->addChild('g:item_group_id', $itemGroupId);
     }
@@ -510,7 +578,7 @@ class Catalog
             ->addUrlRewrite()
             ->setPage($page, $pageCount);
 
-        $gtinMap = $this->gtin->getGtinAttributesMap($store->getCode());
+        $gtinMap = $this->gtinConfig->getGtinAttributesMap($store->getCode());
 
         if (!empty($gtinMap)) {
             foreach ($gtinMap as $attributeName) {
