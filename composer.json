@@ -1,7 +1,7 @@
 {
     "name": "turnto/social-commerce",
     "description": "Social commerce platform to collect, manage, and display ratings and reviews to enhance your Magento store",
-    "version": "3.8.7",
+    "version": "3.8.8",
     "type": "magento2-module",
     "license": [
         "OSL-3.0"
@@ -21,7 +21,9 @@
         "magento/module-config": "101.1.*||101.2.*",
         "magento/module-configurable-product": "100.3.*||100.4.*",
         "magento/module-cron": "100.3.*||100.4.*",
+        "magento/module-customer": "102.0.*||103.0.*",
         "magento/module-eav": "102.0.*||102.1.*",
+        "magento/module-rule": "100.3.*||100.4.*",
         "magento/module-review": "100.3.*||100.4.*",
         "magento/module-sales": "102.0.*||103.0.*",
         "magento/module-store": "101.0.*||101.1.*",
