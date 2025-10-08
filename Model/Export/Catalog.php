@@ -18,12 +18,16 @@ use Magento\Catalog\Model\Product\Visibility;
 use Magento\Catalog\Model\ResourceModel\Product\Collection;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+use Magento\Framework\App\Area;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Intl\DateTimeFactory;
+use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Eav\Model\Config as EavConfig;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Store\Model\App\Emulation;
 use SimpleXMLElement;
 use TurnTo\SocialCommerce\Api\FeedClient;
 use TurnTo\SocialCommerce\Model\Config;
@@ -89,6 +93,14 @@ class Catalog
      * @var EavConfig
      */
     protected $eavConfig;
+    /**
+     * @var Emulation
+     */
+    protected $emulation;
+    /**
+     * @var PriceCurrencyInterface
+     */
+    protected $priceCurrency;
 
     /**
      * Catalog constructor.
@@ -102,6 +114,8 @@ class Catalog
      * @param Product $product
      * @param EavConfig $eavConfig
      * @param FeedClient $feedClient
+     * @param Emulation $emulation
+     * @param PriceCurrencyInterface $priceCurrency
      * @param Monolog $logger
      */
     public function __construct(
@@ -114,6 +128,8 @@ class Catalog
         Product               $product,
         EavConfig             $eavConfig,
         FeedClient            $feedClient,
+        Emulation             $emulation,
+        PriceCurrencyInterface $priceCurrency,
         Monolog               $logger
     ) {
         $this->config = $config;
@@ -126,6 +142,8 @@ class Catalog
         $this->logger = $logger;
         $this->productCollectionFactory = $productCollectionFactory;
         $this->dateTimeFactory = $dateTimeFactory;
+        $this->emulation = $emulation;
+        $this->priceCurrency = $priceCurrency;
     }
 
     /**
@@ -137,7 +155,10 @@ class Catalog
      */
     protected function sanitizeData($dirtyString)
     {
-        return htmlspecialchars($dirtyString, ENT_XML1 | ENT_COMPAT | ENT_SUBSTITUTE, 'UTF-8');
+        if (is_string($dirtyString)) {
+            return htmlspecialchars($dirtyString, ENT_XML1 | ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        }
+        return $dirtyString;
     }
 
 	/**
@@ -161,7 +182,7 @@ class Catalog
                 if (is_array($label)) {
                     return implode(', ', $label);
                 }
-                return $label;
+                return (string)$label;
             }
         } catch (Exception $e) {
             $this->logger->error(
@@ -188,20 +209,17 @@ class Catalog
      */
     public function getGtinValue($product, $gtinMap)
     {
-        if (isset($gtinMap[Gtin::UPC_ATTRIBUTE])) {
-             return $this->getProductAttributeValue($product, $gtinMap[Gtin::UPC_ATTRIBUTE]);
-        }
-        if (isset($gtinMap[Gtin::ISBN_ATTRIBUTE])) {
-            return$this->getProductAttributeValue($product, $gtinMap[Gtin::ISBN_ATTRIBUTE]);
-        }
-        if (isset($gtinMap[Gtin::EAN_ATTRIBUTE])) {
-            return$this->getProductAttributeValue($product, $gtinMap[Gtin::EAN_ATTRIBUTE]);
-        }
-        if (isset($gtinMap[Gtin::JAN_ATTRIBUTE])) {
-            return$this->getProductAttributeValue($product, $gtinMap[Gtin::JAN_ATTRIBUTE]);
-        }
-        if (isset($gtinMap[Gtin::ASIN_ATTRIBUTE])) {
-            return$this->getProductAttributeValue($product, $gtinMap[Gtin::ASIN_ATTRIBUTE]);
+        $gtinAttributes = [
+            Gtin::UPC_ATTRIBUTE,
+            Gtin::EAN_ATTRIBUTE,
+            Gtin::JAN_ATTRIBUTE,
+            Gtin::ISBN_ATTRIBUTE,
+            Gtin::ASIN_ATTRIBUTE
+        ];
+        foreach ($gtinAttributes as $key) {
+            if (isset($gtinMap[$key])) {
+                return $this->getProductAttributeValue($product, $gtinMap[$key]);
+            }
         }
 
         return null;
@@ -209,35 +227,25 @@ class Catalog
 
     /**
      * @param $product
-     * @param $storeId
      * @return string
      */
-    public function getProductImageUrl($product, $storeId)
+    public function getProductImageUrl($product)
     {
         $productImageUrl = '';
         try {
-            // In order for the product image url to use the url from the proper store view, temporarily change the store
-            $currentStore = $this->storeManager->getStore();
-            $this->storeManager->setCurrentStore($storeId);
-            // Don't return placeholder image if product does not have an image
             $productImage = $product->getImage();
             if ($productImage) {
                 $productImageUrl = $this->imageHelper->init($product, 'product_page_main_image')
                     ->setImageFile($productImage)->getUrl();
-                $productImageUrl = str_replace(" ", "-", $productImageUrl);
             }
         } catch (Exception $e) {
             $this->logger->error(
-                'Error retrieving product image url',
+                'Error retrieving product image',
                 [
                     'exception' => $e,
-                    'productId' => $product->getId(),
-                    'storeId' => $storeId
+                    'productId' => $product->getId()
                 ]
             );
-        }
-        if (isset($currentStore)) {
-            $this->storeManager->setCurrentStore($currentStore);
         }
 
         return $productImageUrl;
@@ -256,9 +264,10 @@ class Catalog
         $feed = null;
         $progressCounter = 0;
         $products = [];
+        $storeId = $store->getId();
 
         try {
-            if (!$products = $this->getProducts($store, $page)) {
+            if (!$products = $this->getProducts($storeId, $page)) {
                 return false;
             }
             $feed = new SimpleXMLElement(
@@ -288,7 +297,7 @@ class Catalog
             // development time, this simpler approach is being taken and if it proves to not scale well, can be
             // refactored in the future to use a query that loads all child products for all configurable products
             // at one time.
-            if ($this->config->getUseChildSku($store->getId())) {
+            if ($this->config->getUseChildSku($storeId)) {
                 foreach ($products as $product) {
                     if ($product->getTypeId() !== Configurable::TYPE_CODE) {
                         continue;
@@ -303,11 +312,11 @@ class Catalog
 
             foreach ($products as $product) {
                 $parent = false;
-                if ($this->config->getUseChildSku($store->getId()) && isset($childProducts[$product->getSku()])) {
+                if ($this->config->getUseChildSku($storeId) && isset($childProducts[$product->getSku()])) {
                     $parent = $childProducts[$product->getSku()];
                 }
                 try {
-                    $this->addProductToAtomFeed($feed->addChild('entry'), $product, $store, $parent);
+                    $this->addProductToAtomFeed($feed->addChild('entry'), $product, $storeId, $parent);
                 } catch (Exception $entryException) {
                     $this->logger->error(
                         'Product failed to be added to feed',
@@ -361,12 +370,12 @@ class Catalog
      *
      * @param SimpleXMLElement $entry
      * @param CatalogProduct $product
-     * @param $store
-     * @param $parent bool|CatalogProduct
+     * @param int|string $storeId
+     * @param bool|CatalogProduct $parent
      *
      * @throws Exception
      */
-    protected function addProductToAtomFeed($entry, $product, $store, $parent)
+    protected function addProductToAtomFeed($entry, $product, $storeId, $parent)
     {
         if (empty($product)) {
             throw new Exception('Product can not be null or empty');
@@ -391,7 +400,7 @@ class Catalog
         $entry->addChild('id', $this->sanitizeData($sku));
 
         $identifierExists = 'FALSE';
-        $gtinMap = $this->gtinConfig->getGtinAttributesMap($store->getCode());
+        $gtinMap = $this->gtinConfig->getGtinAttributesMap($storeId);
         if (!empty($gtinMap)) {
             $gtinValue = $this->getGtinValue($product, $gtinMap);
             if (!empty($gtinValue)) {
@@ -411,7 +420,7 @@ class Catalog
                     $entry->addChild('g:mpn', $this->sanitizeData($mpn));
                 }
             }
-            if (!empty($brand) && (!empty($gtin) || !empty($mpn))) {
+            if (!empty($brand) && (!empty($gtinValue) || !empty($mpn))) {
                 $identifierExists = 'TRUE';
             }
         }
@@ -420,7 +429,7 @@ class Catalog
         $entry->addChild('g:link', $this->sanitizeData($productUrl));
         $entry->addChild('g:title', $this->sanitizeData($productName));
 
-        $categoryName = $this->getCategoryTreeString($product);
+        $categoryName = $this->getCategoryTreeString($product, $storeId);
         if (!empty($categoryName)) {
             $cleanCategoryName = $this->sanitizeData($categoryName);
             $entry->addChild('g:google_product_category', $cleanCategoryName);
@@ -435,26 +444,28 @@ class Catalog
             (($product->getStatus() == Status::STATUS_ENABLED) ? 'in stock' : 'out of stock');
 
         $entry->addChild('g:availability', $availability);
-        $productImageUrl = $this->getProductImageUrl($product, $store->getId());
+        $productImageUrl = $this->getProductImageUrl($product);
         $entry->addChild('g:image_link', $this->sanitizeData($productImageUrl));
         $entry->addChild('g:condition', 'new');
-        $price = number_format($product->getPrice(), 2, '.', '');
-        $entry->addChild('g:price', $price . ' ' . $store->getBaseCurrencyCode());
+        $price = $this->priceCurrency->convertAndRound($product->getFinalPrice(), $storeId);
+        $currencyCode = $this->priceCurrency->getCurrency($storeId)->getCurrencyCode();
+        $entry->addChild('g:price', $price . ' ' . $currencyCode);
         $itemGroupId = $this->getItemGroupId($product, $parent);
-        $entry->addChild('g:item_group_id', $itemGroupId);
+        $entry->addChild('g:item_group_id', $this->sanitizeData($itemGroupId));
     }
 
     /**
      * Gets the deepest tree for given product and returns as "rootNodeName > branchNodeName > leafNodeName"
      *
      * @param CatalogProduct $product
-     *
+     * @param int|StoreInterface|string $storeId
      * @return string
+     * @throws LocalizedException
      */
-    protected function getCategoryTreeString(CatalogProduct $product)
+    protected function getCategoryTreeString(CatalogProduct $product, $storeId)
     {
         $categoryName = '';
-        $categories = $product->getCategoryCollection();
+        $categories = $product->getCategoryCollection()->setStoreId($storeId)->addAttributeToSelect('name');
         $deepestLength = 0;
         $deepestTree = [];
 
@@ -512,24 +523,38 @@ class Catalog
     public function cronUploadFeed()
     {
         foreach ($this->storeManager->getStores() as $store) {
+            $storeId = $store->getId();
             if (
-                $this->config->getIsEnabled($store->getCode()) &&
-                $this->config->getConfigValue(Config::PRODUCT_ENABLE_AUTOMATIC_SUBMISSION, $store->getCode())
+                $this->config->getIsEnabled($storeId) &&
+                $this->config->getConfigValue(Config::PRODUCT_ENABLE_AUTOMATIC_SUBMISSION, $storeId)
             ) {
-                $page = 1;
-                while ($feed = $this->generateProductFeed($store, $page)) {
-                    try {
-                        $fileName = sprintf('%s_of_%s_store_%s_%s', $page, $this->totalPages, $store->getId(), self::FEED_STYLE);
-                        $this->feedClient->transmitFeedFile($feed, $fileName, self::FEED_STYLE, $store->getCode());
-                    } catch (Exception $e) {
-                        $this->logger->error(
-                            "TurnTo catalog export error sending page $page.",
-                            [
-                                'exception' => $e
-                            ]
-                        );
+                try {
+                    $page = 1;
+                    $this->emulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND, true);
+                    while ($feed = $this->generateProductFeed($store, $page)) {
+                        try {
+                            $fileName = sprintf('%s_of_%s_store_%s_%s', $page, $this->totalPages, $storeId, self::FEED_STYLE);
+                            $this->feedClient->transmitFeedFile($feed, $fileName, self::FEED_STYLE, $store->getCode());
+                        } catch (Exception $e) {
+                            $this->logger->error(
+                                "TurnTo catalog export error sending page $page.",
+                                [
+                                    'exception' => $e
+                                ]
+                            );
+                        }
+                        $page++;
                     }
-                    $page++;
+                } catch (Exception $e) {
+                    $this->logger->error(
+                        'Catalog export error',
+                        [
+                            'exception' => $e,
+                            'storeId' => $storeId,
+                        ]
+                    );
+                } finally {
+                    $this->emulation->stopEnvironmentEmulation();
                 }
             }
         }
@@ -556,14 +581,15 @@ class Catalog
      * Retrieves a store/visibility filtered product collection selecting only attributes necessary for the TurnTo Feed
      * overwritten to allow for pagination
      *
-     * @param StoreInterface $store
+     * @param int|string $storeId
      * @param int $page
      * @param ?int $pageCount
      * @return Collection|false
      */
-    public function getProducts(StoreInterface $store, $page, $pageCount = 10000)
+    public function getProducts($storeId, $page, $pageCount = 10000)
     {
         $collection = $this->productCollectionFactory->create()
+            ->setStoreId($storeId)
             ->addAttributeToSelect('id')
             ->addAttributeToSelect('name')
             ->addAttributeToSelect('sku')
@@ -578,7 +604,7 @@ class Catalog
             ->addUrlRewrite()
             ->setPage($page, $pageCount);
 
-        $gtinMap = $this->gtinConfig->getGtinAttributesMap($store->getCode());
+        $gtinMap = $this->gtinConfig->getGtinAttributesMap($storeId);
 
         if (!empty($gtinMap)) {
             foreach ($gtinMap as $attributeName) {
@@ -586,7 +612,7 @@ class Catalog
             }
         }
 
-        if (!$this->config->getUseChildSku($store->getId())) {
+        if (!$this->config->getUseChildSku($storeId)) {
             $collection->addFieldToFilter(
                 'visibility',
                 [
@@ -598,7 +624,7 @@ class Catalog
             );
         }
 
-        $collection->addStoreFilter($store);
+        $collection->addStoreFilter($storeId);
 
         //used to generate file name 1_of_$totalPages.xml
         $this->totalPages = $collection->getLastPageNumber();
