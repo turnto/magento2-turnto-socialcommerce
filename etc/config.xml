@@ -32,7 +32,7 @@
                 <setup_type>dynamicEmbed</setup_type>
             </qa>
             <teaser>
-                <use_local_teaser_code>1</use_local_teaser_code>
+                <use_local_teaser_code>0</use_local_teaser_code>
                 <enable_reviews_teaser>1</enable_reviews_teaser>
                 <enable_qa_teaser>0</enable_qa_teaser>
                 <enable_comments_teaser>0</enable_comments_teaser>

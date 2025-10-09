@@ -1,13 +1,7 @@
 <?php
 /**
- * TurnTo_SocialCommerce
- * NOTICE OF LICENSE
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * @copyright  Copyright (c) 2018 TurnTo Networks, Inc.
- * @license    http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * Copyright © Emplifi, Inc. All rights reserved.
+ * See COPYING.txt for license details.
  */
 ?>
 <?php /* @var $block \TurnTo\SocialCommerce\Block\System\Config\ExportCatalog */ ?>
@@ -16,30 +10,43 @@
     require([
         'jquery',
         'prototype'
-    ], function(jQuery){
-
-        var exportCatalogSpan = jQuery('#export_catalog_span');
-
-        jQuery('#export_catalog_button').click(function () {
+    ], function($){
+        $('#export_catalog_button').click(function () {
+            const exportCatalogSpan = $('#export_catalog_span');
+            const exportCatalogSuccess = exportCatalogSpan.find('.collected');
+            const exportCatalogProcessing = exportCatalogSpan.find('.processing');
+            const exportMessageSpan = $('#export_message_span');
             new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
-                loaderArea:     false,
-                asynchronous:   true,
+                loaderArea: false,
+                asynchronous: true,
                 onCreate: function() {
-                    exportCatalogSpan.find('.collected').hide();
-                    exportCatalogSpan.find('.processing').show();
-                    jQuery('#export_message_span').text('');
+                    exportCatalogSuccess.hide();
+                    exportCatalogProcessing.show();
+                    exportMessageSpan.text('');
                 },
                 onSuccess: function(response) {
-                    exportCatalogSpan.find('.processing').hide();
-
-                    var resultText = '';
+                    exportCatalogProcessing.hide();
+                    let resultText = '';
                     if (response.status > 200) {
-                        resultText = response.statusText;
+                        resultText = response.statusText || 'Error';
                     } else {
                         resultText = 'Success';
-                        exportCatalogSpan.find('.collected').show();
+                        exportCatalogSuccess.show();
                     }
-                    jQuery('#export_message_span').text(resultText);
+                    exportMessageSpan.text(resultText);
+                },
+                onFailure: function(response) {
+                    exportCatalogProcessing.hide();
+                    exportMessageSpan.text('Request failed');
+                    console.error(response && response.statusText ? response.statusText : 'Request failed');
+                },
+                onException: function(_, e) {
+                    exportCatalogProcessing.hide();
+                    exportMessageSpan.text('Error');
+                    console.error(e && e.message ? e.message : 'Unknown error');
+                },
+                onComplete: function() {
+                    exportCatalogProcessing.hide();
                 }
             });
         });
