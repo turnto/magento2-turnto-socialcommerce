@@ -14,6 +14,7 @@
         }
     ],
     "require": {
+        "ext-simplexml": "*",
         "magento/framework": "102.0.*||103.0.*",
         "magento/module-backend": "101.0.*||102.0.*",
         "magento/module-catalog": "103.0.*||104.0.*",

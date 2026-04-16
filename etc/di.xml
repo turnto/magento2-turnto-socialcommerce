@@ -21,6 +21,14 @@
             </argument>
         </arguments>
     </type>
+    <type name="TurnTo\SocialCommerce\Service\Feed\FeedGeneratorFactory">
+        <arguments>
+            <argument name="generators" xsi:type="array">
+                <item name="google-product.xml" xsi:type="object">TurnTo\SocialCommerce\Service\Feed\GoogleFeedGenerator</item>
+                <item name="tab-style.commerce" xsi:type="object">TurnTo\SocialCommerce\Service\Feed\CommerceFeedGenerator</item>
+            </argument>
+        </arguments>
+    </type>
     <type name="Magento\Catalog\Block\Product\View\Description">
         <plugin name="removeQuestionsTab" type="TurnTo\SocialCommerce\Plugin\Catalog\Block\Product\View\Description" />
     </type>

@@ -10,10 +10,11 @@ namespace TurnTo\SocialCommerce\Service\GoogleFeed;
 use Exception;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\RequestOptions;
+use SimpleXMLElement;
 use TurnTo\SocialCommerce\Api\FeedClient;
 use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Logger\Monolog;
-use TurnTo\SocialCommerce\Model\Export\Catalog;
+use TurnTo\SocialCommerce\Model\Config\Source\FeedFormat;
 use TurnTo\SocialCommerce\Model\File;
 
 class Client implements FeedClient
@@ -58,9 +59,14 @@ class Client implements FeedClient
     {
         $responseContents = 'win';
         try {
-            if ($feedStyle === Catalog::FEED_STYLE) {
-                $feedData = $feedData->asXML();
-                $path = "turnto/google-product_storecode_{$storeCode}.xml";
+            if ($feedStyle === FeedFormat::GOOGLE_PRODUCT) {
+                if ($feedData instanceof SimpleXMLElement) {
+                    $feedData = $feedData->asXML();
+                }
+                $path = "turnto/google-product_storecode_$storeCode.xml";
+                $this->file->writeFile($path, $feedData);
+            } elseif ($feedStyle === FeedFormat::COMMERCE) {
+                $path = "turnto/commerce-product_storecode_$storeCode.tsv";
                 $this->file->writeFile($path, $feedData);
             }
 
@@ -87,8 +93,11 @@ class Client implements FeedClient
             ]);
 
             $responseContents = $response->getBody()->getContents();
-            if ($feedStyle === Catalog::FEED_STYLE) {
+            if ($feedStyle === FeedFormat::GOOGLE_PRODUCT) {
                 $path = "turnto/google-product_storecode_{$storeCode}_request.xml";
+                $this->file->writeFile($path, $responseContents);
+            } elseif ($feedStyle === FeedFormat::COMMERCE) {
+                $path = "turnto/commerce-product_storecode_{$storeCode}_request.txt";
                 $this->file->writeFile($path, $responseContents);
             }
 

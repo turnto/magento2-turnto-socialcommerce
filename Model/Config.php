@@ -41,6 +41,7 @@ class Config
     public const CHECKOUT_CUSTOMER_NAME_FALLBACK = 'turnto_socialcommerce_configuration/checkout_comments/js_order_feed_customer_name_fallback';
 
     public const PRODUCT_ENABLE_AUTOMATIC_SUBMISSION = 'turnto_socialcommerce_configuration/product_feed/enable_automatic_submission';
+    public const PRODUCT_FEED_FORMAT = 'turnto_socialcommerce_configuration/product_feed/feed_format';
     public const PRODUCT_FEED_URL = 'turnto_socialcommerce_configuration/product_feed/product_feed_url';
     public const PRODUCT_FEED_SUBMISSION_URL = 'turnto_socialcommerce_configuration/product_feed/feed_submission_url';
     public const PRODUCT_REVIEW_URL = 'turnto_socialcommerce_configuration/product_feed/review_api_url';
@@ -180,5 +181,15 @@ class Config
     public function getUseChildSku($scopeCode = null, $scopeType = ScopeInterface::SCOPE_STORES)
     {
         return $this->getConfigBool(self::GENERAL_USE_CHILD_SKU, $scopeCode, $scopeType);
+    }
+
+    /**
+     * @param string|int|null $scopeCode
+     * @param string $scopeType
+     * @return string|null
+     */
+    public function getFeedFormat($scopeCode = null, $scopeType = ScopeInterface::SCOPE_STORES)
+    {
+        return $this->getConfigValue(self::PRODUCT_FEED_FORMAT, $scopeCode, $scopeType);
     }
 }
