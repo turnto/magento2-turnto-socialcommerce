@@ -188,7 +188,19 @@ class Catalog
                                 $feedData = $generator->finishFeed();
                                 $totalFiles = ceil($this->totalPages / $pagesPerBatch);
                                 $fileName = sprintf('%s_of_%s_store_%s_%s', $fileIndex, $totalFiles, $storeId, $feedStyle);
-                                $this->feedClient->transmitFeedFile($feedData, $fileName, $feedStyle, $store->getCode());
+
+                                try {
+                                    $this->feedClient->transmitFeedFile($feedData, $fileName, $feedStyle, $store->getCode());
+                                } catch (Exception $e) {
+                                    $this->logger->error(
+                                        "TurnTo catalog export transmit file error",
+                                        [
+                                            'store_id' => $storeId,
+                                            'file_name' => $fileName,
+                                            'exception' => $e
+                                        ]
+                                    );
+                                }
 
                                 $productCount = 0;
                                 $fileIndex++;

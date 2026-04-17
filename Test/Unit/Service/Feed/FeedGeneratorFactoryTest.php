@@ -35,9 +35,15 @@ class FeedGeneratorFactoryTest extends TestCase
         $this->googleGenerator = $this->createMock(GoogleFeedGenerator::class);
         $this->commerceGenerator = $this->createMock(CommerceFeedGenerator::class);
 
+        $googleFactory = $this->createMock(\TurnTo\SocialCommerce\Service\Feed\GoogleFeedGeneratorFactory::class);
+        $googleFactory->method('create')->willReturn($this->googleGenerator);
+
+        $commerceFactory = $this->createMock(\TurnTo\SocialCommerce\Service\Feed\CommerceFeedGeneratorFactory::class);
+        $commerceFactory->method('create')->willReturn($this->commerceGenerator);
+
         $generators = [
-            FeedFormat::GOOGLE_PRODUCT => $this->googleGenerator,
-            FeedFormat::COMMERCE => $this->commerceGenerator
+            FeedFormat::GOOGLE_PRODUCT => $googleFactory,
+            FeedFormat::COMMERCE => $commerceFactory
         ];
 
         $this->factory = new FeedGeneratorFactory($generators);

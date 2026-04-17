@@ -110,10 +110,14 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
     public function addProduct($product, $parent = null, $storeId = null)
     {
         try {
-            $entry = new SimpleXMLElement('<entry/>');
+            $entry = new SimpleXMLElement('<entry xmlns="http://www.w3.org/2005/Atom" xmlns:g="http://base.google.com/ns/1.0"/>');
             $this->addProductToAtomFeed($entry, $product, $storeId, $parent);
             $entryXml = $entry->asXML();
-            $entryXml = str_replace('<?xml version="1.0"?>', '', $entryXml);
+            $entryXml = str_replace(
+                ['<?xml version="1.0"?>', ' xmlns="http://www.w3.org/2005/Atom"', ' xmlns:g="http://base.google.com/ns/1.0"'],
+                '',
+                $entryXml
+            );
             fwrite($this->stream, trim($entryXml) . "\n");
         } catch (Exception $e) {
             $this->logger->error(
@@ -174,23 +178,24 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
 
         $identifierExists = 'FALSE';
         $gtinMap = $this->gtinConfig->getGtinAttributesMap($storeId);
+        $gNs = 'http://base.google.com/ns/1.0';
         if (!empty($gtinMap)) {
             $gtinValue = $this->getGtinValue($product, $gtinMap);
             if (!empty($gtinValue)) {
-                $entry->addChild('g:gtin', $this->sanitizeData($gtinValue));
+                $entry->addChild('g:gtin', $this->sanitizeData($gtinValue), $gNs);
             }
             $brand = null;
             if (isset($gtinMap[Gtin::BRAND_ATTRIBUTE])) {
                 $brand = $this->getProductAttributeValue($product, $gtinMap[Gtin::BRAND_ATTRIBUTE]);
                 if (!empty($brand)) {
-                    $entry->addChild('g:brand', $this->sanitizeData($brand));
+                    $entry->addChild('g:brand', $this->sanitizeData($brand), $gNs);
                 }
             }
             $mpn = null;
             if (isset($gtinMap[Gtin::MPN_ATTRIBUTE])) {
                 $mpn = $this->getProductAttributeValue($product, $gtinMap[Gtin::MPN_ATTRIBUTE]);
                 if (!empty($mpn)) {
-                    $entry->addChild('g:mpn', $this->sanitizeData($mpn));
+                    $entry->addChild('g:mpn', $this->sanitizeData($mpn), $gNs);
                 }
             }
             if (!empty($brand) && (!empty($gtinValue) || !empty($mpn))) {
@@ -198,15 +203,15 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
             }
         }
 
-        $entry->addChild('g:identifier_exists', $identifierExists);
-        $entry->addChild('g:link', $this->sanitizeData($productUrl));
-        $entry->addChild('g:title', $this->sanitizeData($productName));
+        $entry->addChild('g:identifier_exists', $identifierExists, $gNs);
+        $entry->addChild('g:link', $this->sanitizeData($productUrl), $gNs);
+        $entry->addChild('g:title', $this->sanitizeData($productName), $gNs);
 
         $categoryName = $this->getCategoryTreeString($product, $storeId);
         if (!empty($categoryName)) {
             $cleanCategoryName = $this->sanitizeData($categoryName);
-            $entry->addChild('g:google_product_category', $cleanCategoryName);
-            $entry->addChild('g:product_type', $cleanCategoryName);
+            $entry->addChild('g:google_product_category', $cleanCategoryName, $gNs);
+            $entry->addChild('g:product_type', $cleanCategoryName, $gNs);
         }
 
         // Availability is normally determined by status, but can be overridden by custom "turnto_disabled" attribute
@@ -216,14 +221,14 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
         $availability = $turntoDisable ? 'out of stock' :
             (($product->getStatus() == Status::STATUS_ENABLED) ? 'in stock' : 'out of stock');
 
-        $entry->addChild('g:availability', $availability);
+        $entry->addChild('g:availability', $availability, $gNs);
         $productImageUrl = $this->getProductImageUrl($product);
-        $entry->addChild('g:image_link', $this->sanitizeData($productImageUrl));
-        $entry->addChild('g:condition', 'new');
+        $entry->addChild('g:image_link', $this->sanitizeData($productImageUrl), $gNs);
+        $entry->addChild('g:condition', 'new', $gNs);
         $price = $this->priceCurrency->convertAndRound($product->getFinalPrice(), $storeId);
         $currencyCode = $this->priceCurrency->getCurrency($storeId)->getCurrencyCode();
-        $entry->addChild('g:price', $price . ' ' . $currencyCode);
+        $entry->addChild('g:price', $price . ' ' . $currencyCode, $gNs);
         $itemGroupId = $this->getItemGroupId($product, $parent);
-        $entry->addChild('g:item_group_id', $this->sanitizeData($itemGroupId));
+        $entry->addChild('g:item_group_id', $this->sanitizeData($itemGroupId), $gNs);
     }
 }

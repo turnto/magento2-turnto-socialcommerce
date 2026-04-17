@@ -26,23 +26,25 @@ class FeedGeneratorFactory
     }
 
     /**
-     * @param string $format
+     * @param string|null $format
      * @return FeedGeneratorInterface
      * @throws InvalidArgumentException
      */
-    public function create(string $format)
+    public function create(?string $format)
     {
-        if (isset($this->generators[$format])) {
-            $factory = $this->generators[$format];
-            $generator = $factory->create();
-            if (!$generator instanceof FeedGeneratorInterface) {
-                throw new InvalidArgumentException(
-                    get_class($generator) . ' doesn\'t implement \TurnTo\SocialCommerce\Api\FeedGeneratorInterface'
-                );
-            }
-            return $generator;
+        if ($format === null || !array_key_exists($format, $this->generators)) {
+            throw new InvalidArgumentException('Invalid feed format: ' . ($format ?? 'null'));
         }
 
-        throw new InvalidArgumentException('Invalid feed format: ' . $format);
+        $factory = $this->generators[$format];
+        $generator = $factory->create();
+
+        if (!$generator instanceof FeedGeneratorInterface) {
+            throw new InvalidArgumentException(
+                get_class($generator) . ' doesn\'t implement \TurnTo\SocialCommerce\Api\FeedGeneratorInterface'
+            );
+        }
+
+        return $generator;
     }
 }
