@@ -109,11 +109,21 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
      */
     public function addProduct($product, $parent = null, $storeId = null)
     {
-        $entry = new SimpleXMLElement('<entry/>');
-        $this->addProductToAtomFeed($entry, $product, $storeId, $parent);
-        $entryXml = $entry->asXML();
-        $entryXml = str_replace('<?xml version="1.0"?>', '', $entryXml);
-        fwrite($this->stream, trim($entryXml) . "\n");
+        try {
+            $entry = new SimpleXMLElement('<entry/>');
+            $this->addProductToAtomFeed($entry, $product, $storeId, $parent);
+            $entryXml = $entry->asXML();
+            $entryXml = str_replace('<?xml version="1.0"?>', '', $entryXml);
+            fwrite($this->stream, trim($entryXml) . "\n");
+        } catch (Exception $e) {
+            $this->logger->error(
+                'Product failed to be added to feed',
+                [
+                    'exception' => $e,
+                    'productSKU' => $product ? $product->getSku() : null
+                ]
+            );
+        }
     }
 
     /**

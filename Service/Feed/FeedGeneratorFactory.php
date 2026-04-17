@@ -13,12 +13,12 @@ use TurnTo\SocialCommerce\Api\FeedGeneratorInterface;
 class FeedGeneratorFactory
 {
     /**
-     * @var FeedGeneratorInterface[]
+     * @var array
      */
     protected $generators;
 
     /**
-     * @param FeedGeneratorInterface[] $generators
+     * @param array $generators
      */
     public function __construct(array $generators = [])
     {
@@ -33,7 +33,14 @@ class FeedGeneratorFactory
     public function create(string $format)
     {
         if (isset($this->generators[$format])) {
-            return $this->generators[$format];
+            $factory = $this->generators[$format];
+            $generator = $factory->create();
+            if (!$generator instanceof FeedGeneratorInterface) {
+                throw new InvalidArgumentException(
+                    get_class($generator) . ' doesn\'t implement \TurnTo\SocialCommerce\Api\FeedGeneratorInterface'
+                );
+            }
+            return $generator;
         }
 
         throw new InvalidArgumentException('Invalid feed format: ' . $format);
