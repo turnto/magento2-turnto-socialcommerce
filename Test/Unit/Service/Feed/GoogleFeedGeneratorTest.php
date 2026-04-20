@@ -15,6 +15,7 @@ use Magento\Framework\Intl\DateTimeFactory;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Eav\Model\Config as EavConfig;
 use Magento\Eav\Model\Entity\Attribute\AbstractAttribute;
+use Magento\Store\Model\Store;
 use PHPUnit\Framework\TestCase;
 use SimpleXMLElement;
 use TurnTo\SocialCommerce\Model\Config as ConfigModel;
@@ -224,6 +225,82 @@ class GoogleFeedGeneratorTest extends TestCase
         // Assert price element is present and formatted with currency code
         $xmlString = $entry->asXML();
         $this->assertIsString($xmlString);
-        $this->assertStringContainsString('<price>12.34 USD</price>', $xmlString);
+        $this->assertStringContainsString(
+            '<g:price xmlns:g="http://base.google.com/ns/1.0">12.34 USD</g:price>',
+            $xmlString
+        );
+    }
+
+    public function testAddProductReturnsFalseIfProductCanNotBeAdded()
+    {
+        $product = $this->createMock(CatalogProduct::class);
+        $product->method('getSku')->willReturn('');
+
+        $this->assertFalse($this->generator->addProduct($product, false, 1));
+    }
+
+    public function testAddProductReturnsTrueForValidProduct()
+    {
+        $storeId = 1;
+        $finalPrice = 12.34;
+
+        $config = $this->createMock(ConfigModel::class);
+        $gtin = $this->createMock(Gtin::class);
+        $imageHelper = $this->createMock(Image::class);
+        $turntoProduct = $this->createMock(Product::class);
+        $turntoProduct->method('turnToSafeEncoding')->willReturnCallback(function ($value) {
+            return (string) $value;
+        });
+        $priceCurrency = $this->createMock(PriceCurrencyInterface::class);
+        $logger = $this->createMock(Monolog::class);
+        $dateTimeFactory = $this->createMock(DateTimeFactory::class);
+        $dateTime = $this->createMock(\DateTime::class);
+        $dateTime->method('format')->willReturn('2026-01-01T00:00:00+00:00');
+        $dateTimeFactory->method('create')->willReturn($dateTime);
+
+        $priceCurrency
+            ->method('convertAndRound')
+            ->with($finalPrice, $storeId)
+            ->willReturn($finalPrice);
+
+        $currencyMock = $this->createPartialMock(
+            Currency::class,
+            ['getCurrencyCode']
+        );
+        $currencyMock->method('getCurrencyCode')->willReturn('USD');
+        $priceCurrency->method('getCurrency')->with($storeId)->willReturn($currencyMock);
+
+        $exportProduct = $this->createMock(ExportProduct::class);
+        $exportProduct->method('getProductUrl')->willReturn('https://example.com/p');
+
+        $generator = new TestableGoogleFeedGenerator(
+            $config,
+            $gtin,
+            $imageHelper,
+            $turntoProduct,
+            $this->eavConfig,
+            $priceCurrency,
+            $logger,
+            $dateTimeFactory,
+            $exportProduct
+        );
+
+        $store = $this->createMock(Store::class);
+        $store->method('getName')->willReturn('Test Store');
+        $store->method('getBaseUrl')->willReturn('https://example.test/');
+
+        $generator->beginFeed($store);
+
+        $product = $this->createMock(CatalogProduct::class);
+        $product->method('getSku')->willReturn('SKU-1');
+        $product->method('getName')->willReturn('Product Name');
+        $product->method('getImage')->willReturn(null);
+        $product->method('getFinalPrice')->willReturn($finalPrice);
+        $product->method('getCustomAttribute')->willReturn(null);
+        $product->method('getStatus')->willReturn(Status::STATUS_ENABLED);
+
+        $result = $generator->addProduct($product, false, $storeId);
+
+        $this->assertTrue($result);
     }
 }

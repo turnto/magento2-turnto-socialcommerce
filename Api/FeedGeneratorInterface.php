@@ -25,9 +25,9 @@ interface FeedGeneratorInterface
      * @param mixed $product
      * @param mixed $parent
      * @param int|string|null $storeId
-     * @return void
+     * @return bool True when line/item was added to the feed, false otherwise.
      */
-    public function addProduct($product, $parent = null, $storeId = null);
+    public function addProduct($product, $parent = null, $storeId = null): bool;
 
     /**
      * Finish the feed generation and return the feed data.

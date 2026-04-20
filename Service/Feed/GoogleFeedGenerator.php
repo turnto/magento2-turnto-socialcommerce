@@ -107,7 +107,7 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
     /**
      * @inheritdoc
      */
-    public function addProduct($product, $parent = null, $storeId = null)
+    public function addProduct($product, $parent = null, $storeId = null): bool
     {
         try {
             $entry = new SimpleXMLElement('<entry xmlns="http://www.w3.org/2005/Atom" xmlns:g="http://base.google.com/ns/1.0"/>');
@@ -119,6 +119,7 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
                 $entryXml
             );
             fwrite($this->stream, trim($entryXml) . "\n");
+            return true;
         } catch (Exception $e) {
             $this->logger->error(
                 'Product failed to be added to feed',
@@ -127,7 +128,10 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
                     'productSKU' => $product ? $product->getSku() : null
                 ]
             );
+            return false;
         }
+
+        return false;
     }
 
     /**

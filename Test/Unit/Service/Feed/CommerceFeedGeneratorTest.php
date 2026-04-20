@@ -16,6 +16,7 @@ use Magento\GroupedProduct\Model\Product\Type\Grouped as GroupedType;
 use Magento\Directory\Model\Currency;
 use Magento\Eav\Model\Config as EavConfig;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
+use Magento\Store\Model\Store;
 use PHPUnit\Framework\TestCase;
 use TurnTo\SocialCommerce\Model\Config as ConfigModel;
 use TurnTo\SocialCommerce\Model\Config\Gtin;
@@ -248,5 +249,84 @@ class CommerceFeedGeneratorTest extends TestCase
         ]);
 
         $this->assertEquals($expectedLine, $line);
+    }
+
+    public function testAddProductReturnsFalseIfProductCanNotBeAddedToFeed()
+    {
+        $storeId = 1;
+        $product = $this->createMock(CatalogProduct::class);
+        $product->method('getSku')->willReturn('');
+
+        $this->assertFalse($this->generator->addProduct($product, false, $storeId));
+    }
+
+    public function testAddProductReturnsTrueForValidProduct()
+    {
+        $storeId = 1;
+        $finalPrice = 12.34;
+
+        $priceCurrency = $this->createMock(PriceCurrencyInterface::class);
+        $priceCurrency
+            ->method('convertAndRound')
+            ->with($finalPrice, $storeId)
+            ->willReturn($finalPrice);
+
+        $currencyMock = $this->createPartialMock(
+            Currency::class,
+            ['getCurrencyCode']
+        );
+        $currencyMock->method('getCurrencyCode')->willReturn('USD');
+        $priceCurrency->method('getCurrency')->with($storeId)->willReturn($currencyMock);
+
+        $config = $this->createMock(ConfigModel::class);
+        $gtin = $this->createMock(Gtin::class);
+        $imageHelper = $this->createMock(Image::class);
+        $turntoProduct = $this->createMock(Product::class);
+        $turntoProduct->method('turnToSafeEncoding')->willReturnCallback(function ($value) {
+            return (string) $value;
+        });
+        $eavConfig = $this->createMock(EavConfig::class);
+        $logger = $this->createMock(Monolog::class);
+        $exportProduct = $this->createMock(ExportProduct::class);
+        $exportProduct->method('getProductUrl')->willReturn('https://example.com/p');
+
+        $generator = new TestableCommerceFeedGenerator(
+            $config,
+            $gtin,
+            $imageHelper,
+            $turntoProduct,
+            $eavConfig,
+            $priceCurrency,
+            $logger,
+            $exportProduct
+        );
+
+        $store = $this->createMock(Store::class);
+        $store->method('getName')->willReturn('Test Store');
+        $store->method('getBaseUrl')->willReturn('https://example.test/');
+
+        $generator->beginFeed($store);
+
+        $product = $this->createMock(CatalogProduct::class);
+        $product->method('getSku')->willReturn('SKU-1');
+        $product->method('getName')->willReturn('Product Name');
+        $product->method('getImage')->willReturn(null);
+        $product->method('getFinalPrice')->willReturn($finalPrice);
+        $product->method('getCustomAttribute')->willReturn(null);
+        $product->method('getStatus')->willReturn(Status::STATUS_ENABLED);
+        $product->method('getTypeId')->willReturn('simple');
+        $product->method('getData')->willReturnCallback(function ($value) {
+            if ($value === 'is_in_stock') {
+                return 1;
+            }
+            if ($value === 'qty') {
+                return 2;
+            }
+            return null;
+        });
+
+        $result = $generator->addProduct($product, false, $storeId);
+
+        $this->assertTrue($result);
     }
 }

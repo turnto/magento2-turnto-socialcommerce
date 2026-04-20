@@ -21,6 +21,7 @@ use TurnTo\SocialCommerce\Api\FeedClient;
 use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Model\Config\Gtin;
+use TurnTo\SocialCommerce\Model\Config\Source\FeedFormat;
 use TurnTo\SocialCommerce\Model\Export\Product as ExportProduct;
 use TurnTo\SocialCommerce\Service\Feed\FeedGeneratorFactory;
 
@@ -29,6 +30,15 @@ use TurnTo\SocialCommerce\Service\Feed\FeedGeneratorFactory;
  */
 class Catalog
 {
+    const MAX_TRANSMISSION_ATTEMPTS = 3;
+
+    /**
+     * Delay between retry attempts in microseconds.
+     *
+     * usleep() expects microseconds, so keep the suffix for clarity.
+     */
+    const TRANSMISSION_RETRY_DELAY_MICROSECONDS = 0;
+
     /**
      * @var FeedGeneratorFactory
      */
@@ -126,80 +136,166 @@ class Catalog
                 $this->config->getIsEnabled($storeId) &&
                 $this->config->getConfigValue(Config::PRODUCT_ENABLE_AUTOMATIC_SUBMISSION, $storeId)
             ) {
+                $emulationStarted = false;
                 try {
-                    $page = 1;
-                    $this->emulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND, true);
                     $feedFormat = $this->config->getFeedFormat($storeId);
+                    $siteKey = $this->config->getSiteKey($storeId);
+                    $authorizationKey = $this->config->getAuthorizationKey($storeId);
+                    $submissionUrl = $this->config->getConfigValue(Config::PRODUCT_FEED_SUBMISSION_URL, $storeId);
+
+                    if (!in_array($feedFormat, [FeedFormat::GOOGLE_PRODUCT, FeedFormat::COMMERCE], true)) {
+                        $this->logger->error(
+                            'TurnTo catalog export skipped due to unsupported feed format',
+                            [
+                                'store_id' => $storeId,
+                                'feed_format' => $feedFormat
+                            ]
+                        );
+                        continue;
+                    }
+
+                    if (empty($siteKey) || empty($authorizationKey) || empty($submissionUrl)) {
+                        $this->logger->error(
+                            'TurnTo catalog export skipped due to incomplete TurnTo credentials',
+                            [
+                                'store_id' => $storeId,
+                                'site_key_set' => !empty($siteKey),
+                                'auth_key_set' => !empty($authorizationKey),
+                                'submission_url_set' => !empty($submissionUrl)
+                            ]
+                        );
+                        continue;
+                    }
+
+                    $this->emulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND, true);
+                    $emulationStarted = true;
                     $generator = $this->feedGeneratorFactory->create($feedFormat);
                     $feedStyle = $generator->getFeedStyle();
 
                     $batchSize = 10000;
                     $pageSize = 500;
                     $pagesPerBatch = ceil($batchSize / $pageSize);
+                    $page = 1;
                     $productCount = 0;
                     $fileIndex = 1;
+                    $products = $this->getProducts($storeId, $page, $pageSize);
+                    if (!$products) {
+                        continue;
+                    }
+                    $totalPages = $this->totalPages;
+                    $totalFiles = $totalPages > 0 ? ceil($totalPages / $pagesPerBatch) : 0;
 
                     $generator->beginFeed($store);
 
-                    while ($products = $this->getProducts($storeId, $page, $pageSize)) {
+                    while (true) {
                         try {
                             $productIds = [];
                             foreach ($products as $product) {
                                 $productIds[] = $product->getId();
                             }
-                            $this->exportProduct->preloadRewriteUrls($storeId, $productIds);
 
                             $childProducts = [];
                             if ($this->config->getUseChildSku($storeId)) {
-                                $configurableIds = [];
-                                $parentMap = [];
+                                $simpleIds = [];
                                 foreach ($products as $product) {
-                                    if ($product->getTypeId() === Configurable::TYPE_CODE) {
-                                        $configurableIds[] = $product->getId();
-                                        $parentMap[$product->getId()] = $product;
+                                    if ($product->getTypeId() !== Configurable::TYPE_CODE) {
+                                        $simpleIds[] = $product->getId();
                                     }
                                 }
 
-                                if (!empty($configurableIds)) {
+                                if (!empty($simpleIds)) {
                                     $connection = $this->resourceConnection->getConnection();
                                     $select = $connection->select()
                                         ->from(['l' => $connection->getTableName('catalog_product_super_link')], ['parent_id', 'product_id'])
-                                        ->join(['e' => $connection->getTableName('catalog_product_entity')], 'e.entity_id = l.product_id', ['sku'])
-                                        ->where('l.parent_id IN (?)', $configurableIds);
+                                        ->join(['ce' => $connection->getTableName('catalog_product_entity')], 'ce.entity_id = l.product_id', ['child_sku' => 'sku'])
+                                        ->join(['pe' => $connection->getTableName('catalog_product_entity')], 'pe.entity_id = l.parent_id', ['parent_sku' => 'sku'])
+                                        ->where('l.product_id IN (?)', $simpleIds);
                                     $rows = $connection->fetchAll($select);
 
-                                    foreach ($rows as $row) {
-                                        $childProducts[$row['sku']] = $parentMap[$row['parent_id']];
+                                    if (!empty($rows)) {
+                                        $parentIdsToLoad = [];
+                                        $parentMap = [];
+                                        $emptyCollection = $this->productCollectionFactory->create();
+
+                                        foreach ($rows as $row) {
+                                            $parentId = (int)$row['parent_id'];
+                                            $parentIdsToLoad[] = $parentId;
+
+                                            if (!isset($parentMap[$parentId])) {
+                                                $parentProduct = $emptyCollection->getNewEmptyItem();
+                                                $parentProduct->setData([
+                                                    'entity_id' => $parentId,
+                                                    'sku' => $row['parent_sku'],
+                                                    'store_id' => $storeId
+                                                ]);
+                                                $parentMap[$parentId] = $parentProduct;
+                                            }
+
+                                            $childProducts[$row['child_sku']] = $parentMap[$parentId];
+                                        }
+
+                                        $productIds = array_merge($productIds, array_unique($parentIdsToLoad));
+
+                                        unset($emptyCollection, $parentMap);
                                     }
                                 }
                             }
 
+                            $this->exportProduct->preloadRewriteUrls($storeId, $productIds);
+
                             foreach ($products as $product) {
                                 $parent = isset($childProducts[$product->getSku()]) ? $childProducts[$product->getSku()] : false;
-                                $generator->addProduct($product, $parent, $storeId);
-                                $productCount++;
+                                if ($generator->addProduct($product, $parent, $storeId)) {
+                                    $productCount++;
+                                }
                             }
 
                             $products->clear();
                             unset($products);
-                            gc_collect_cycles();
 
                             if ($productCount >= $batchSize) {
                                 $feedData = $generator->finishFeed();
-                                $totalFiles = ceil($this->totalPages / $pagesPerBatch);
                                 $fileName = sprintf('%s_of_%s_store_%s_%s', $fileIndex, $totalFiles, $storeId, $feedStyle);
 
                                 try {
-                                    $this->feedClient->transmitFeedFile($feedData, $fileName, $feedStyle, $store->getCode());
+                                    $attempts = 0;
+                                    while (true) {
+                                        try {
+                                            $this->feedClient->transmitFeedFile($feedData, $fileName, $feedStyle, $store->getCode());
+                                            break;
+                                        } catch (Exception $transmitException) {
+                                            $attempts++;
+                                            if ($attempts >= self::MAX_TRANSMISSION_ATTEMPTS) {
+                                                throw $transmitException;
+                                            }
+                                            $this->logger->warning(
+                                                'TurnTo catalog export transmit file failed; retrying',
+                                                [
+                                                    'storeId' => $storeId,
+                                                    'file_name' => $fileName,
+                                                    'page' => $page,
+                                                    'batch_size' => $batchSize,
+                                                    'file_index' => $fileIndex,
+                                                    'attempt' => $attempts,
+                                                    'exception' => $transmitException
+                                                ]
+                                            );
+                                            usleep(self::TRANSMISSION_RETRY_DELAY_MICROSECONDS);
+                                        }
+                                    }
                                 } catch (Exception $e) {
                                     $this->logger->error(
-                                        "TurnTo catalog export transmit file error",
+                                        'TurnTo catalog export transmit file error',
                                         [
-                                            'store_id' => $storeId,
+                                            'storeId' => $storeId,
                                             'file_name' => $fileName,
+                                            'page' => $page,
+                                            'batch_size' => $batchSize,
+                                            'file_index' => $fileIndex,
                                             'exception' => $e
                                         ]
                                     );
+                                    throw $e;
                                 }
 
                                 $productCount = 0;
@@ -208,31 +304,68 @@ class Catalog
                             }
                         } catch (Exception $e) {
                             $this->logger->error(
-                                "TurnTo catalog export error sending page $page.",
+                                'TurnTo catalog export error sending page',
                                 [
+                                    'store_id' => $storeId,
+                                    'store_code' => $store->getCode(),
+                                    'page' => $page,
                                     'exception' => $e
                                 ]
                             );
+                            throw $e;
                         }
+
+                        if ($page >= $totalPages) {
+                            break;
+                        }
+
                         $page++;
+                        $products = $this->getProducts($storeId, $page, $pageSize, false);
+                        if (!$products) {
+                            break;
+                        }
                     }
 
                     if ($productCount > 0) {
                         $feedData = $generator->finishFeed();
                         $totalFiles = ceil($this->totalPages / $pagesPerBatch);
                         $fileName = sprintf('%s_of_%s_store_%s_%s', $fileIndex, $totalFiles, $storeId, $feedStyle);
-                        $this->feedClient->transmitFeedFile($feedData, $fileName, $feedStyle, $store->getCode());
+                        $attempts = 0;
+                        while (true) {
+                            try {
+                                $this->feedClient->transmitFeedFile($feedData, $fileName, $feedStyle, $store->getCode());
+                                break;
+                                } catch (Exception $transmitException) {
+                                $attempts++;
+                                if ($attempts >= self::MAX_TRANSMISSION_ATTEMPTS) {
+                                        throw $transmitException;
+                                }
+                                $this->logger->warning(
+                                    'TurnTo catalog export transmit file failed; retrying',
+                                    [
+                                        'storeId' => $storeId,
+                                        'file_name' => $fileName,
+                                        'attempt' => $attempts,
+                                        'exception' => $transmitException
+                                    ]
+                                );
+                                usleep(self::TRANSMISSION_RETRY_DELAY_MICROSECONDS);
+                            }
+                        }
                     }
                 } catch (Exception $e) {
                     $this->logger->error(
                         'Catalog export error',
                         [
                             'exception' => $e,
-                            'storeId' => $storeId,
+                            'store_id' => $storeId,
+                            'store_code' => $store->getCode(),
                         ]
                     );
                 } finally {
-                    $this->emulation->stopEnvironmentEmulation();
+                    if ($emulationStarted) {
+                        $this->emulation->stopEnvironmentEmulation();
+                    }
                 }
             }
         }
@@ -245,10 +378,11 @@ class Catalog
      * @param int|string $storeId
      * @param int $page
      * @param ?int $pageCount
+     * @param bool $fetchTotalPages
      * @return Collection|false
      * @throws LocalizedException
      */
-    public function getProducts($storeId, $page, $pageCount = 500)
+    public function getProducts($storeId, $page, $pageCount = 500, $fetchTotalPages = true)
     {
         $collection = $this->productCollectionFactory->create()
             ->setStoreId($storeId)
@@ -260,6 +394,7 @@ class Catalog
             ->addAttributeToSelect('status')
             ->addAttributeToSelect('turnto_disabled')
             ->addUrlRewrite()
+            ->setOrder('entity_id', 'ASC')
             ->setPage($page, $pageCount);
 
         $collection->joinField(
@@ -300,12 +435,17 @@ class Catalog
 
         $collection->addStoreFilter($storeId);
 
-        //used to generate file name 1_of_$totalPages.xml
-        $this->totalPages = $collection->getLastPageNumber();
-
-        //stop the feed once we get to the last page
-        if ($this->totalPages < $page) {
+        if (!$fetchTotalPages && $this->totalPages > 0 && $page > $this->totalPages) {
             return false;
+        }
+
+        if ($fetchTotalPages) {
+            //used to generate file name 1_of_$totalPages.xml
+            $this->totalPages = $collection->getLastPageNumber();
+            //stop the feed once we get to the last page
+            if ($this->totalPages < $page) {
+                return false;
+            }
         }
 
         return $collection;

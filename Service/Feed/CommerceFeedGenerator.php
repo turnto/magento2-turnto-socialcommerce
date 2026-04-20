@@ -93,12 +93,13 @@ class CommerceFeedGenerator extends AbstractFeedGenerator
     /**
      * @inheritdoc
      */
-    public function addProduct($product, $parent = null, $storeId = null)
+    public function addProduct($product, $parent = null, $storeId = null): bool
     {
         try {
             $line = $this->generateProductLine($product, $storeId, $parent);
             if ($line) {
                 fwrite($this->stream, $line . "\n");
+                return true;
             }
         } catch (Exception $entryException) {
             $this->logger->error(
@@ -108,7 +109,10 @@ class CommerceFeedGenerator extends AbstractFeedGenerator
                     'productSKU' => $product->getSku()
                 ]
             );
+            return false;
         }
+
+        return false;
     }
 
     /**
@@ -120,6 +124,21 @@ class CommerceFeedGenerator extends AbstractFeedGenerator
         $content = stream_get_contents($this->stream);
         fclose($this->stream);
         return $content;
+    }
+
+    /**
+     * Sanitize text fields for tab-delimited feeds to prevent column/row shifting.
+     *
+     * @param string|null $text
+     * @return string
+     */
+    protected function sanitizeTextField(?string $text): string
+    {
+        if ($text === null || $text === '') {
+            return '';
+        }
+
+        return trim(preg_replace('/[\t\r\n]+/', ' ', $text));
     }
 
     /**
@@ -151,7 +170,7 @@ class CommerceFeedGenerator extends AbstractFeedGenerator
         if (empty($productName)) {
             throw new Exception('Product must have a valid name');
         }
-        $productName = str_replace("\n", "", $productName);
+        $productName = $this->sanitizeTextField($productName);
 
         $turntoDisable = $product->getCustomAttribute('turnto_disabled') ?
             $product->getCustomAttribute('turnto_disabled')->getValue() :
@@ -194,16 +213,16 @@ class CommerceFeedGenerator extends AbstractFeedGenerator
         $gtinMap = $this->gtinConfig->getGtinAttributesMap($storeId);
         if (!empty($gtinMap)) {
             if (isset($gtinMap[Gtin::BRAND_ATTRIBUTE])) {
-                $brand = $this->getProductAttributeValue($product, $gtinMap[Gtin::BRAND_ATTRIBUTE]) ?: '';
+                $brand = $this->sanitizeTextField((string) $this->getProductAttributeValue($product, $gtinMap[Gtin::BRAND_ATTRIBUTE]));
             }
             if (isset($gtinMap[Gtin::UPC_ATTRIBUTE])) {
-                $upc = $this->getProductAttributeValue($product, $gtinMap[Gtin::UPC_ATTRIBUTE]) ?: '';
+                $upc = $this->sanitizeTextField((string) $this->getProductAttributeValue($product, $gtinMap[Gtin::UPC_ATTRIBUTE]));
             }
             if (isset($gtinMap[Gtin::EAN_ATTRIBUTE])) {
-                $ean = $this->getProductAttributeValue($product, $gtinMap[Gtin::EAN_ATTRIBUTE]) ?: '';
+                $ean = $this->sanitizeTextField((string) $this->getProductAttributeValue($product, $gtinMap[Gtin::EAN_ATTRIBUTE]));
             }
             if (isset($gtinMap[Gtin::MPN_ATTRIBUTE])) {
-                $mpn = $this->getProductAttributeValue($product, $gtinMap[Gtin::MPN_ATTRIBUTE]) ?: '';
+                $mpn = $this->sanitizeTextField((string) $this->getProductAttributeValue($product, $gtinMap[Gtin::MPN_ATTRIBUTE]));
             }
         }
 
