@@ -30,15 +30,6 @@ use TurnTo\SocialCommerce\Service\Feed\FeedGeneratorFactory;
  */
 class Catalog
 {
-    const MAX_TRANSMISSION_ATTEMPTS = 3;
-
-    /**
-     * Delay between retry attempts in microseconds.
-     *
-     * usleep() expects microseconds, so keep the suffix for clarity.
-     */
-    const TRANSMISSION_RETRY_DELAY_MICROSECONDS = 0;
-
     /**
      * @var FeedGeneratorFactory
      */
@@ -258,36 +249,12 @@ class Catalog
                                 $fileName = sprintf('%s_of_%s_store_%s_%s', $fileIndex, $totalFiles, $storeId, $feedStyle);
 
                                 try {
-                                    $attempts = 0;
-                                    while (true) {
-                                        try {
-                                            $this->feedClient->transmitFeedFile($feedData, $fileName, $feedStyle, $store->getCode());
-                                            break;
-                                        } catch (Exception $transmitException) {
-                                            $attempts++;
-                                            if ($attempts >= self::MAX_TRANSMISSION_ATTEMPTS) {
-                                                throw $transmitException;
-                                            }
-                                            $this->logger->warning(
-                                                'TurnTo catalog export transmit file failed; retrying',
-                                                [
-                                                    'storeId' => $storeId,
-                                                    'file_name' => $fileName,
-                                                    'page' => $page,
-                                                    'batch_size' => $batchSize,
-                                                    'file_index' => $fileIndex,
-                                                    'attempt' => $attempts,
-                                                    'exception' => $transmitException
-                                                ]
-                                            );
-                                            usleep(self::TRANSMISSION_RETRY_DELAY_MICROSECONDS);
-                                        }
-                                    }
+                                    $this->feedClient->transmitFeedFile($feedData, $fileName, $feedStyle, $store->getCode());
                                 } catch (Exception $e) {
                                     $this->logger->error(
                                         'TurnTo catalog export transmit file error',
                                         [
-                                            'storeId' => $storeId,
+                                            'store_id' => $storeId,
                                             'file_name' => $fileName,
                                             'page' => $page,
                                             'batch_size' => $batchSize,
@@ -330,27 +297,18 @@ class Catalog
                         $feedData = $generator->finishFeed();
                         $totalFiles = ceil($this->totalPages / $pagesPerBatch);
                         $fileName = sprintf('%s_of_%s_store_%s_%s', $fileIndex, $totalFiles, $storeId, $feedStyle);
-                        $attempts = 0;
-                        while (true) {
-                            try {
-                                $this->feedClient->transmitFeedFile($feedData, $fileName, $feedStyle, $store->getCode());
-                                break;
-                                } catch (Exception $transmitException) {
-                                $attempts++;
-                                if ($attempts >= self::MAX_TRANSMISSION_ATTEMPTS) {
-                                        throw $transmitException;
-                                }
-                                $this->logger->warning(
-                                    'TurnTo catalog export transmit file failed; retrying',
-                                    [
-                                        'storeId' => $storeId,
-                                        'file_name' => $fileName,
-                                        'attempt' => $attempts,
-                                        'exception' => $transmitException
-                                    ]
-                                );
-                                usleep(self::TRANSMISSION_RETRY_DELAY_MICROSECONDS);
-                            }
+                        try {
+                            $this->feedClient->transmitFeedFile($feedData, $fileName, $feedStyle, $store->getCode());
+                        } catch (Exception $e) {
+                            $this->logger->error(
+                                'TurnTo catalog export transmit file error',
+                                [
+                                    'store_id' => $storeId,
+                                    'file_name' => $fileName,
+                                    'exception' => $e
+                                ]
+                            );
+                            throw $e;
                         }
                     }
                 } catch (Exception $e) {

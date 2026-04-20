@@ -255,11 +255,10 @@ class CatalogTest extends TestCase
         $this->collectionFactory->method('create')->willReturn($this->createProductCollection([$product]));
 
         $this->exportProduct->expects($this->once())->method('preloadRewriteUrls')->with($storeId, [1]);
-        $this->feedClient->expects($this->exactly(3))
+        $this->feedClient->expects($this->once())
             ->method('transmitFeedFile')
             ->willThrowException(new Exception('transmit failed'));
         $this->logger->expects($this->atLeastOnce())->method('error');
-        $this->logger->expects($this->atLeastOnce())->method('warning');
         $this->emulation->expects($this->once())
             ->method('startEnvironmentEmulation')
             ->with($storeId, Area::AREA_FRONTEND, true);
@@ -330,7 +329,7 @@ class CatalogTest extends TestCase
         $this->catalog->cronUploadFeed();
     }
 
-    public function testCronUploadFeedRetriesTransmitThenSucceeds()
+    public function testCronUploadFeedTransmitsFeedFileOnce()
     {
         $storeId = 1;
         $store = $this->createStore($storeId);
@@ -353,13 +352,9 @@ class CatalogTest extends TestCase
         $this->collectionFactory->method('create')->willReturn($this->createProductCollection([$product]));
 
         $this->exportProduct->expects($this->once())->method('preloadRewriteUrls')->with($storeId, [1]);
-        $this->feedClient->expects($this->exactly(2))
+        $this->feedClient->expects($this->once())
             ->method('transmitFeedFile')
-            ->willReturnOnConsecutiveCalls(
-                $this->throwException(new Exception('transient fail')),
-                $this->returnValue(null)
-            );
-        $this->logger->expects($this->once())->method('warning');
+            ->willReturn(null);
         $this->logger->expects($this->never())->method('error');
 
         $this->catalog = $this->createCatalog();

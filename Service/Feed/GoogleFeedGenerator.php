@@ -128,7 +128,6 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
                     'productSKU' => $product ? $product->getSku() : null
                 ]
             );
-            return false;
         }
 
         return false;
