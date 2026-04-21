@@ -267,9 +267,9 @@ abstract class AbstractFeedGenerator implements FeedGeneratorInterface
     public function getItemGroupId($product, $parent)
     {
         if ($parent) {
-            return $parent->getSku();
+            return $this->product->turnToSafeEncoding($parent->getSku());
         } else {
-            return $product->getSku();
+            return $this->product->turnToSafeEncoding($product->getSku());
         }
     }
 }

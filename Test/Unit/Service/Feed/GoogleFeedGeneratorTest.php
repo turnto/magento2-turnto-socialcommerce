@@ -231,6 +231,73 @@ class GoogleFeedGeneratorTest extends TestCase
         );
     }
 
+    public function testAddProductToAtomFeedWritesEncodedItemGroupIdFromParent()
+    {
+        $config = $this->createMock(ConfigModel::class);
+        $gtin = $this->createMock(Gtin::class);
+        $imageHelper = $this->createMock(Image::class);
+        $turntoProduct = $this->createMock(Product::class);
+        $priceCurrency = $this->createMock(PriceCurrencyInterface::class);
+        $logger = $this->createMock(Monolog::class);
+        $dateTimeFactory = $this->createMock(DateTimeFactory::class);
+
+        $turntoProduct->method('turnToSafeEncoding')->willReturnCallback(function ($value) {
+            return str_replace(
+                array_keys(Product::TURNTO_CHARACTER_MAPPING),
+                array_values(Product::TURNTO_CHARACTER_MAPPING),
+                (string) $value
+            );
+        });
+
+        $priceCurrency
+            ->expects($this->once())
+            ->method('convertAndRound')
+            ->with(12.34, 1)
+            ->willReturn(12.34);
+
+        $currencyMock = $this->createPartialMock(
+            Currency::class,
+            ['getCurrencyCode']
+        );
+        $currencyMock->method('getCurrencyCode')->willReturn('USD');
+        $priceCurrency->method('getCurrency')->with(1)->willReturn($currencyMock);
+
+        $exportProduct = $this->createMock(ExportProduct::class);
+        $exportProduct->method('getProductUrl')->willReturn('https://example.com/p');
+
+        $generator = new TestableGoogleFeedGenerator(
+            $config,
+            $gtin,
+            $imageHelper,
+            $turntoProduct,
+            $this->eavConfig,
+            $priceCurrency,
+            $logger,
+            $dateTimeFactory,
+            $exportProduct
+        );
+
+        $parent = $this->createMock(CatalogProduct::class);
+        $parent->method('getSku')->willReturn('PARENT/1');
+
+        $product = $this->createMock(CatalogProduct::class);
+        $product->method('getSku')->willReturn('CHILD+1');
+        $product->method('getName')->willReturn('Product Name');
+        $product->method('getImage')->willReturn(null);
+        $product->method('getFinalPrice')->willReturn(12.34);
+        $product->method('getCustomAttribute')->willReturn(null);
+        $product->method('getStatus')->willReturn(Status::STATUS_ENABLED);
+
+        $entry = new SimpleXMLElement('<entry />');
+        $generator->callAddProductToAtomFeed($entry, $product, 1, $parent);
+
+        $xmlString = $entry->asXML();
+        $this->assertStringContainsString(
+            '<g:item_group_id xmlns:g="http://base.google.com/ns/1.0">PARENTFORWARDSLASH1</g:item_group_id>',
+            $xmlString
+        );
+    }
+
     public function testAddProductReturnsFalseIfProductCanNotBeAdded()
     {
         $product = $this->createMock(CatalogProduct::class);

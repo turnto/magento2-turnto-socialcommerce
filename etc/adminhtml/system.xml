@@ -212,7 +212,7 @@
                 </field>
                 <field id="feed_format" translate="label comment" type="select" sortOrder="15" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Feed Format</label>
-                    <comment>Select the format for the product feed.</comment>
+                    <comment><![CDATA[Recommend commerce feed for new installs. Should not be changed, without contacting your Emplifi customer success team.]]></comment>
                     <source_model>TurnTo\SocialCommerce\Model\Config\Source\FeedFormat</source_model>
                     <depends>
                         <field id="enable_automatic_submission">1</field>

@@ -20,8 +20,8 @@ class FeedFormat implements OptionSourceInterface
     public function toOptionArray()
     {
         return [
-            ['value' => self::COMMERCE, 'label' => __('Commerce Product Catalog Feed')],
-            ['value' => self::GOOGLE_PRODUCT, 'label' => __('Google Product XML (Deprecated)')]
+            ['value' => self::GOOGLE_PRODUCT, 'label' => __('Google Products Atom 1.0')],
+            ['value' => self::COMMERCE, 'label' => __('Commerce Product Catalog Feed')]
         ];
     }
 }

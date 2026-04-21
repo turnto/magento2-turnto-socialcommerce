@@ -266,12 +266,12 @@ class CommerceFeedGenerator extends AbstractFeedGenerator
                     $product
                 );
                 foreach ($selections as $selection) {
-                    $members[] = $selection->getSku();
+                    $members[] = $this->product->turnToSafeEncoding($selection->getSku());
                 }
             } elseif ($typeId === 'grouped') {
                 $associatedProducts = $product->getTypeInstance()->getAssociatedProducts($product);
                 foreach ($associatedProducts as $child) {
-                    $members[] = $child->getSku();
+                    $members[] = $this->product->turnToSafeEncoding($child->getSku());
                 }
             }
         } catch (Exception $e) {

@@ -170,6 +170,103 @@ class CommerceFeedGeneratorTest extends TestCase
         $this->assertEquals('GROUP-CHILD-1,GROUP-CHILD-2', $members);
     }
 
+    public function testGetMembersForBundleProductEncodesSpecialCharacterSku()
+    {
+        $product = $this->createMock(CatalogProduct::class);
+        $product->method('getTypeId')->willReturn('bundle');
+
+        $typeInstance = $this->createMock(BundleType::class);
+        $typeInstance->method('getOptionsIds')->willReturn([1, 2]);
+
+        $selection1 = $this->createMock(CatalogProduct::class);
+        $selection1->method('getSku')->willReturn('CHILD/1');
+
+        $selection2 = $this->createMock(CatalogProduct::class);
+        $selection2->method('getSku')->willReturn('CHILD+2');
+
+        $typeInstance->method('getSelectionsCollection')->willReturn([$selection1, $selection2]);
+
+        $product->method('getTypeInstance')->willReturn($typeInstance);
+
+        $config = $this->createMock(ConfigModel::class);
+        $gtin = $this->createMock(Gtin::class);
+        $imageHelper = $this->createMock(Image::class);
+        $turntoProduct = $this->createMock(Product::class);
+        $turntoProduct->method('turnToSafeEncoding')->willReturnCallback(function ($value) {
+            return str_replace(
+                array_keys(Product::TURNTO_CHARACTER_MAPPING),
+                array_values(Product::TURNTO_CHARACTER_MAPPING),
+                (string) $value
+            );
+        });
+        $eavConfig = $this->createMock(EavConfig::class);
+        $logger = $this->createMock(Monolog::class);
+        $priceCurrency = $this->createMock(PriceCurrencyInterface::class);
+        $exportProduct = $this->createMock(ExportProduct::class);
+
+        $generator = new TestableCommerceFeedGenerator(
+            $config,
+            $gtin,
+            $imageHelper,
+            $turntoProduct,
+            $eavConfig,
+            $priceCurrency,
+            $logger,
+            $exportProduct
+        );
+
+        $members = $generator->callGetMembers($product);
+        $this->assertEquals('CHILDFORWARDSLASH1,CHILDPLUS2', $members);
+    }
+
+    public function testGetMembersForGroupedProductEncodesSpecialCharacterSku()
+    {
+        $product = $this->createMock(CatalogProduct::class);
+        $product->method('getTypeId')->willReturn('grouped');
+
+        $typeInstance = $this->createMock(GroupedType::class);
+
+        $child1 = $this->createMock(CatalogProduct::class);
+        $child1->method('getSku')->willReturn('GROUP/CHILD#1');
+
+        $child2 = $this->createMock(CatalogProduct::class);
+        $child2->method('getSku')->willReturn('GROUP/CHILD#2');
+
+        $typeInstance->method('getAssociatedProducts')->willReturn([$child1, $child2]);
+
+        $product->method('getTypeInstance')->willReturn($typeInstance);
+
+        $config = $this->createMock(ConfigModel::class);
+        $gtin = $this->createMock(Gtin::class);
+        $imageHelper = $this->createMock(Image::class);
+        $turntoProduct = $this->createMock(Product::class);
+        $turntoProduct->method('turnToSafeEncoding')->willReturnCallback(function ($value) {
+            return str_replace(
+                array_keys(Product::TURNTO_CHARACTER_MAPPING),
+                array_values(Product::TURNTO_CHARACTER_MAPPING),
+                (string) $value
+            );
+        });
+        $eavConfig = $this->createMock(EavConfig::class);
+        $logger = $this->createMock(Monolog::class);
+        $priceCurrency = $this->createMock(PriceCurrencyInterface::class);
+        $exportProduct = $this->createMock(ExportProduct::class);
+
+        $generator = new TestableCommerceFeedGenerator(
+            $config,
+            $gtin,
+            $imageHelper,
+            $turntoProduct,
+            $eavConfig,
+            $priceCurrency,
+            $logger,
+            $exportProduct
+        );
+
+        $members = $generator->callGetMembers($product);
+        $this->assertEquals('GROUPFORWARDSLASHCHILDHASH1,GROUPFORWARDSLASHCHILDHASH2', $members);
+    }
+
     public function testGenerateProductLine()
     {
         $storeId = 1;
@@ -239,6 +336,193 @@ class CommerceFeedGeneratorTest extends TestCase
             '1', // active
             $expectedCategoryJson,
             '', // virtual_parent_code
+            '', // members
+            '', // brand
+            'USD',
+            '12.34',
+            '', // upc
+            '', // ean
+            ''  // mpn
+        ]);
+
+        $this->assertEquals($expectedLine, $line);
+    }
+
+    public function testGenerateProductLineSkipsVirtualParentForSpecialCharacterSku()
+    {
+        $storeId = 1;
+        $finalPrice = 12.34;
+
+        $priceCurrency = $this->createMock(PriceCurrencyInterface::class);
+        $priceCurrency
+            ->method('convertAndRound')
+            ->with($finalPrice, $storeId)
+            ->willReturn($finalPrice);
+
+        $currencyMock = $this->createPartialMock(
+            Currency::class,
+            ['getCurrencyCode']
+        );
+        $currencyMock->method('getCurrencyCode')->willReturn('USD');
+        $priceCurrency->method('getCurrency')->with($storeId)->willReturn($currencyMock);
+
+        $config = $this->createMock(ConfigModel::class);
+        $gtin = $this->createMock(Gtin::class);
+        $imageHelper = $this->createMock(Image::class);
+        $turntoProduct = $this->createMock(Product::class);
+        $turntoProduct->method('turnToSafeEncoding')->willReturnCallback(function ($value) {
+            return str_replace(
+                array_keys(Product::TURNTO_CHARACTER_MAPPING),
+                array_values(Product::TURNTO_CHARACTER_MAPPING),
+                (string) $value
+            );
+        });
+        $eavConfig = $this->createMock(EavConfig::class);
+        $logger = $this->createMock(Monolog::class);
+
+        $exportProduct = $this->createMock(ExportProduct::class);
+        $exportProduct->method('getProductUrl')->willReturn('https://example.com/p');
+
+        $generator = new TestableCommerceFeedGenerator(
+            $config,
+            $gtin,
+            $imageHelper,
+            $turntoProduct,
+            $eavConfig,
+            $priceCurrency,
+            $logger,
+            $exportProduct
+        );
+
+        $product = $this->createMock(CatalogProduct::class);
+        $product->method('getSku')->willReturn('SKU/1');
+        $product->method('getName')->willReturn('Product Name');
+        $product->method('getImage')->willReturn(null);
+        $product->method('getFinalPrice')->willReturn($finalPrice);
+        $product->method('getCustomAttribute')->willReturn(null);
+        $product->method('getStatus')->willReturn(Status::STATUS_ENABLED);
+        $product->method('getTypeId')->willReturn('simple');
+        $product->method('getData')->willReturnCallback(function ($value) {
+            if ($value === 'is_in_stock') {
+                return 1;
+            }
+            if ($value === 'qty') {
+                return 2;
+            }
+            return null;
+        });
+
+        $line = $generator->callGenerateProductLine($product, $storeId, false);
+
+        $expectedCategoryJson = json_encode([
+            ['id' => '10', 'name' => 'Category 1'],
+            ['id' => '20', 'name' => 'Category 2']
+        ]);
+
+        $expectedLine = implode("\t", [
+            'SKUFORWARDSLASH1',
+            'Product Name',
+            'https://example.com/p',
+            '', // image_url
+            '2', // stock (in stock)
+            '1', // active
+            $expectedCategoryJson,
+            '', // virtual_parent_code
+            '', // members
+            '', // brand
+            'USD',
+            '12.34',
+            '', // upc
+            '', // ean
+            ''  // mpn
+        ]);
+
+        $this->assertEquals($expectedLine, $line);
+    }
+
+    public function testGenerateProductLineEncodesVirtualParentFromParentSku()
+    {
+        $storeId = 1;
+        $finalPrice = 12.34;
+
+        $priceCurrency = $this->createMock(PriceCurrencyInterface::class);
+        $priceCurrency
+            ->method('convertAndRound')
+            ->with($finalPrice, $storeId)
+            ->willReturn($finalPrice);
+
+        $currencyMock = $this->createPartialMock(
+            Currency::class,
+            ['getCurrencyCode']
+        );
+        $currencyMock->method('getCurrencyCode')->willReturn('USD');
+        $priceCurrency->method('getCurrency')->with($storeId)->willReturn($currencyMock);
+
+        $config = $this->createMock(ConfigModel::class);
+        $gtin = $this->createMock(Gtin::class);
+        $imageHelper = $this->createMock(Image::class);
+        $turntoProduct = $this->createMock(Product::class);
+        $turntoProduct->method('turnToSafeEncoding')->willReturnCallback(function ($value) {
+            return str_replace(
+                array_keys(Product::TURNTO_CHARACTER_MAPPING),
+                array_values(Product::TURNTO_CHARACTER_MAPPING),
+                (string) $value
+            );
+        });
+        $eavConfig = $this->createMock(EavConfig::class);
+        $logger = $this->createMock(Monolog::class);
+
+        $exportProduct = $this->createMock(ExportProduct::class);
+        $exportProduct->method('getProductUrl')->willReturn('https://example.com/p');
+
+        $generator = new TestableCommerceFeedGenerator(
+            $config,
+            $gtin,
+            $imageHelper,
+            $turntoProduct,
+            $eavConfig,
+            $priceCurrency,
+            $logger,
+            $exportProduct
+        );
+
+        $parent = $this->createMock(CatalogProduct::class);
+        $parent->method('getSku')->willReturn('PARENT/1');
+
+        $product = $this->createMock(CatalogProduct::class);
+        $product->method('getSku')->willReturn('CHILD+1');
+        $product->method('getName')->willReturn('Product Name');
+        $product->method('getImage')->willReturn(null);
+        $product->method('getFinalPrice')->willReturn($finalPrice);
+        $product->method('getCustomAttribute')->willReturn(null);
+        $product->method('getStatus')->willReturn(Status::STATUS_ENABLED);
+        $product->method('getTypeId')->willReturn('simple');
+        $product->method('getData')->willReturnCallback(function ($value) {
+            if ($value === 'is_in_stock') {
+                return 1;
+            }
+            if ($value === 'qty') {
+                return 2;
+            }
+            return null;
+        });
+
+        $line = $generator->callGenerateProductLine($product, $storeId, $parent);
+
+        $expectedCategoryJson = json_encode([
+            ['id' => '10', 'name' => 'Category 1'],
+            ['id' => '20', 'name' => 'Category 2']
+        ]);
+
+        $expectedLine = implode("\t", [
+            'CHILDPLUS1',
+            'Product Name',
+            'https://example.com/p',
+            '', // image_url
+            '2', // stock (in stock)
+            '1', // active
+            $expectedCategoryJson,
+            'PARENTFORWARDSLASH1', // virtual_parent_code
             '', // members
             '', // brand
             'USD',
