@@ -214,9 +214,25 @@ class CatalogTest extends TestCase
 
         $generator = $this->createMock(FeedGeneratorInterface::class);
         $generator->expects($this->once())->method('getFeedStyle')->willReturn(FeedFormat::COMMERCE);
-        $generator->expects($this->never())->method('beginFeed');
+        $isFeedOpen = false;
+        $generator->method('isFeedOpen')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                return $isFeedOpen;
+            }
+        );
+        $generator->expects($this->once())->method('beginFeed')->with($store)->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = true;
+                return null;
+            }
+        );
         $generator->expects($this->once())->method('addProduct')->willReturn(false);
-        $generator->expects($this->never())->method('finishFeed');
+        $generator->expects($this->once())->method('finishFeed')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = false;
+                return 'feed';
+            }
+        );
         $this->feedGeneratorFactory->method('create')->with(FeedFormat::COMMERCE)->willReturn($generator);
 
         $product = $this->createMock(CatalogProduct::class);
@@ -239,6 +255,121 @@ class CatalogTest extends TestCase
         $this->catalog->cronUploadFeed();
     }
 
+    public function testCronUploadFeedStartsFeedBeforeProcessingFirstProduct()
+    {
+        $storeId = 1;
+        $store = $this->createStore($storeId);
+
+        $this->storeManager->method('getStores')->willReturn([$store]);
+
+        $this->configValues[ConfigModel::PRODUCT_FEED_SUBMISSION_URL] = 'https://feed.test/upload';
+
+        $callOrder = [];
+
+        $generator = $this->createMock(FeedGeneratorInterface::class);
+        $generator->method('getFeedStyle')->willReturn(FeedFormat::COMMERCE);
+        $isFeedOpen = false;
+        $generator->method('isFeedOpen')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                return $isFeedOpen;
+            }
+        );
+        $generator->expects($this->once())->method('beginFeed')->with($store)->willReturnCallback(
+            function () use (&$callOrder, &$isFeedOpen) {
+                $isFeedOpen = true;
+                $callOrder[] = 'beginFeed';
+                return null;
+            }
+        );
+        $generator->expects($this->atLeastOnce())->method('addProduct')->willReturnCallback(
+            function () use (&$callOrder) {
+                $callOrder[] = 'addProduct';
+                return false;
+            }
+        );
+        $generator->expects($this->once())->method('finishFeed')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = false;
+                return 'feed';
+            }
+        );
+        $this->feedGeneratorFactory->method('create')->with(FeedFormat::COMMERCE)->willReturn($generator);
+
+        $product = $this->createMock(CatalogProduct::class);
+        $product->method('getId')->willReturn(1);
+        $product->method('getSku')->willReturn('SKU1');
+        $product->method('getTypeId')->willReturn('simple');
+
+        $this->collectionFactory->method('create')->willReturn($this->createProductCollection([$product]));
+
+        $this->exportProduct->expects($this->once())->method('preloadRewriteUrls')->with($storeId, [1]);
+        $this->categoryPathResolver->expects($this->once())->method('preloadCategoryPaths')->with($storeId, [1]);
+        $this->feedClient->expects($this->never())->method('transmitFeedFile');
+        $this->logger->expects($this->never())->method('error');
+        $this->emulation->expects($this->once())
+            ->method('startEnvironmentEmulation')
+            ->with($storeId, Area::AREA_FRONTEND, true);
+        $this->emulation->expects($this->once())->method('stopEnvironmentEmulation');
+
+        $this->catalog = $this->createCatalog();
+        $this->catalog->cronUploadFeed();
+
+        $this->assertSame('beginFeed', $callOrder[0]);
+        $this->assertEquals('addProduct', $callOrder[1]);
+    }
+
+    public function testCronUploadFeedFinishesFeedWhenProductWriteFails()
+    {
+        $storeId = 1;
+        $store = $this->createStore($storeId);
+
+        $this->storeManager->method('getStores')->willReturn([$store]);
+
+        $this->configValues[ConfigModel::PRODUCT_FEED_SUBMISSION_URL] = 'https://feed.test/upload';
+
+        $generator = $this->createMock(FeedGeneratorInterface::class);
+        $generator->method('getFeedStyle')->willReturn(FeedFormat::COMMERCE);
+        $isFeedOpen = false;
+        $generator->method('isFeedOpen')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                return $isFeedOpen;
+            }
+        );
+        $generator->expects($this->once())->method('beginFeed')->with($store)->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = true;
+                return null;
+            }
+        );
+        $generator->expects($this->once())->method('addProduct')->willThrowException(new Exception('add failed'));
+        $generator->expects($this->once())->method('finishFeed')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = false;
+                return 'feed';
+            }
+        );
+        $this->feedGeneratorFactory->method('create')->with(FeedFormat::COMMERCE)->willReturn($generator);
+
+        $product = $this->createMock(CatalogProduct::class);
+        $product->method('getId')->willReturn(1);
+        $product->method('getSku')->willReturn('SKU1');
+        $product->method('getTypeId')->willReturn('simple');
+
+        $this->collectionFactory->method('create')->willReturn($this->createProductCollection([$product]));
+
+        $this->exportProduct->expects($this->once())->method('preloadRewriteUrls')->with($storeId, [1]);
+        $this->categoryPathResolver->expects($this->once())->method('preloadCategoryPaths')->with($storeId, [1]);
+        $this->feedClient->expects($this->never())->method('transmitFeedFile');
+        $this->logger->expects($this->atLeastOnce())->method('error');
+        $this->emulation->expects($this->once())
+            ->method('startEnvironmentEmulation')
+            ->with($storeId, Area::AREA_FRONTEND, true);
+        $this->emulation->expects($this->once())->method('stopEnvironmentEmulation');
+
+        $this->catalog = $this->createCatalog();
+        $this->catalog->cronUploadFeed();
+    }
+
     public function testCronUploadFeedLogsAndStopsWhenTransmitFails()
     {
         $storeId = 1;
@@ -251,9 +382,25 @@ class CatalogTest extends TestCase
 
         $generator = $this->createMock(FeedGeneratorInterface::class);
         $generator->method('getFeedStyle')->willReturn(FeedFormat::COMMERCE);
-        $generator->expects($this->once())->method('beginFeed')->with($store)->willReturn(null);
+        $isFeedOpen = false;
+        $generator->method('isFeedOpen')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                return $isFeedOpen;
+            }
+        );
+        $generator->expects($this->once())->method('beginFeed')->with($store)->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = true;
+                return null;
+            }
+        );
         $generator->expects($this->once())->method('addProduct')->willReturn(true);
-        $generator->method('finishFeed')->willReturn('feed');
+        $generator->expects($this->once())->method('finishFeed')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = false;
+                return 'feed';
+            }
+        );
         $this->feedGeneratorFactory->method('create')->with(FeedFormat::COMMERCE)->willReturn($generator);
 
         $product = $this->createMock(CatalogProduct::class);
@@ -349,9 +496,25 @@ class CatalogTest extends TestCase
 
         $generator = $this->createMock(FeedGeneratorInterface::class);
         $generator->method('getFeedStyle')->willReturn(FeedFormat::COMMERCE);
-        $generator->expects($this->once())->method('beginFeed')->with($store)->willReturn(null);
+        $isFeedOpen = false;
+        $generator->method('isFeedOpen')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                return $isFeedOpen;
+            }
+        );
+        $generator->expects($this->once())->method('beginFeed')->with($store)->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = true;
+                return null;
+            }
+        );
         $generator->expects($this->once())->method('addProduct')->willReturn(true);
-        $generator->method('finishFeed')->willReturn('feed');
+        $generator->method('finishFeed')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = false;
+                return 'feed';
+            }
+        );
         $this->feedGeneratorFactory->method('create')->with(FeedFormat::COMMERCE)->willReturn($generator);
 
         $product = $this->createMock(CatalogProduct::class);

@@ -380,4 +380,46 @@ class GoogleFeedGeneratorTest extends TestCase
 
         $this->assertTrue($result);
     }
+
+    public function testFinishFeedThrowsWhenCalledWithoutBeginFeed()
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Feed stream is not initialized. Call beginFeed() before finishFeed().');
+
+        $this->generator->finishFeed();
+    }
+
+    public function testFinishFeedCleansUpStateOnStreamError()
+    {
+        $store = $this->createMock(Store::class);
+        $store->method('getName')->willReturn('Test Store');
+        $store->method('getBaseUrl')->willReturn('https://example.test/');
+
+        $this->generator->beginFeed($store);
+        $this->assertTrue($this->generator->isFeedOpen());
+
+        $streamProperty = new \ReflectionProperty($this->generator, 'stream');
+        $streamProperty->setAccessible(true);
+        $streamProperty->setValue($this->generator, null);
+
+        $previousErrorHandler = set_error_handler(function ($severity, $message, $file, $line) {
+            throw new \ErrorException($message, 0, $severity, $file, $line);
+        });
+
+        try {
+            $this->generator->finishFeed();
+            $this->fail('Expected finishFeed to throw an exception when stream resource is invalid');
+        } catch (\ErrorException $e) {
+            $this->assertStringContainsString('rewind', $e->getMessage());
+        } finally {
+            if ($previousErrorHandler === null) {
+                restore_error_handler();
+            } else {
+                set_error_handler($previousErrorHandler);
+            }
+        }
+
+        $this->assertFalse($this->generator->isFeedOpen());
+        $this->assertNull($streamProperty->getValue($this->generator));
+    }
 }

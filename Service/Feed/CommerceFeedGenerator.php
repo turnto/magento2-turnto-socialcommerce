@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace TurnTo\SocialCommerce\Service\Feed;
 
 use Exception;
+use LogicException;
 use Magento\Catalog\Helper\Image;
 use Magento\Catalog\Model\Product as CatalogProduct;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
@@ -36,6 +37,10 @@ class CommerceFeedGenerator extends AbstractFeedGenerator
      * @var resource|null Writable stream for the in-progress feed body
      */
     protected $stream;
+    /**
+     * @var bool Tracks whether the feed stream has been initialized and not yet finalized
+     */
+    protected $isFeedOpen = false;
 
     /**
      * @param Config $config
@@ -45,7 +50,8 @@ class CommerceFeedGenerator extends AbstractFeedGenerator
      * @param EavConfig $eavConfig
      * @param PriceCurrencyInterface $priceCurrency
      * @param Monolog $logger
-     * @param ExportProduct $exportProduct Resolves storefront product URLs for feed links
+     * @param CategoryPathResolver $categoryPathResolver
+     * @param ExportProduct $exportProduct
      */
     public function __construct(
         Config $config,
@@ -85,6 +91,11 @@ class CommerceFeedGenerator extends AbstractFeedGenerator
     public function beginFeed(StoreInterface $store)
     {
         $this->stream = fopen('php://temp', 'r+');
+        if ($this->stream === false) {
+            $this->isFeedOpen = false;
+            throw new LogicException('Failed to initialize feed stream.');
+        }
+        $this->isFeedOpen = true;
         $header = implode("\t", [
             'id', 'title', 'item_url', 'image_url', 'stock', 'active',
             'category_path_json', 'virtual_parent_code', 'members', 'brand',
@@ -101,7 +112,16 @@ class CommerceFeedGenerator extends AbstractFeedGenerator
         try {
             $line = $this->generateProductLine($product, $storeId, $parent);
             if ($line) {
-                fwrite($this->stream, $line . "\n");
+                if (fwrite($this->stream, $line . "\n") === false) {
+                    $this->logger->error(
+                        'Failed to write product to feed',
+                        [
+                            'product_id' => $product->getId(),
+                            'store_id' => $storeId
+                        ]
+                    );
+                    return false;
+                }
                 return true;
             }
         } catch (Exception $entryException) {
@@ -123,10 +143,30 @@ class CommerceFeedGenerator extends AbstractFeedGenerator
      */
     public function finishFeed()
     {
-        rewind($this->stream);
-        $content = stream_get_contents($this->stream);
-        fclose($this->stream);
+        if (!$this->isFeedOpen) {
+            throw new LogicException('Feed stream is not initialized. Call beginFeed() before finishFeed().');
+        }
+
+        try {
+            rewind($this->stream);
+            $content = stream_get_contents($this->stream);
+        } finally {
+            if (is_resource($this->stream)) {
+                fclose($this->stream);
+            }
+            $this->isFeedOpen = false;
+            $this->stream = null;
+        }
+
         return $content;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isFeedOpen(): bool
+    {
+        return $this->isFeedOpen;
     }
 
     /**

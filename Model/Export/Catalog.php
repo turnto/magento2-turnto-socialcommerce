@@ -137,6 +137,10 @@ class Catalog
                 $this->config->getConfigValue(Config::PRODUCT_ENABLE_AUTOMATIC_SUBMISSION, $storeId)
             ) {
                 $emulationStarted = false;
+                $page = 1;
+                $productCount = 0;
+                $fileIndex = 1;
+                $generator = null;
                 try {
                     $feedFormat = $this->config->getFeedFormat($storeId);
                     $siteKey = $this->config->getSiteKey($storeId);
@@ -175,10 +179,6 @@ class Catalog
                     $batchSize = 10000;
                     $pageSize = 500;
                     $pagesPerBatch = ceil($batchSize / $pageSize);
-                    $page = 1;
-                    $productCount = 0;
-                    $fileIndex = 1;
-                    $hasActiveFeed = false;
                     $products = $this->getProducts($storeId, $page, $pageSize);
                     if (!$products) {
                         continue;
@@ -256,13 +256,13 @@ class Catalog
                             $this->exportProduct->preloadRewriteUrls($storeId, $productIds);
                             $this->categoryPathResolver->preloadCategoryPaths($storeId, $categoryProductIds);
 
+                            if (!$generator->isFeedOpen()) {
+                                $generator->beginFeed($store);
+                            }
+
                             foreach ($products as $product) {
                                 $parent = isset($childProducts[(int) $product->getId()]) ? $childProducts[(int) $product->getId()] : false;
                                 if ($generator->addProduct($product, $parent, $storeId)) {
-                                    if (!$hasActiveFeed) {
-                                        $generator->beginFeed($store);
-                                        $hasActiveFeed = true;
-                                    }
                                     $productCount++;
                                 }
                             }
@@ -293,7 +293,6 @@ class Catalog
 
                                 $productCount = 0;
                                 $fileIndex++;
-                                $hasActiveFeed = false;
                             }
                         } catch (Exception $e) {
                             $this->logger->error(
@@ -301,7 +300,7 @@ class Catalog
                                 [
                                     'store_id' => $storeId,
                                     'store_code' => $store->getCode(),
-                                    'page' => $page,
+                                    'page' => $page ?? null,
                                     'exception' => $e
                                 ]
                             );
@@ -319,7 +318,7 @@ class Catalog
                         }
                     }
 
-                    if ($hasActiveFeed && $productCount > 0) {
+                    if ($generator->isFeedOpen() && $productCount > 0) {
                         $feedData = $generator->finishFeed();
                         $totalFiles = ceil($this->totalPages / $pagesPerBatch);
                         $fileName = sprintf('%s_of_%s_store_%s_%s', $fileIndex, $totalFiles, $storeId, $feedStyle);
@@ -336,8 +335,25 @@ class Catalog
                             );
                             throw $e;
                         }
+                    } elseif ($generator->isFeedOpen()) {
+                        $generator->finishFeed();
                     }
                 } catch (Exception $e) {
+                    if ($generator !== null && $generator->isFeedOpen()) {
+                        try {
+                            $generator->finishFeed();
+                        } catch (Exception $finishException) {
+                            $this->logger->error(
+                                'TurnTo catalog export failed to finish feed',
+                                [
+                                    'store_id' => $storeId,
+                                    'store_code' => $store->getCode(),
+                                    'exception' => $finishException
+                                ]
+                            );
+                        }
+                    }
+
                     $this->logger->error(
                         'Catalog export error',
                         [

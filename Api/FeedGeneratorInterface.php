@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Api;
 
+use LogicException;
 use Magento\Store\Api\Data\StoreInterface;
 
 interface FeedGeneratorInterface
@@ -33,8 +34,16 @@ interface FeedGeneratorInterface
      * Finish the feed generation and return the feed data.
      *
      * @return mixed string
+     * @throws LogicException If the feed has not been initialized via beginFeed().
      */
     public function finishFeed();
+
+    /**
+     * Check whether the feed stream is currently open and accepting new products.
+     *
+     * @return bool
+     */
+    public function isFeedOpen(): bool;
 
     /**
      * Get the feed style identifier.

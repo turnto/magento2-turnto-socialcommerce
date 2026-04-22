@@ -9,6 +9,7 @@ namespace TurnTo\SocialCommerce\Service\Feed;
 
 use DateTimeZone;
 use Exception;
+use LogicException;
 use Magento\Catalog\Helper\Image;
 use Magento\Catalog\Model\Product as CatalogProduct;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
@@ -50,6 +51,7 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
      * @param PriceCurrencyInterface $priceCurrency
      * @param Monolog $logger
      * @param DateTimeFactory $dateTimeFactory
+     * @param CategoryPathResolver $categoryPathResolver
      * @param ExportProduct $exportProduct Resolves storefront product URLs for feed links
      */
     public function __construct(
@@ -82,6 +84,10 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
      * @var resource|null Writable stream for the in-progress feed body
      */
     protected $stream;
+    /**
+     * @var bool Tracks whether the feed stream has been initialized and not yet finalized
+     */
+    protected $isFeedOpen = false;
 
     /**
      * @inheritdoc
@@ -97,6 +103,11 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
     public function beginFeed(StoreInterface $store)
     {
         $this->stream = fopen('php://temp', 'r+');
+        if ($this->stream === false) {
+            $this->isFeedOpen = false;
+            throw new LogicException('Failed to initialize feed stream.');
+        }
+        $this->isFeedOpen = true;
         $header = '<?xml version="1.0" encoding="UTF-8"?>' . "\n" .
                   '<feed xmlns="http://www.w3.org/2005/Atom" xmlns:g="http://base.google.com/ns/1.0" xml:lang="en-US">' . "\n" .
                   '<title>' . $this->sanitizeData($store->getName() . ' - Google Product Atom 1.0 Feed') . '</title>' . "\n" .
@@ -121,14 +132,23 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
                 '',
                 $entryXml
             );
-            fwrite($this->stream, trim($entryXml) . "\n");
+            if (fwrite($this->stream, trim($entryXml) . "\n") === false) {
+                $this->logger->error(
+                    'Failed to write product to feed',
+                    [
+                        'product_id' => $product->getId(),
+                        'store_id' => $storeId
+                    ]
+                );
+                return false;
+            }
             return true;
         } catch (Exception $e) {
             $this->logger->error(
                 'Product failed to be added to feed',
                 [
                     'exception' => $e,
-                    'productSKU' => $product ? $product->getSku() : null
+                    'productSKU' => $product->getSku()
                 ]
             );
         }
@@ -141,11 +161,31 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
      */
     public function finishFeed()
     {
-        fwrite($this->stream, '</feed>');
-        rewind($this->stream);
-        $content = stream_get_contents($this->stream);
-        fclose($this->stream);
+        if (!$this->isFeedOpen) {
+            throw new LogicException('Feed stream is not initialized. Call beginFeed() before finishFeed().');
+        }
+
+        try {
+            fwrite($this->stream, '</feed>');
+            rewind($this->stream);
+            $content = stream_get_contents($this->stream);
+        } finally {
+            if (is_resource($this->stream)) {
+                fclose($this->stream);
+            }
+            $this->isFeedOpen = false;
+            $this->stream = null;
+        }
+
         return $content;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isFeedOpen(): bool
+    {
+        return $this->isFeedOpen;
     }
 
     /**
