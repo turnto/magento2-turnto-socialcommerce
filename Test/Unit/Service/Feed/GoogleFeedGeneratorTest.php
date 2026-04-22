@@ -20,6 +20,7 @@ use PHPUnit\Framework\TestCase;
 use SimpleXMLElement;
 use TurnTo\SocialCommerce\Model\Config as ConfigModel;
 use TurnTo\SocialCommerce\Model\Config\Gtin;
+use TurnTo\SocialCommerce\Model\Export\CategoryPathResolver;
 use TurnTo\SocialCommerce\Model\Export\Product as ExportProduct;
 use TurnTo\SocialCommerce\Model\Product;
 use TurnTo\SocialCommerce\Logger\Monolog;
@@ -62,6 +63,10 @@ class GoogleFeedGeneratorTest extends TestCase
      * @var EavConfig
      */
     protected $eavConfig;
+    /**
+     * @var CategoryPathResolver
+     */
+    protected $categoryPathResolver;
 
     protected function setUp(): void
     {
@@ -74,6 +79,7 @@ class GoogleFeedGeneratorTest extends TestCase
         $logger = $this->createMock(Monolog::class);
         $dateTimeFactory = $this->createMock(DateTimeFactory::class);
         $exportProduct = $this->createMock(ExportProduct::class);
+        $this->categoryPathResolver = $this->createMock(CategoryPathResolver::class);
         $exportProduct->method('getProductUrl')->willReturn('https://example.test/p');
 
         $this->generator = new TestableGoogleFeedGenerator(
@@ -85,6 +91,7 @@ class GoogleFeedGeneratorTest extends TestCase
             $priceCurrency,
             $logger,
             $dateTimeFactory,
+            $this->categoryPathResolver,
             $exportProduct
         );
     }
@@ -205,6 +212,7 @@ class GoogleFeedGeneratorTest extends TestCase
             $priceCurrency,
             $logger,
             $dateTimeFactory,
+            $this->categoryPathResolver,
             $exportProduct
         );
 
@@ -274,6 +282,7 @@ class GoogleFeedGeneratorTest extends TestCase
             $priceCurrency,
             $logger,
             $dateTimeFactory,
+            $this->categoryPathResolver,
             $exportProduct
         );
 
@@ -349,6 +358,7 @@ class GoogleFeedGeneratorTest extends TestCase
             $priceCurrency,
             $logger,
             $dateTimeFactory,
+            $this->categoryPathResolver,
             $exportProduct
         );
 

@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace TurnTo\SocialCommerce\Test\Unit\Service\Feed;
 
 use Magento\Catalog\Helper\Image;
+use Magento\Catalog\Model\Category;
 use Magento\Catalog\Model\Product as CatalogProduct;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Bundle\Model\Product\Type as BundleType;
@@ -20,6 +21,7 @@ use Magento\Store\Model\Store;
 use PHPUnit\Framework\TestCase;
 use TurnTo\SocialCommerce\Model\Config as ConfigModel;
 use TurnTo\SocialCommerce\Model\Config\Gtin;
+use TurnTo\SocialCommerce\Model\Export\CategoryPathResolver;
 use TurnTo\SocialCommerce\Model\Export\Product as ExportProduct;
 use TurnTo\SocialCommerce\Model\Product;
 use TurnTo\SocialCommerce\Logger\Monolog;
@@ -38,6 +40,7 @@ class TestableCommerceFeedGenerator extends CommerceFeedGenerator
      * @param EavConfig $eavConfig
      * @param PriceCurrencyInterface $priceCurrency
      * @param Monolog $logger
+     * @param CategoryPathResolver $categoryPathResolver
      * @param ExportProduct $exportProduct
      */
     public function __construct(
@@ -48,6 +51,7 @@ class TestableCommerceFeedGenerator extends CommerceFeedGenerator
         EavConfig $eavConfig,
         PriceCurrencyInterface $priceCurrency,
         Monolog $logger,
+        CategoryPathResolver $categoryPathResolver,
         ExportProduct $exportProduct
     ) {
         parent::__construct(
@@ -58,6 +62,7 @@ class TestableCommerceFeedGenerator extends CommerceFeedGenerator
             $eavConfig,
             $priceCurrency,
             $logger,
+            $categoryPathResolver,
             $exportProduct
         );
     }
@@ -89,6 +94,49 @@ class TestableCommerceFeedGenerator extends CommerceFeedGenerator
     {
         return 'Category 1 > Category 2';
     }
+
+    /**
+     * @param CatalogProduct $product
+     * @param int|string|null $storeId
+     * @return array
+     */
+    protected function getDeepestCategoryTree(CatalogProduct $product, $storeId)
+    {
+        return [
+            $this->getCategoryFixture('Category 1', 100),
+            $this->getCategoryFixture('Category 2', 200)
+        ];
+    }
+
+    /**
+     * @param string $name
+     * @param int $id
+     * @return Category
+     */
+    protected function getCategoryFixture(string $name, int $id)
+    {
+        $category = new class($name, $id) {
+            private string $name;
+            private int $id;
+
+            public function __construct(string $name, int $id)
+            {
+                $this->name = $name;
+                $this->id = $id;
+            }
+
+            public function getName(): string
+            {
+                return $this->name;
+            }
+
+            public function getId(): int
+            {
+                return $this->id;
+            }
+        };
+        return $category;
+    }
 }
 
 class CommerceFeedGeneratorTest extends TestCase
@@ -97,6 +145,10 @@ class CommerceFeedGeneratorTest extends TestCase
      * @var TestableCommerceFeedGenerator
      */
     protected $generator;
+    /**
+     * @var CategoryPathResolver
+     */
+    protected $categoryPathResolver;
 
     protected function setUp(): void
     {
@@ -114,6 +166,7 @@ class CommerceFeedGeneratorTest extends TestCase
 
         $exportProduct = $this->createMock(ExportProduct::class);
         $exportProduct->method('getProductUrl')->willReturn('https://example.test/p');
+        $this->categoryPathResolver = $this->createMock(CategoryPathResolver::class);
 
         $this->generator = new TestableCommerceFeedGenerator(
             $config,
@@ -123,6 +176,7 @@ class CommerceFeedGeneratorTest extends TestCase
             $eavConfig,
             $priceCurrency,
             $logger,
+            $this->categoryPathResolver,
             $exportProduct
         );
     }
@@ -212,6 +266,7 @@ class CommerceFeedGeneratorTest extends TestCase
             $eavConfig,
             $priceCurrency,
             $logger,
+            $this->categoryPathResolver,
             $exportProduct
         );
 
@@ -260,6 +315,7 @@ class CommerceFeedGeneratorTest extends TestCase
             $eavConfig,
             $priceCurrency,
             $logger,
+            $this->categoryPathResolver,
             $exportProduct
         );
 
@@ -308,6 +364,7 @@ class CommerceFeedGeneratorTest extends TestCase
             $eavConfig,
             $priceCurrency,
             $logger,
+            $this->categoryPathResolver,
             $exportProduct
         );
 
@@ -323,8 +380,8 @@ class CommerceFeedGeneratorTest extends TestCase
         $line = $generator->callGenerateProductLine($product, $storeId, false);
 
         $expectedCategoryJson = json_encode([
-            ['id' => '10', 'name' => 'Category 1'],
-            ['id' => '20', 'name' => 'Category 2']
+            ['id' => '100', 'name' => 'Category 1'],
+            ['id' => '200', 'name' => 'Category 2']
         ]);
 
         $expectedLine = implode("\t", [
@@ -391,6 +448,7 @@ class CommerceFeedGeneratorTest extends TestCase
             $eavConfig,
             $priceCurrency,
             $logger,
+            $this->categoryPathResolver,
             $exportProduct
         );
 
@@ -415,8 +473,8 @@ class CommerceFeedGeneratorTest extends TestCase
         $line = $generator->callGenerateProductLine($product, $storeId, false);
 
         $expectedCategoryJson = json_encode([
-            ['id' => '10', 'name' => 'Category 1'],
-            ['id' => '20', 'name' => 'Category 2']
+            ['id' => '100', 'name' => 'Category 1'],
+            ['id' => '200', 'name' => 'Category 2']
         ]);
 
         $expectedLine = implode("\t", [
@@ -483,6 +541,7 @@ class CommerceFeedGeneratorTest extends TestCase
             $eavConfig,
             $priceCurrency,
             $logger,
+            $this->categoryPathResolver,
             $exportProduct
         );
 
@@ -510,8 +569,8 @@ class CommerceFeedGeneratorTest extends TestCase
         $line = $generator->callGenerateProductLine($product, $storeId, $parent);
 
         $expectedCategoryJson = json_encode([
-            ['id' => '10', 'name' => 'Category 1'],
-            ['id' => '20', 'name' => 'Category 2']
+            ['id' => '100', 'name' => 'Category 1'],
+            ['id' => '200', 'name' => 'Category 2']
         ]);
 
         $expectedLine = implode("\t", [
@@ -582,6 +641,7 @@ class CommerceFeedGeneratorTest extends TestCase
             $eavConfig,
             $priceCurrency,
             $logger,
+            $this->categoryPathResolver,
             $exportProduct
         );
 

@@ -25,6 +25,7 @@ use TurnTo\SocialCommerce\Model\Config\Source\FeedFormat;
 use TurnTo\SocialCommerce\Model\Config\Gtin;
 use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Export\Catalog;
+use TurnTo\SocialCommerce\Model\Export\CategoryPathResolver;
 use TurnTo\SocialCommerce\Model\Export\Product;
 use TurnTo\SocialCommerce\Service\Feed\FeedGeneratorFactory;
 
@@ -94,6 +95,10 @@ class CatalogTest extends TestCase
      * @var Product
      */
     protected $exportProduct;
+    /**
+     * @var CategoryPathResolver
+     */
+    protected $categoryPathResolver;
 
     protected function setUp(): void
     {
@@ -107,6 +112,7 @@ class CatalogTest extends TestCase
         $this->feedGeneratorFactory = $this->createMock(FeedGeneratorFactory::class);
         $this->resourceConnection = $this->createMock(ResourceConnection::class);
         $this->exportProduct = $this->createMock(Product::class);
+        $this->categoryPathResolver = $this->createMock(CategoryPathResolver::class);
 
         $this->configValues = [
             ConfigModel::PRODUCT_ENABLE_AUTOMATIC_SUBMISSION => true,
@@ -144,7 +150,8 @@ class CatalogTest extends TestCase
             $this->logger,
             $this->feedGeneratorFactory,
             $this->resourceConnection,
-            $this->exportProduct
+            $this->exportProduct,
+            $this->categoryPathResolver
         );
     }
 
@@ -160,7 +167,8 @@ class CatalogTest extends TestCase
             $this->logger,
             $this->feedGeneratorFactory,
             $this->resourceConnection,
-            $this->exportProduct
+            $this->exportProduct,
+            $this->categoryPathResolver
         );
     }
 
@@ -206,7 +214,7 @@ class CatalogTest extends TestCase
 
         $generator = $this->createMock(FeedGeneratorInterface::class);
         $generator->expects($this->once())->method('getFeedStyle')->willReturn(FeedFormat::COMMERCE);
-        $generator->expects($this->once())->method('beginFeed')->with($store)->willReturn(null);
+        $generator->expects($this->never())->method('beginFeed');
         $generator->expects($this->once())->method('addProduct')->willReturn(false);
         $generator->expects($this->never())->method('finishFeed');
         $this->feedGeneratorFactory->method('create')->with(FeedFormat::COMMERCE)->willReturn($generator);
@@ -219,6 +227,7 @@ class CatalogTest extends TestCase
         $this->collectionFactory->method('create')->willReturn($this->createProductCollection([$product]));
 
         $this->exportProduct->expects($this->once())->method('preloadRewriteUrls')->with($storeId, [1]);
+        $this->categoryPathResolver->expects($this->once())->method('preloadCategoryPaths')->with($storeId, [1]);
         $this->feedClient->expects($this->never())->method('transmitFeedFile');
         $this->logger->expects($this->never())->method('error');
         $this->emulation->expects($this->once())
@@ -255,6 +264,7 @@ class CatalogTest extends TestCase
         $this->collectionFactory->method('create')->willReturn($this->createProductCollection([$product]));
 
         $this->exportProduct->expects($this->once())->method('preloadRewriteUrls')->with($storeId, [1]);
+        $this->categoryPathResolver->expects($this->once())->method('preloadCategoryPaths')->with($storeId, [1]);
         $this->feedClient->expects($this->once())
             ->method('transmitFeedFile')
             ->willThrowException(new Exception('transmit failed'));
@@ -352,6 +362,7 @@ class CatalogTest extends TestCase
         $this->collectionFactory->method('create')->willReturn($this->createProductCollection([$product]));
 
         $this->exportProduct->expects($this->once())->method('preloadRewriteUrls')->with($storeId, [1]);
+        $this->categoryPathResolver->expects($this->once())->method('preloadCategoryPaths')->with($storeId, [1]);
         $this->feedClient->expects($this->once())
             ->method('transmitFeedFile')
             ->willReturn(null);

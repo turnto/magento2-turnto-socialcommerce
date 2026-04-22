@@ -18,6 +18,7 @@ use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Model\Config\Gtin;
 use TurnTo\SocialCommerce\Model\Config\Source\FeedFormat;
+use TurnTo\SocialCommerce\Model\Export\CategoryPathResolver;
 use TurnTo\SocialCommerce\Model\Export\Product as ExportProduct;
 use TurnTo\SocialCommerce\Model\Product;
 
@@ -54,6 +55,7 @@ class CommerceFeedGenerator extends AbstractFeedGenerator
         EavConfig $eavConfig,
         PriceCurrencyInterface $priceCurrency,
         Monolog $logger,
+        CategoryPathResolver $categoryPathResolver,
         ExportProduct $exportProduct
     ) {
         parent::__construct(
@@ -63,7 +65,8 @@ class CommerceFeedGenerator extends AbstractFeedGenerator
             $product,
             $eavConfig,
             $priceCurrency,
-            $logger
+            $logger,
+            $categoryPathResolver
         );
         $this->exportProduct = $exportProduct;
     }
@@ -185,16 +188,18 @@ class CommerceFeedGenerator extends AbstractFeedGenerator
         }
 
         $categoryPathJson = '';
-        $categoryName = $this->getCategoryTreeString($product, $storeId);
-        if (!empty($categoryName)) {
-            $categories = explode(' > ', $categoryName);
-            $catArray = [];
-            foreach ($categories as $index => $cat) {
+        $categoryTree = $this->getCategoryPathNodes($product, $storeId);
+        $catArray = [];
+        foreach ($categoryTree as $category) {
+            $categoryName = $category['name'] ?? '';
+            if (!empty($categoryName)) {
                 $catArray[] = [
-                    'id' => (string)(($index + 1) * 10),
-                    'name' => $cat
+                    'id' => (string) $category['id'],
+                    'name' => $categoryName
                 ];
             }
+        }
+        if (!empty($catArray)) {
             $categoryPathJson = json_encode($catArray);
         }
 

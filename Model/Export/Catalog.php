@@ -22,6 +22,7 @@ use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Model\Config\Gtin;
 use TurnTo\SocialCommerce\Model\Config\Source\FeedFormat;
+use TurnTo\SocialCommerce\Model\Export\CategoryPathResolver;
 use TurnTo\SocialCommerce\Model\Export\Product as ExportProduct;
 use TurnTo\SocialCommerce\Service\Feed\FeedGeneratorFactory;
 
@@ -72,6 +73,11 @@ class Catalog
     protected $exportProduct;
 
     /**
+     * @var CategoryPathResolver
+     */
+    protected $categoryPathResolver;
+
+    /**
      * @var Int
      */
     protected $totalPages;
@@ -89,6 +95,7 @@ class Catalog
      * @param FeedGeneratorFactory $feedGeneratorFactory
      * @param ResourceConnection $resourceConnection
      * @param ExportProduct $exportProduct
+     * @param CategoryPathResolver $categoryPathResolver
      */
     public function __construct(
         Config                $config,
@@ -100,7 +107,8 @@ class Catalog
         Monolog               $logger,
         FeedGeneratorFactory  $feedGeneratorFactory,
         ResourceConnection    $resourceConnection,
-        ExportProduct         $exportProduct
+        ExportProduct         $exportProduct,
+        CategoryPathResolver  $categoryPathResolver
     ) {
         $this->config = $config;
         $this->gtinConfig = $gtinConfig;
@@ -112,6 +120,7 @@ class Catalog
         $this->feedGeneratorFactory = $feedGeneratorFactory;
         $this->resourceConnection = $resourceConnection;
         $this->exportProduct = $exportProduct;
+        $this->categoryPathResolver = $categoryPathResolver;
     }
 
     /**
@@ -169,14 +178,13 @@ class Catalog
                     $page = 1;
                     $productCount = 0;
                     $fileIndex = 1;
+                    $hasActiveFeed = false;
                     $products = $this->getProducts($storeId, $page, $pageSize);
                     if (!$products) {
                         continue;
                     }
                     $totalPages = $this->totalPages;
                     $totalFiles = $totalPages > 0 ? ceil($totalPages / $pagesPerBatch) : 0;
-
-                    $generator->beginFeed($store);
 
                     while (true) {
                         try {
@@ -244,11 +252,17 @@ class Catalog
                                 }
                             }
 
+                            $categoryProductIds = $productIds;
                             $this->exportProduct->preloadRewriteUrls($storeId, $productIds);
+                            $this->categoryPathResolver->preloadCategoryPaths($storeId, $categoryProductIds);
 
                             foreach ($products as $product) {
                                 $parent = isset($childProducts[(int) $product->getId()]) ? $childProducts[(int) $product->getId()] : false;
                                 if ($generator->addProduct($product, $parent, $storeId)) {
+                                    if (!$hasActiveFeed) {
+                                        $generator->beginFeed($store);
+                                        $hasActiveFeed = true;
+                                    }
                                     $productCount++;
                                 }
                             }
@@ -279,7 +293,7 @@ class Catalog
 
                                 $productCount = 0;
                                 $fileIndex++;
-                                $generator->beginFeed($store);
+                                $hasActiveFeed = false;
                             }
                         } catch (Exception $e) {
                             $this->logger->error(
@@ -305,7 +319,7 @@ class Catalog
                         }
                     }
 
-                    if ($productCount > 0) {
+                    if ($hasActiveFeed && $productCount > 0) {
                         $feedData = $generator->finishFeed();
                         $totalFiles = ceil($this->totalPages / $pagesPerBatch);
                         $fileName = sprintf('%s_of_%s_store_%s_%s', $fileIndex, $totalFiles, $storeId, $feedStyle);

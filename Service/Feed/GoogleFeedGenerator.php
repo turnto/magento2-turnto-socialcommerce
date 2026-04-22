@@ -22,6 +22,7 @@ use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Model\Config\Gtin;
 use TurnTo\SocialCommerce\Model\Config\Source\FeedFormat;
+use TurnTo\SocialCommerce\Model\Export\CategoryPathResolver;
 use TurnTo\SocialCommerce\Model\Export\Product as ExportProduct;
 use TurnTo\SocialCommerce\Model\Product;
 
@@ -60,6 +61,7 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
         PriceCurrencyInterface $priceCurrency,
         Monolog $logger,
         DateTimeFactory $dateTimeFactory,
+        CategoryPathResolver $categoryPathResolver,
         ExportProduct $exportProduct
     ) {
         parent::__construct(
@@ -69,7 +71,8 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
             $product,
             $eavConfig,
             $priceCurrency,
-            $logger
+            $logger,
+            $categoryPathResolver
         );
         $this->dateTimeFactory = $dateTimeFactory;
         $this->exportProduct = $exportProduct;

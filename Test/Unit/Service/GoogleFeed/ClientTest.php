@@ -61,16 +61,16 @@ class ClientTest extends TestCase
     public function testTransmitFeedFileSuccessWritesRequestAndReturns()
     {
         $response = $this->createResponse(200, 'SUCCESS');
+        $writeCalls = [];
         $this->client->expects($this->once())
             ->method('request')
             ->willReturn($response);
 
         $this->file->expects($this->exactly(2))
             ->method('writeFile')
-            ->withConsecutive(
-                ['turnto/commerce-product_storecode_default.tsv', 'feed-content'],
-                ['turnto/commerce-product_storecode_default_request.txt', 'SUCCESS']
-            );
+            ->willReturnCallback(function ($fileName, $contents) use (&$writeCalls) {
+                $writeCalls[] = [$fileName, $contents];
+            });
         $this->logger->expects($this->never())->method('warning');
         $this->logger->expects($this->never())->method('error');
 
@@ -85,6 +85,14 @@ class ClientTest extends TestCase
             'catalog.tsv',
             FeedFormat::COMMERCE,
             'default'
+        );
+
+        $this->assertSame(
+            [
+                ['turnto/commerce-product_storecode_default.tsv', 'feed-content'],
+                ['turnto/commerce-product_storecode_default_request.txt', 'SUCCESS']
+            ],
+            $writeCalls
         );
     }
 

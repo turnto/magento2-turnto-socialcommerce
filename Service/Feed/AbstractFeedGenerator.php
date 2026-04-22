@@ -21,6 +21,7 @@ use TurnTo\SocialCommerce\Api\FeedGeneratorInterface;
 use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Model\Config\Gtin;
+use TurnTo\SocialCommerce\Model\Export\CategoryPathResolver;
 use TurnTo\SocialCommerce\Model\Product;
 
 /**
@@ -64,6 +65,11 @@ abstract class AbstractFeedGenerator implements FeedGeneratorInterface
     protected $logger;
 
     /**
+     * @var CategoryPathResolver
+     */
+    protected $categoryPathResolver;
+
+    /**
      * @param Config $config
      * @param Gtin $gtinConfig
      * @param Image $imageHelper
@@ -79,7 +85,8 @@ abstract class AbstractFeedGenerator implements FeedGeneratorInterface
         Product $product,
         EavConfig $eavConfig,
         PriceCurrencyInterface $priceCurrency,
-        Monolog $logger
+        Monolog $logger,
+        CategoryPathResolver $categoryPathResolver
     ) {
         $this->config = $config;
         $this->gtinConfig = $gtinConfig;
@@ -88,6 +95,7 @@ abstract class AbstractFeedGenerator implements FeedGeneratorInterface
         $this->eavConfig = $eavConfig;
         $this->priceCurrency = $priceCurrency;
         $this->logger = $logger;
+        $this->categoryPathResolver = $categoryPathResolver;
     }
 
     /**
@@ -205,7 +213,62 @@ abstract class AbstractFeedGenerator implements FeedGeneratorInterface
      */
     protected function getCategoryTreeString(CatalogProduct $product, $storeId)
     {
+        $categoryTree = $this->getCategoryPathNodes($product, $storeId);
         $categoryName = '';
+
+        foreach ($categoryTree as $node) {
+            $nodeName = $node['name'] ?? '';
+            if (!empty($nodeName)) {
+                if (!empty($categoryName)) {
+                    $categoryName .= ' > ';
+                }
+                $categoryName .= $nodeName;
+            }
+        }
+
+        return $categoryName;
+    }
+
+    /**
+     * Gets the category path as arrays using either preloaded resolver data or fallback recursion.
+     *
+     * @param CatalogProduct $product
+     * @param int|StoreInterface|string $storeId
+     * @return array<array{id:string,name:string}>
+     * @throws LocalizedException
+     */
+    protected function getCategoryPathNodes(CatalogProduct $product, $storeId): array
+    {
+        $productId = (int) $product->getId();
+        if ($productId > 0 && $this->categoryPathResolver instanceof CategoryPathResolver) {
+            $categoryPath = $this->categoryPathResolver->getCategoryPath((int) $storeId, $productId);
+            if ($categoryPath !== null) {
+                return $categoryPath;
+            }
+        }
+
+        $categoryTree = $this->getDeepestCategoryTree($product, $storeId);
+        $categoryPath = [];
+        foreach ($categoryTree as $node) {
+            $categoryPath[] = [
+                'id' => (string) $node->getId(),
+                'name' => (string) $node->getName()
+            ];
+        }
+
+        return $categoryPath;
+    }
+
+    /**
+     * Gets the deepest category tree for given product in root-to-leaf order.
+     *
+     * @param CatalogProduct $product
+     * @param int|StoreInterface|string $storeId
+     * @return array
+     * @throws LocalizedException
+     */
+    protected function getDeepestCategoryTree(CatalogProduct $product, $storeId)
+    {
         $categories = $product->getCategoryCollection()->setStoreId($storeId)->addAttributeToSelect('name');
         $deepestLength = 0;
         $deepestTree = [];
@@ -219,17 +282,7 @@ abstract class AbstractFeedGenerator implements FeedGeneratorInterface
             }
         }
 
-        foreach (array_reverse($deepestTree) as $node) {
-            $nodeName = $node->getName();
-            if (!empty($nodeName)) {
-                if (!empty($categoryName)) {
-                    $categoryName .= ' > ';
-                }
-                $categoryName .= $node->getName();
-            }
-        }
-
-        return $categoryName;
+        return array_reverse($deepestTree);
     }
 
     /**
