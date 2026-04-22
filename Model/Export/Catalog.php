@@ -203,43 +203,41 @@ class Catalog
                                     $rows = $connection->fetchAll($select);
 
                                     if (!empty($rows)) {
-                                    $parentIdsToLoad = [];
                                         $parentMap = [];
                                         $emptyCollection = $this->productCollectionFactory->create();
-                                    $parentIds = array_values(array_unique(array_map('intval', array_column($rows, 'parent_id'))));
-                                    $parentCollection = $this->productCollectionFactory->create();
-                                    $parentCollection->setStoreId($storeId)
-                                        ->addAttributeToSelect(['url_key', 'url_path'])
-                                        ->addFieldToFilter('entity_id', ['in' => $parentIds]);
-                                    $loadedParentProducts = [];
-                                    foreach ($parentCollection as $parentProduct) {
-                                        $loadedParentProducts[(int) $parentProduct->getId()] = $parentProduct;
-                                    }
+                                        $parentIds = array_values(array_unique(array_map('intval', array_column($rows, 'parent_id'))));
+                                        $parentCollection = $this->productCollectionFactory->create();
+                                        $parentCollection->setStoreId($storeId)
+                                            ->addAttributeToSelect(['url_key', 'url_path'])
+                                            ->addFieldToFilter('entity_id', ['in' => $parentIds]);
+                                        $loadedParentProducts = [];
+                                        foreach ($parentCollection as $parentProduct) {
+                                            $loadedParentProducts[(int) $parentProduct->getId()] = $parentProduct;
+                                        }
 
                                         foreach ($rows as $row) {
-                                            $parentId = (int)$row['parent_id'];
-                                            $parentIdsToLoad[] = $parentId;
+                                            $parentId = (int) $row['parent_id'];
 
                                             if (!isset($parentMap[$parentId])) {
-                                            if (isset($loadedParentProducts[$parentId])) {
-                                                $parentProduct = $loadedParentProducts[$parentId];
-                                            } else {
-                                                $parentProduct = $emptyCollection->getNewEmptyItem();
-                                                $parentProduct->setData([
-                                                    'entity_id' => $parentId,
-                                                    'sku' => $row['parent_sku'],
-                                                    'type_id' => 'configurable',
-                                                    'store_id' => $storeId
-                                                ]);
-                                            }
+                                                if (isset($loadedParentProducts[$parentId])) {
+                                                    $parentProduct = $loadedParentProducts[$parentId];
+                                                } else {
+                                                    $parentProduct = $emptyCollection->getNewEmptyItem();
+                                                    $parentProduct->setData([
+                                                        'entity_id' => $parentId,
+                                                        'sku' => $row['parent_sku'],
+                                                        'type_id' => 'configurable',
+                                                        'store_id' => $storeId
+                                                    ]);
+                                                }
 
                                                 $parentMap[$parentId] = $parentProduct;
                                             }
 
-                                            $childProducts[(int)$row['product_id']] = $parentMap[$parentId];
+                                            $childProducts[(int) $row['product_id']] = $parentMap[$parentId];
                                         }
 
-                                        $productIds = array_merge($productIds, array_unique($parentIdsToLoad));
+                                        $productIds = array_merge($productIds, $parentIds);
 
                                         unset($emptyCollection, $parentMap);
                                     }
