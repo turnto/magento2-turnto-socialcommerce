@@ -198,31 +198,45 @@ class Catalog
                                     $connection = $this->resourceConnection->getConnection();
                                     $select = $connection->select()
                                         ->from(['l' => $connection->getTableName('catalog_product_super_link')], ['parent_id', 'product_id'])
-                                        ->join(['ce' => $connection->getTableName('catalog_product_entity')], 'ce.entity_id = l.product_id', ['child_sku' => 'sku'])
                                         ->join(['pe' => $connection->getTableName('catalog_product_entity')], 'pe.entity_id = l.parent_id', ['parent_sku' => 'sku'])
                                         ->where('l.product_id IN (?)', $simpleIds);
                                     $rows = $connection->fetchAll($select);
 
                                     if (!empty($rows)) {
-                                        $parentIdsToLoad = [];
+                                    $parentIdsToLoad = [];
                                         $parentMap = [];
                                         $emptyCollection = $this->productCollectionFactory->create();
+                                    $parentIds = array_values(array_unique(array_map('intval', array_column($rows, 'parent_id'))));
+                                    $parentCollection = $this->productCollectionFactory->create();
+                                    $parentCollection->setStoreId($storeId)
+                                        ->addAttributeToSelect(['url_key', 'url_path'])
+                                        ->addFieldToFilter('entity_id', ['in' => $parentIds]);
+                                    $loadedParentProducts = [];
+                                    foreach ($parentCollection as $parentProduct) {
+                                        $loadedParentProducts[(int) $parentProduct->getId()] = $parentProduct;
+                                    }
 
                                         foreach ($rows as $row) {
                                             $parentId = (int)$row['parent_id'];
                                             $parentIdsToLoad[] = $parentId;
 
                                             if (!isset($parentMap[$parentId])) {
+                                            if (isset($loadedParentProducts[$parentId])) {
+                                                $parentProduct = $loadedParentProducts[$parentId];
+                                            } else {
                                                 $parentProduct = $emptyCollection->getNewEmptyItem();
                                                 $parentProduct->setData([
                                                     'entity_id' => $parentId,
                                                     'sku' => $row['parent_sku'],
+                                                    'type_id' => 'configurable',
                                                     'store_id' => $storeId
                                                 ]);
+                                            }
+
                                                 $parentMap[$parentId] = $parentProduct;
                                             }
 
-                                            $childProducts[$row['child_sku']] = $parentMap[$parentId];
+                                            $childProducts[(int)$row['product_id']] = $parentMap[$parentId];
                                         }
 
                                         $productIds = array_merge($productIds, array_unique($parentIdsToLoad));
@@ -235,7 +249,7 @@ class Catalog
                             $this->exportProduct->preloadRewriteUrls($storeId, $productIds);
 
                             foreach ($products as $product) {
-                                $parent = isset($childProducts[$product->getSku()]) ? $childProducts[$product->getSku()] : false;
+                                $parent = isset($childProducts[(int) $product->getId()]) ? $childProducts[(int) $product->getId()] : false;
                                 if ($generator->addProduct($product, $parent, $storeId)) {
                                     $productCount++;
                                 }
@@ -355,18 +369,13 @@ class Catalog
             ->setOrder('entity_id', 'ASC')
             ->setPage($page, $pageCount);
 
-        $collection->joinField(
-            'qty',
-            'cataloginventory_stock_item',
-            'qty',
+        $collection->joinTable(
+            ['stock_item' => 'cataloginventory_stock_item'],
             'product_id=entity_id',
-            '{{table}}.stock_id=1',
-            'left'
-        )->joinField(
-            'is_in_stock',
-            'cataloginventory_stock_item',
-            'is_in_stock',
-            'product_id=entity_id',
+            [
+                'qty' => 'qty',
+                'is_in_stock' => 'is_in_stock'
+            ],
             '{{table}}.stock_id=1',
             'left'
         );
