@@ -136,8 +136,33 @@ class CategoryPathResolver
                     ->where('entity_id IN (?)', $categoryIds)
             );
             $pathByCategory = [];
+            $requiredCategoryIds = [];
             foreach ($pathRows as $row) {
-                $pathByCategory[(int) $row['entity_id']] = (string) $row['path'];
+                $entityId = (int) $row['entity_id'];
+                $path = (string) $row['path'];
+                $pathIds = [];
+                if ($path !== '') {
+                    foreach (explode('/', $path) as $pathCategoryId) {
+                        $categoryId = (int) $pathCategoryId;
+                        if ($categoryId > 0) {
+                            $pathIds[] = $categoryId;
+                            $requiredCategoryIds[$categoryId] = true;
+                        }
+                    }
+                }
+                if (empty($pathIds)) {
+                    $pathIds = [$entityId];
+                    $requiredCategoryIds[$entityId] = true;
+                }
+
+                $pathByCategory[$entityId] = $pathIds;
+            }
+            foreach ($categoryIds as $categoryId) {
+                $requiredCategoryIds[$categoryId] = true;
+            }
+            $allCategoryIds = array_map('intval', array_keys($requiredCategoryIds));
+            if (empty($allCategoryIds)) {
+                return;
             }
 
             $nameRows = $connection->fetchAll(
@@ -147,7 +172,7 @@ class CategoryPathResolver
                         ['entity_id', 'store_id', 'value']
                     )
                     ->where('attribute_id = ?', $nameAttributeId)
-                    ->where('entity_id IN (?)', $categoryIds)
+                    ->where('entity_id IN (?)', $allCategoryIds)
                     ->where('store_id IN (?)', [0, $storeId])
             );
             $nameByCategory = [];
@@ -169,10 +194,7 @@ class CategoryPathResolver
                 $bestPath = [];
 
                 foreach ($categoriesForProduct as $categoryId) {
-                    $categoryPath = $pathByCategory[$categoryId] ?? '';
-                    $pathCategoryIds = $categoryPath === '' ?
-                        [$categoryId] :
-                        array_map('intval', array_filter(explode('/', $categoryPath), 'strlen'));
+                    $pathCategoryIds = $pathByCategory[$categoryId] ?? [$categoryId];
                     $pathDepth = count($pathCategoryIds);
                     if ($pathDepth <= $bestDepth) {
                         continue;

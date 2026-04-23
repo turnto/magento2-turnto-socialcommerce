@@ -80,14 +80,6 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
         $this->exportProduct = $exportProduct;
     }
 
-    /**
-     * @var resource|null Writable stream for the in-progress feed body
-     */
-    protected $stream;
-    /**
-     * @var bool Tracks whether the feed stream has been initialized and not yet finalized
-     */
-    protected $isFeedOpen = false;
 
     /**
      * @inheritdoc
@@ -161,31 +153,17 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
      */
     public function finishFeed()
     {
-        if (!$this->isFeedOpen) {
-            throw new LogicException('Feed stream is not initialized. Call beginFeed() before finishFeed().');
-        }
+        $this->assertFeedStreamReady();
 
         try {
             fwrite($this->stream, '</feed>');
             rewind($this->stream);
             $content = stream_get_contents($this->stream);
         } finally {
-            if (is_resource($this->stream)) {
-                fclose($this->stream);
-            }
-            $this->isFeedOpen = false;
-            $this->stream = null;
+            $this->cleanupStream();
         }
 
         return $content;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function isFeedOpen(): bool
-    {
-        return $this->isFeedOpen;
     }
 
     /**

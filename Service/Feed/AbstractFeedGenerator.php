@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace TurnTo\SocialCommerce\Service\Feed;
 
 use Exception;
+use LogicException;
 use Magento\Catalog\Api\Data\ProductAttributeInterface;
 use Magento\Catalog\Helper\Image;
 use Magento\Catalog\Model\Category;
@@ -70,6 +71,16 @@ abstract class AbstractFeedGenerator implements FeedGeneratorInterface
     protected $categoryPathResolver;
 
     /**
+     * @var resource|null
+     */
+    protected $stream;
+
+    /**
+     * @var bool
+     */
+    protected $isFeedOpen = false;
+
+    /**
      * @param Config $config
      * @param Gtin $gtinConfig
      * @param Image $imageHelper
@@ -77,6 +88,7 @@ abstract class AbstractFeedGenerator implements FeedGeneratorInterface
      * @param EavConfig $eavConfig
      * @param PriceCurrencyInterface $priceCurrency
      * @param Monolog $logger
+     * @param CategoryPathResolver $categoryPathResolver
      */
     public function __construct(
         Config $config,
@@ -324,5 +336,44 @@ abstract class AbstractFeedGenerator implements FeedGeneratorInterface
         } else {
             return $this->product->turnToSafeEncoding($product->getSku());
         }
+    }
+
+    /**
+     * Ensure the feed stream is initialized and valid before reading it back.
+     *
+     * @return void
+     */
+    protected function assertFeedStreamReady(): void
+    {
+        if (!$this->isFeedOpen) {
+            throw new LogicException('Feed stream is not initialized. Call beginFeed() before finishFeed().');
+        }
+
+        if (!is_resource($this->stream)) {
+            $this->cleanupStream();
+            throw new LogicException('Feed stream is invalid. Call beginFeed() again before finishFeed().');
+        }
+    }
+
+    /**
+     * Release stream resources and reset stream state.
+     *
+     * @return void
+     */
+    protected function cleanupStream(): void
+    {
+        if (is_resource($this->stream)) {
+            fclose($this->stream);
+        }
+        $this->isFeedOpen = false;
+        $this->stream = null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isFeedOpen(): bool
+    {
+        return $this->isFeedOpen;
     }
 }

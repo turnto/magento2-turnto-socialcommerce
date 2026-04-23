@@ -181,6 +181,35 @@ class CommerceFeedGeneratorTest extends TestCase
         );
     }
 
+    /**
+     * Mutates the feed stream property on the generator using native property scope binding.
+     *
+     * @param mixed $value
+     * @return void
+     */
+    private function setGeneratorStream($value): void
+    {
+        $setter = function ($value): void {
+            $this->stream = $value;
+        };
+        $setter = $setter->bindTo($this->generator, $this->generator::class);
+        $setter($value);
+    }
+
+    /**
+     * Reads the feed stream property on the generator using native property scope binding.
+     *
+     * @return mixed
+     */
+    private function getGeneratorStream()
+    {
+        $getter = function () {
+            return $this->stream;
+        };
+        $getter = $getter->bindTo($this->generator, $this->generator::class);
+        return $getter();
+    }
+
     public function testGetMembersForBundleProduct()
     {
         $product = $this->createMock(CatalogProduct::class);
@@ -691,28 +720,17 @@ class CommerceFeedGeneratorTest extends TestCase
         $this->generator->beginFeed($store);
         $this->assertTrue($this->generator->isFeedOpen());
 
-        $streamProperty = new \ReflectionProperty($this->generator, 'stream');
-        $streamProperty->setAccessible(true);
-        $streamProperty->setValue($this->generator, null);
-
-        $previousErrorHandler = set_error_handler(function ($severity, $message, $file, $line) {
-            throw new \ErrorException($message, 0, $severity, $file, $line);
-        });
+        $this->setGeneratorStream(null);
 
         try {
             $this->generator->finishFeed();
             $this->fail('Expected finishFeed to throw an exception when stream resource is invalid');
-        } catch (\ErrorException $e) {
-            $this->assertStringContainsString('rewind', $e->getMessage());
+        } catch (\LogicException $e) {
+            $this->assertStringContainsString('Feed stream is invalid', $e->getMessage());
         } finally {
-            if ($previousErrorHandler === null) {
-                restore_error_handler();
-            } else {
-                set_error_handler($previousErrorHandler);
-            }
+            $this->setGeneratorStream(null);
+            $this->assertFalse($this->generator->isFeedOpen());
+            $this->assertNull($this->getGeneratorStream());
         }
-
-        $this->assertFalse($this->generator->isFeedOpen());
-        $this->assertNull($streamProperty->getValue($this->generator));
     }
 }
