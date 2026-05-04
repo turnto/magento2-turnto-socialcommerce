@@ -15,6 +15,7 @@ use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
 use TurnTo\SocialCommerce\Api\TurnToConfigDataSourceInterface;
 use TurnTo\SocialCommerce\Model\Config as ConfigModel;
+use TurnTo\SocialCommerce\Model\Product;
 use TurnTo\SocialCommerce\Model\Version;
 
 class TurnToConfig extends Template
@@ -39,6 +40,10 @@ class TurnToConfig extends Template
      * @var Json
      */
     protected $json;
+    /**
+     * @var Product
+     */
+    protected $productModel;
 
     /**
      * @param Context $context
@@ -46,6 +51,7 @@ class TurnToConfig extends Template
      * @param ResolverInterface $localeResolver
      * @param Data $helper
      * @param Version $version
+     * @param Product $productModel
      * @param Json $json
      * @param array $data
      */
@@ -55,6 +61,7 @@ class TurnToConfig extends Template
         ResolverInterface $localeResolver,
         Data $helper,
         Version $version,
+        Product $productModel,
         Json $json,
         array $data = []
     ) {
@@ -68,6 +75,7 @@ class TurnToConfig extends Template
         $this->localeResolver = $localeResolver;
         $this->helper = $helper;
         $this->version = $version;
+        $this->productModel = $productModel;
         $this->json = $json;
     }
 
@@ -101,7 +109,7 @@ class TurnToConfig extends Template
         if ($this->config->getConfigBool(ConfigModel::VISUAL_CONTENT_ENABLE_GALLERY_ROW)) {
             $product = $this->helper->getProduct();
             if ($product) {
-                $skus = [$product->getSku()];
+                $skus = [$this->productModel->turnToSafeEncoding($product->getSku())];
                 $additionalConfigData['gallery'] = ['skus' => $skus];
             }
         }

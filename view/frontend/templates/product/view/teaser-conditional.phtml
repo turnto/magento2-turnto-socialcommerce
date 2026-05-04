@@ -27,7 +27,7 @@ $viewModel = $block->getViewModel();
                                 "component": "TurnTo_SocialCommerce/js/teaser",
                                 "config": {
                                     "siteKey": "<?= $viewModel->getSiteKey() ?>",
-                                    "teaserSku": "<?= $viewModel->turnToSafeEncoding($block->getProduct()->getSku()) ?>",
+                                    "teaserSku": "<?= $viewModel->getProductSku() ?>",
                                     "reviewsEnabled": "<?= $viewModel->getConfigBool(Config::REVIEWS_ENABLE) ? 'true' : 'false' ?>",
                                     "reviewsTeaserEnabled": "<?= $viewModel->getConfigBool(Config::TEASER_REVIEWS_TEASER_ENABLE) ? 'true' : 'false' ?>",
                                     "qaEnabled": "<?= $viewModel->getConfigBool(Config::QA_ENABLE) ? 'true' : 'false' ?>",

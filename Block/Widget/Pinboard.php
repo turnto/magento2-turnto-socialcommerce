@@ -20,6 +20,7 @@ use Magento\Rule\Model\Condition\Sql\Builder;
 use Magento\Widget\Helper\Conditions;
 use TurnTo\SocialCommerce\Block\TurnToConfig;
 use TurnTo\SocialCommerce\Model\Config;
+use TurnTo\SocialCommerce\Model\Product;
 use TurnTo\SocialCommerce\Model\Data\PinboardConfigFactory;
 
 class Pinboard extends ProductsList
@@ -32,6 +33,10 @@ class Pinboard extends ProductsList
      * @var PinboardConfigFactory
      */
     protected $pinboardConfigFactory;
+    /**
+     * @var Product
+     */
+    protected $product;
 
     /**
      * @param Config $config
@@ -49,6 +54,7 @@ class Pinboard extends ProductsList
     public function __construct(
         Config $config,
         PinboardConfigFactory $pinboardConfigFactory,
+        Product $product,
         Context $context,
         CollectionFactory $productCollectionFactory,
         Visibility $catalogProductVisibility,
@@ -61,6 +67,7 @@ class Pinboard extends ProductsList
     ) {
         $this->config = $config;
         $this->pinboardConfigFactory = $pinboardConfigFactory;
+        $this->product = $product;
         parent::__construct(
             $context,
             $productCollectionFactory,
@@ -114,7 +121,11 @@ class Pinboard extends ProductsList
     public function getProductSkus()
     {
         $productSkus = $this->getData('skus');
-        return $productSkus ? array_map('trim' , explode(',', $productSkus)) : [];
+        if (!$productSkus) {
+            return [];
+        }
+
+        return array_map([$this->product, 'turnToSafeEncoding'], array_map('trim', explode(',', $productSkus)));
     }
 
     /**

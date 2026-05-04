@@ -210,6 +210,15 @@
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>
+                <field id="feed_format" translate="label comment" type="select" sortOrder="15" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Feed Format</label>
+                    <comment><![CDATA[Recommend commerce feed for new installs. Should not be changed, without contacting your Emplifi customer success team.]]></comment>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\FeedFormat</source_model>
+                    <depends>
+                        <field id="enable_automatic_submission">1</field>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
                 <field id="product_feed_url" translate="label comment" type="text" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Product Ratings Feed URL</label>
                     <comment><![CDATA[The URL from which to retrieve the Emplifi SKU Average Rating Feed.<br>Default: <b>https://export.turnto.com/</b>]]></comment>
