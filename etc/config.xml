@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
 /**
- * Copyright © Pixlee TurnTo, Inc. All rights reserved.
+ * Copyright © Emplifi, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 -->
@@ -22,14 +22,8 @@
                 <jan_attribute/>
                 <asin_attribute/>
             </product_attribute_mappings>
-            <checkout_comments>
-                <enable_checkout_success>1</enable_checkout_success>
-                <enable_product_detail>1</enable_product_detail>
-                <columns>1</columns>
-            </checkout_comments>
             <qa>
                 <enable_qa>1</enable_qa>
-                <setup_type>dynamicEmbed</setup_type>
             </qa>
             <teaser>
                 <use_local_teaser_code>0</use_local_teaser_code>
@@ -39,11 +33,7 @@
             </teaser>
             <reviews>
                 <enable_reviews>1</enable_reviews>
-                <reviews_setup_type>dynamicEmbed</reviews_setup_type>
             </reviews>
-            <gallery>
-                <enable_gallery>1</enable_gallery>
-            </gallery>
             <product_feed>
                 <enable_automatic_submission>1</enable_automatic_submission>
                 <feed_format>google-product.xml</feed_format>

@@ -5,12 +5,19 @@
  */
 
 use TurnTo\SocialCommerce\Block\TurnToConfig;
-use TurnTo\SocialCommerce\Model\Config;
+use TurnTo\SocialCommerce\ViewModel\Widget;
 
 /**
  * @var TurnToConfig $block
+ * @var Widget $viewModel
  */
-$siteKey = $block->getSiteKey();
+$viewModel = $block->getViewModel();
+$widgetUrl = $viewModel->getWidgetUrl();
+
+$initConfig = [
+    'ssoBaseUrl' => $block->getUrl('turnto/sso/'),
+    'logoutUrl' => $block->getUrl('customer/account/logout'),
+];
 ?>
 <script type="text/javascript">
     (function (window) {
@@ -24,16 +31,14 @@ $siteKey = $block->getSiteKey();
 <script type="text/x-magento-init">
     {
         "*": {
-            "turnToConfig": {}
+            "turnToConfig": <?= /* @noEscape */ json_encode($initConfig) ?>
         }
     }
-
 </script>
 
 
-<?php if ($siteKey): ?>
-    <script src="<?= $block->getConfigValue(Config::PRODUCT_WIDGET_URL) ?><?= Config::SOCIALCOMMERCE_VERSION ?>/widgets/<?= $siteKey ?>/js/turnto.js"
-            type="text/javascript" async></script>
+<?php if ($widgetUrl): ?>
+    <script src="<?= $block->escapeUrl($widgetUrl) ?>" type="text/javascript" async></script>
 <?php endif; ?>
 
 <?= $block->getChildHtml() ?>

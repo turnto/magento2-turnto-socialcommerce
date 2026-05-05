@@ -7,9 +7,11 @@ declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\ViewModel;
 
+use Magento\Catalog\Model\Locator\RegistryLocator;
 use Magento\Catalog\Model\Product;
-use Magento\Framework\Registry;
+use Magento\Framework\Exception\NotFoundException;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
+use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Product as ProductModel;
 use TurnTo\SocialCommerce\Model\Config as ConfigModel;
 
@@ -28,23 +30,30 @@ class ConfigJs implements ArgumentInterface
      */
     protected $productModel;
     /**
-     * @var Registry
+     * @var RegistryLocator
      */
-    protected $registry;
+    protected $locator;
+    /**
+     * @var Monolog
+     */
+    protected $logger;
 
     /**
      * @param ConfigModel $config
      * @param ProductModel $productModel
-     * @param Registry $registry
+     * @param RegistryLocator $locator
+     * @param Monolog $logger
      */
     public function __construct(
         ConfigModel $config,
         ProductModel $productModel,
-        Registry $registry
+        RegistryLocator $locator,
+        Monolog $logger
     ) {
         $this->config = $config;
         $this->productModel = $productModel;
-        $this->registry = $registry;
+        $this->locator = $locator;
+        $this->logger = $logger;
     }
 
     /**
@@ -69,11 +78,13 @@ class ConfigJs implements ArgumentInterface
 
     protected function getProduct()
     {
-        if (is_null($this->product)) {
-            $this->product = $this->registry->registry('product');
-
-            if (!$this->product->getId()) {
-                return null;
+        if ($this->product === null) {
+            try {
+                $product = $this->locator->getProduct();
+                $this->product = ($product && $product->getId()) ? $product : null;
+            } catch (NotFoundException $e) {
+                $this->logger->error($e->getMessage(), ['exception' => $e]);
+                $this->product = null;
             }
         }
 
