@@ -134,7 +134,7 @@ class Catalog
             $storeId = $store->getId();
             if (
                 $this->config->getIsEnabled($storeId) &&
-                $this->config->getConfigValue(Config::PRODUCT_ENABLE_AUTOMATIC_SUBMISSION, $storeId)
+                $this->config->getConfigBool(Config::PRODUCT_ENABLE_AUTOMATIC_SUBMISSION, $storeId)
             ) {
                 $emulationStarted = false;
                 $page = 1;

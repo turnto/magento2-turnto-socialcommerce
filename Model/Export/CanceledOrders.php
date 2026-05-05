@@ -12,6 +12,8 @@ use DateTime;
 use DateTimeZone;
 use Exception;
 use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Exception\FileSystemException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Filesystem\Io\File;
 use Magento\Framework\Intl\DateTimeFactory;
 use Magento\Sales\Model\ResourceModel\Order\Collection;
@@ -110,16 +112,18 @@ class CanceledOrders
      * @param DateTime $fromDate
      * @param DateTime $toDate
      * @param bool $forceIncludeAllItems
-     *
-     * @return bool|string|null
+     * @return string
+     * @throws FileSystemException
+     * @throws LocalizedException
      */
     public function getCanceledOrdersFeed(
         $storeId,
         DateTime $fromDate,
         DateTime $toDate,
         bool $forceIncludeAllItems = false
-    ) {
-        $csvData = null;
+    ): string {
+        $csvData = '';
+        $outputHandle = null;
         $canceledOrders = $this->getCanceledOrders($storeId, $fromDate, $toDate);
 
         try {
@@ -127,27 +131,28 @@ class CanceledOrders
 
             $outputFile = $this->directoryList->getPath(DirectoryList::TMP) . '/' . self::FEED_NAME;
             $outputHandle = fopen($outputFile, 'w+');
+            if ($outputHandle === false) {
+                throw new LocalizedException(__('Unable to open temporary file.'));
+            }
             fputcsv(
                 $outputHandle,
                 [
                     'ORDERID',
                     'SKU'
                 ],
-                "\t"
+                "\t",
+                '"',
+                "\\",
+                PHP_EOL
             );
             $this->writeOrdersToFeed($outputHandle, $canceledOrders, $forceIncludeAllItems);
             rewind($outputHandle);
             $csvData = stream_get_contents($outputHandle);
-        } catch (Exception $e) {
-            $this->logger->error(
-                'An error occurred while creating or writing to the Historical Orders Feed export file',
-                [
-                    'storeId' => $storeId,
-                    'exception' => $e
-                ]
-            );
+            if ($csvData === false || $csvData === '') {
+                throw new LocalizedException(__('Invalid CSV data'));
+            }
         } finally {
-            if (isset($outputHandle)) {
+            if (is_resource($outputHandle)) {
                 fclose($outputHandle);
             }
         }
@@ -163,7 +168,7 @@ class CanceledOrders
     {
         foreach ($this->storeManager->getStores() as $store) {
             if ($this->config->getIsEnabled($store->getCode()) &&
-                $this->config->getConfigValue(Config::ORDER_ENABLE_CANCELLED_FEED, $store->getCode())
+                $this->config->getConfigBool(Config::ORDER_ENABLE_CANCELLED_FEED, $store->getCode())
             ) {
                 try {
                     $feedData = $this->getCanceledOrdersFeed(
