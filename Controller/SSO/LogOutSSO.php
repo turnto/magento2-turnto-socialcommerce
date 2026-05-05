@@ -60,7 +60,8 @@ class LogOutSSO extends Logout
     public function execute()
     {
         $lastCustomerId = $this->session->getId();
-        $this->session->logout()->setBeforeAuthUrl($this->_redirect->getRefererUrl())
+        $refererUrl = $this->_redirect->getRefererUrl();
+        $this->session->logout()->setBeforeAuthUrl($refererUrl)
             ->setLastCustomerId($lastCustomerId);
         if ($this->cookieManager->getCookie('mage-cache-sessid')) {
             $metadata = $this->cookieMetadataFactory->createCookieMetadata();
@@ -69,7 +70,7 @@ class LogOutSSO extends Logout
         }
 
         $resultRedirect = $this->resultRedirectFactory->create();
-        $resultRedirect->setPath($this->_redirect->getRefererUrl());
+        $resultRedirect->setUrl($refererUrl);
         return $resultRedirect;
     }
 }
