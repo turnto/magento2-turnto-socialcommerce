@@ -16,11 +16,11 @@ use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ProductRepository;
 use Magento\Framework\Api\AbstractSimpleObject;
 use Magento\Framework\Api\Filter;
-use Magento\Framework\Api\FilterBuilder;
+use Magento\Framework\Api\FilterBuilderFactory;
 use Magento\Framework\Api\SearchCriteria;
 use Magento\Framework\Api\SearchCriteriaBuilderFactory;
 use Magento\Framework\Api\SortOrder;
-use Magento\Framework\Api\SortOrderBuilder;
+use Magento\Framework\Api\SortOrderBuilderFactory;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\LocalizedException;
@@ -140,13 +140,13 @@ class Orders
      */
     protected $searchCriteriaBuilderFactory;
     /**
-     * @var SortOrderBuilder
+     * @var SortOrderBuilderFactory
      */
-    protected $sortOrderBuilder;
+    protected $sortOrderBuilderFactory;
     /**
-     * @var FilterBuilder
+     * @var FilterBuilderFactory
      */
-    protected $filterBuilder;
+    protected $filterBuilderFactory;
 
     /**
      * Orders constructor.
@@ -165,9 +165,9 @@ class Orders
      * @param File $fileSystem
      * @param OrderCollectionFactory $orderCollection
      * @param ExportProduct $exportProduct
-     * @param FilterBuilder $filterBuilder
+     * @param FilterBuilderFactory $filterBuilderFactory
      * @param SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory
-     * @param SortOrderBuilder $sortOrderBuilder
+     * @param SortOrderBuilderFactory $sortOrderBuilderFactory
      */
     public function __construct(
         Config $config,
@@ -184,9 +184,9 @@ class Orders
         File $fileSystem,
         OrderCollectionFactory $orderCollection,
         ExportProduct $exportProduct,
-        FilterBuilder $filterBuilder,
+        FilterBuilderFactory $filterBuilderFactory,
         SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory,
-        SortOrderBuilder $sortOrderBuilder
+        SortOrderBuilderFactory $sortOrderBuilderFactory
     ) {
         $this->config = $config;
         $this->logger = $logger;
@@ -202,9 +202,9 @@ class Orders
         $this->fileSystem = $fileSystem;
         $this->orderCollectionFactory = $orderCollection;
         $this->exportProduct = $exportProduct;
-        $this->filterBuilder = $filterBuilder;
+        $this->filterBuilderFactory = $filterBuilderFactory;
         $this->searchCriteriaBuilderFactory = $searchCriteriaBuilderFactory;
-        $this->sortOrderBuilder = $sortOrderBuilder;
+        $this->sortOrderBuilderFactory = $sortOrderBuilderFactory;
     }
 
     /**
@@ -284,7 +284,7 @@ class Orders
                 "\t",
                 '"',
                 "\\",
-                PHP_EOL
+                "\n"
             );
             $orderFeed = $this->getOrders($storeId, $fromDate, $toDate);
             $this->writeOrdersFeed($orderFeed, $outputHandle, $forceIncludeAllItems);
@@ -504,7 +504,7 @@ class Orders
      */
     public function getFilter($fieldId, $value, $conditionType)
     {
-        return $this->filterBuilder
+        return $this->filterBuilderFactory->create()
             ->setField($fieldId)
             ->setValue($value)
             ->setConditionType($conditionType)
@@ -536,7 +536,8 @@ class Orders
      */
     public function getSortOrder($fieldId, $direction = SortOrder::SORT_ASC)
     {
-        return $this->sortOrderBuilder->setField($fieldId)->setDirection($direction)->create();
+        return $this->sortOrderBuilderFactory->create()
+            ->setField($fieldId)->setDirection($direction)->create();
     }
 
     /**
@@ -579,7 +580,7 @@ class Orders
         $row[] = $this->productHelper->getImageUrl($product);
         $row[] = $shipmentDate;
 
-        fputcsv($outputHandle, $row, "\t");
+        fputcsv($outputHandle, $row, "\t", '"', "\\", "\n");
     }
 
     /**
