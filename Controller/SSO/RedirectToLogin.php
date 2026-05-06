@@ -46,7 +46,6 @@ class RedirectToLogin extends Action
             ['referer' => base64_encode($url)]
         );
         $resultRedirect = $this->resultRedirectFactory->create();
-        $resultRedirect->setPath($login_url);
         $resultRedirect->setUrl($login_url);
         if (!empty($message = $this->getMessage())) {
             $this->messageManager->addNoticeMessage($message);

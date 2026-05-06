@@ -26,8 +26,8 @@ define([
             }
 
             return {
-                success: response.success ? response.success : response.jwt !== null,
-                loggedIn: response.logged_in ? response.logged_in : response.jwt !== null,
+                success: response.success ?? (response.jwt !== null),
+                loggedIn: response.logged_in ?? (response.jwt !== null),
                 jwt: response.jwt,
                 error: response.error && typeof response.error === 'object' ? response.error : null
             };
