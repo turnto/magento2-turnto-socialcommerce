@@ -122,7 +122,6 @@ class CanceledOrders
         DateTime $toDate,
         bool $forceIncludeAllItems = false
     ): string {
-        $csvData = '';
         $outputHandle = null;
         $canceledOrders = $this->getCanceledOrders($storeId, $fromDate, $toDate);
 
