@@ -49,6 +49,30 @@ define([
             }
         };
 
+        let getSsoFailMessage = function (jqXhrOrError, textStatus, errorThrown) {
+            if (errorThrown) {
+                return errorThrown;
+            }
+
+            if (textStatus && typeof textStatus === 'string') {
+                return textStatus;
+            }
+
+            if (jqXhrOrError instanceof Error) {
+                return jqXhrOrError.message || 'Unknown SSO error';
+            }
+
+            if (jqXhrOrError && jqXhrOrError.responseJSON && jqXhrOrError.responseJSON.message) {
+                return jqXhrOrError.responseJSON.message;
+            }
+
+            if (jqXhrOrError && jqXhrOrError.responseText) {
+                return jqXhrOrError.responseText;
+            }
+
+            return 'Unknown SSO error';
+        };
+
         window.turnToConfig.sso.userDataFn = function (contextObj) {
             ssoGet(ttSsoBaseUrl + 'getuserstatus')
                 .done(function (response) {
@@ -71,7 +95,7 @@ define([
                 })
                 .fail(function (jqXhr, textStatus, errorThrown) {
                      window.TurnToCmd('ssoRegDone', {context: contextObj, userDataToken: null});
-                     console.warn('TurnTo SSO request failed: getuserstatus', errorThrown || textStatus);
+                     console.warn('TurnTo SSO request failed: getuserstatus', getSsoFailMessage(jqXhr, textStatus, errorThrown));
                 });
         };
 
@@ -86,7 +110,7 @@ define([
                 .fail(function(jqXhr, textStatus, errorThrown){
                     window.TurnToCmd('ssoRegDone', {context: window.sessionStorage.getItem('contextObj'), userDataToken: null});
                     window.sessionStorage.removeItem('contextObj');
-                    console.warn('TurnTo SSO request failed: getuserstatus', errorThrown || textStatus);
+                    console.warn('TurnTo SSO request failed: getuserstatus', getSsoFailMessage(jqXhr, textStatus, errorThrown));
                 });
         }
 
@@ -98,7 +122,7 @@ define([
                 })
                 .fail(function (jqXhr, textStatus, errorThrown) {
                     window.TurnToCmd('loggedInDataFnDone', {context: contextObj, userDataToken: null});
-                    console.warn('TurnTo SSO request failed: loggedindata', errorThrown || textStatus);
+                    console.warn('TurnTo SSO request failed: loggedindata', getSsoFailMessage(jqXhr, textStatus, errorThrown));
                 })
         };
 
