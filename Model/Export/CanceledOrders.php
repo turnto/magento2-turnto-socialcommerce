@@ -143,7 +143,7 @@ class CanceledOrders
                 "\t",
                 '"',
                 "\\",
-                PHP_EOL
+                "\n"
             );
             $this->writeOrdersToFeed($outputHandle, $canceledOrders, $forceIncludeAllItems);
             rewind($outputHandle);
@@ -227,7 +227,7 @@ class CanceledOrders
                     $row[] = $order->getIncrementId();
                     $row[] = $this->product->turnToSafeEncoding($sku);
 
-                    fputcsv($outputHandle, $row, "\t");
+                    fputcsv($outputHandle, $row, "\t", '"', "\\", "\n");
                 }
             } catch (Exception $e) {
                 $this->logger->error(
