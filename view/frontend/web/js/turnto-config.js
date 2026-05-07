@@ -8,15 +8,15 @@ define([
     'use strict';
 
     return function (config) {
-        let moduleConfig = config || {};
-        let ttSsoBaseUrl = moduleConfig.ssoBaseUrl ? moduleConfig.ssoBaseUrl.replace(/\/+$/, '') + '/' : '';
-        let ttLogoutUrl = moduleConfig.logoutUrl || '';
+        const moduleConfig = config || {};
+        const ttSsoBaseUrl = moduleConfig.ssoBaseUrl ? moduleConfig.ssoBaseUrl.replace(/\/+$/, '') + '/' : '';
+        const ttLogoutUrl = moduleConfig.logoutUrl || '';
 
         if (!window.turnToConfig || !window.turnToConfig.hasOwnProperty('sso')) {
             return;
         }
 
-        let normalizeSsoResponse = function (response) {
+        const normalizeSsoResponse = function (response) {
             if (!response || typeof response !== 'object' || Array.isArray(response)) {
                 throw new Error('Malformed SSO response: expected a JSON object.');
             }
@@ -33,13 +33,13 @@ define([
             };
         };
 
-        let ssoGet = function (url) {
+        const ssoGet = function (url) {
             return $.get(url).then(function (response) {
                 return normalizeSsoResponse(response);
             });
         };
 
-        let logSsoError = function (response) {
+        const logSsoError = function (response) {
             if (response && response.error && response.error.code) {
                 console.warn(
                     'TurnTo SSO response warning:',
@@ -49,7 +49,7 @@ define([
             }
         };
 
-        let getSsoFailMessage = function (jqXhrOrError, textStatus, errorThrown) {
+        const getSsoFailMessage = function (jqXhrOrError, textStatus, errorThrown) {
             if (errorThrown) {
                 return errorThrown;
             }
@@ -85,17 +85,20 @@ define([
                             ttSsoBaseUrl + 'redirecttologin/action/'
                             + encodeURIComponent(context.action) + '/authSetting/' + encodeURIComponent(context.authSetting)
                         );
-                    } else if (window.sessionStorage.getItem('contextObj')) {
-                        //if user is coming from a log in redirect and the review window is triggered manually - use old context obj
-                        window.TurnToCmd('ssoRegDone', {context: window.sessionStorage.getItem('contextObj'), userDataToken: response.jwt});
+                        return;
+                    }
+
+                    if (response.jwt && typeof response.jwt === 'string') {
+                        window.TurnToCmd('ssoRegDone', {context: contextObj, userDataToken: response.jwt});
                         window.sessionStorage.removeItem('contextObj')
                     } else {
-                        window.TurnToCmd('ssoRegDone', {context: contextObj, userDataToken: response.jwt});
+                        console.warn('TurnTo SSO request failed to return jwt');
+                        window.sessionStorage.setItem('contextObj', contextObj)
                     }
                 })
                 .fail(function (jqXhr, textStatus, errorThrown) {
-                     window.TurnToCmd('ssoRegDone', {context: contextObj, userDataToken: null});
-                     console.warn('TurnTo SSO request failed: getuserstatus', getSsoFailMessage(jqXhr, textStatus, errorThrown));
+                    console.warn('TurnTo SSO request failed: getuserstatus', getSsoFailMessage(jqXhr, textStatus, errorThrown));
+                    window.sessionStorage.setItem('contextObj', contextObj)
                 });
         };
 
@@ -104,12 +107,15 @@ define([
             ssoGet(ttSsoBaseUrl + 'getuserstatus')
                 .done(function (response){
                     logSsoError(response);
-                    window.TurnToCmd('ssoRegDone', {context: window.sessionStorage.getItem('contextObj'), userDataToken: response.jwt});
-                    window.sessionStorage.removeItem('contextObj');
+                    if (response.jwt && typeof response.jwt === 'string') {
+                        //if user is coming from a log in redirect and the review window is triggered manually - use old context obj
+                        window.TurnToCmd('ssoRegDone', {context: window.sessionStorage.getItem('contextObj'), userDataToken: response.jwt});
+                        window.sessionStorage.removeItem('contextObj');
+                    } else {
+                        console.warn('TurnTo SSO request failed to return jwt');
+                    }
                 })
                 .fail(function(jqXhr, textStatus, errorThrown){
-                    window.TurnToCmd('ssoRegDone', {context: window.sessionStorage.getItem('contextObj'), userDataToken: null});
-                    window.sessionStorage.removeItem('contextObj');
                     console.warn('TurnTo SSO request failed: getuserstatus', getSsoFailMessage(jqXhr, textStatus, errorThrown));
                 });
         }
