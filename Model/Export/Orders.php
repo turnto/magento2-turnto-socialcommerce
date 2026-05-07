@@ -45,7 +45,7 @@ class Orders
     /**#@+
      * Field Id keys
      */
-    CONST MAIN_TABLE_PREFIX = 'main_table.';
+    const MAIN_TABLE_PREFIX = 'main_table.';
 
     const UPDATED_AT_FIELD_ID = 'updated_at';
 
@@ -67,6 +67,8 @@ class Orders
 
     const FEED_STYLE = 'tab-style.1';
     /**#@-*/
+
+    protected const LOOKBACK_INTERVAL = 'P2D';
 
     /**
      * Default page size
@@ -220,7 +222,8 @@ class Orders
                 try {
                     $orderFeed = $this->getOrdersFeed(
                         $store->getId(),
-                        $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))->sub(new DateInterval('P2D')),
+                        $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))
+                            ->sub(new DateInterval(static::LOOKBACK_INTERVAL)),
                         $this->dateTimeFactory->create(
                             'now',
                             new DateTimeZone('UTC')
@@ -283,8 +286,7 @@ class Orders
                 ],
                 "\t",
                 '"',
-                "\\",
-                "\n"
+                "\\"
             );
             $orderFeed = $this->getOrders($storeId, $fromDate, $toDate);
             $this->writeOrdersFeed($orderFeed, $outputHandle, $forceIncludeAllItems);
@@ -580,7 +582,7 @@ class Orders
         $row[] = $this->productHelper->getImageUrl($product);
         $row[] = $shipmentDate;
 
-        fputcsv($outputHandle, $row, "\t", '"', "\\", "\n");
+        fputcsv($outputHandle, $row, "\t", '"', "\\");
     }
 
     /**
@@ -622,13 +624,13 @@ class Orders
         $orderList->addFieldToFilter(self::MAIN_TABLE_PREFIX . self::STORE_ID_FIELD_ID, ['eq' => $storeId]);
         $orderList->addFieldToFilter(
             [self::MAIN_TABLE_PREFIX . self::UPDATED_AT_FIELD_ID, 'shipment_track.updated_at'], [
-                ['gteq' => $fromDate->format(DATE_ATOM)],
-                ['gteq' => $fromDate->format(DATE_ATOM)]
+                ['gteq' => $fromDate->format('Y-m-d H:i:s')],
+                ['gteq' => $fromDate->format('Y-m-d H:i:s')]
             ]
         );
         $orderList->addFieldToFilter(
             self::MAIN_TABLE_PREFIX . self::UPDATED_AT_FIELD_ID,
-            ['lteq' => $toDate->format(DATE_ATOM)]
+            ['lteq' => $toDate->format('Y-m-d H:i:s')]
         );
         $orderList->getSelect()->group('main_table.entity_id');
 
