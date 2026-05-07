@@ -28,6 +28,7 @@ class CanceledOrders
 {
     const FEED_NAME = 'canceled-orders-feed.tsv';
     const FEED_STYLE = 'cancelled-order.txt';
+    protected const LOOKBACK_INTERVAL = 'P2D';
     /**
      * @var Config
      */
@@ -141,8 +142,7 @@ class CanceledOrders
                 ],
                 "\t",
                 '"',
-                "\\",
-                "\n"
+                "\\"
             );
             $this->writeOrdersToFeed($outputHandle, $canceledOrders, $forceIncludeAllItems);
             rewind($outputHandle);
@@ -172,7 +172,8 @@ class CanceledOrders
                 try {
                     $feedData = $this->getCanceledOrdersFeed(
                         $store->getId(),
-                        $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))->sub(new DateInterval('P80D')),
+                        $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))
+                            ->sub(new DateInterval(static::LOOKBACK_INTERVAL)),
                         $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))
                     );
                     $this->feedClient->transmitFeedFile($feedData, self::FEED_NAME, self::FEED_STYLE, $store->getCode());
@@ -201,8 +202,8 @@ class CanceledOrders
         return $this->orderCollectionFactory->create()
             ->addAttributeToFilter('status', ['eq' => 'canceled'])
             ->addAttributeToFilter(Orders::STORE_ID_FIELD_ID, ['eq' => $storeId])
-            ->addAttributeToFilter(Orders::UPDATED_AT_FIELD_ID, ['gteq' => $fromDate->format(DATE_ATOM)])
-            ->addAttributeToFilter(Orders::UPDATED_AT_FIELD_ID, ['lteq' => $toDate->format(DATE_ATOM)]);
+            ->addAttributeToFilter(Orders::UPDATED_AT_FIELD_ID, ['gteq' => $fromDate->format('Y-m-d H:i:s')])
+            ->addAttributeToFilter(Orders::UPDATED_AT_FIELD_ID, ['lteq' => $toDate->format('Y-m-d H:i:s')]);
     }
 
     /**
@@ -226,7 +227,7 @@ class CanceledOrders
                     $row[] = $order->getIncrementId();
                     $row[] = $this->product->turnToSafeEncoding($sku);
 
-                    fputcsv($outputHandle, $row, "\t", '"', "\\", "\n");
+                    fputcsv($outputHandle, $row, "\t", '"', "\\");
                 }
             } catch (Exception $e) {
                 $this->logger->error(
