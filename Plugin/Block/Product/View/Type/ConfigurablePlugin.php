@@ -7,9 +7,10 @@ declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Plugin\Block\Product\View\Type;
 
-use Magento\Catalog\Model\ProductRepository;
+use InvalidArgumentException;
 use Magento\ConfigurableProduct\Block\Product\View\Type\Configurable;
-use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Serialize\Serializer\Json;
+use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Model\Product as TurnToProduct;
 
@@ -19,56 +20,101 @@ class ConfigurablePlugin
      * @var Config
      */
     protected $config;
-
-    /**
-     * @var ProductRepository
-     */
-    protected $product;
     /**
      * @var TurnToProduct
      */
     protected $turnToProduct;
+    /**
+     * @var Json
+     */
+    protected $json;
+    /**
+     * @var Monolog
+     */
+    protected $logger;
 
     /**
      * ConfigurablePlugin constructor.
      *
-     * @param Config            $config
-     * @param ProductRepository $product
-     * @param TurnToProduct     $turnToProduct
+     * @param Config $config
+     * @param Json $json
+     * @param Monolog $logger
+     * @param TurnToProduct $turnToProduct
      */
     public function __construct(
         Config $config,
-        ProductRepository $product,
+        Json $json,
+        Monolog $logger,
         TurnToProduct $turnToProduct
     ) {
         $this->config = $config;
-        $this->product = $product;
+        $this->json = $json;
+        $this->logger = $logger;
         $this->turnToProduct = $turnToProduct;
     }
 
     /**
      * @param Configurable $subject
      * @param $result
-     * @return false|string
-     * @throws NoSuchEntityException
+     * @return string
      */
     public function afterGetJsonConfig(
         Configurable $subject,
         $result
-    ) {
-        $result = json_decode($result,true);
-        $parentProduct =  $this->product->getById($result['productId']);
+    ): string {
+        try {
+            $decodedResult = $this->json->unserialize($result);
+        } catch (InvalidArgumentException $e) {
+            $this->logger->error($e->getMessage(), ['exception' => $e]);
+            return $result;
+        }
+
+        if (!is_array($decodedResult) || empty($decodedResult['productId'])) {
+            return $result;
+        }
+
+        $result = $decodedResult;
         $result['useChild'] = $this->config->getUseChildSku();
+
+        $parentProduct = $subject->getProduct();
+        if (!$parentProduct || !$parentProduct->getId()) {
+            return $this->json->serialize($result);
+        }
+
         $result['parentSku'] = $this->turnToProduct->turnToSafeEncoding($parentProduct->getSku());
 
-        $children = $parentProduct->getTypeInstance()->getUsedProducts($parentProduct);
-        if ($children) {
-            $result['childSkuMap'] = [];
-            foreach ($children as $child) {
-                $result['childSkuMap'][$child->getId()] = $this->turnToProduct->turnToSafeEncoding($child->getSku());
+        if ($result['useChild']) {
+            $childSkuMap = $this->buildChildSkuMap($result, $subject);
+            if (!empty($childSkuMap)) {
+                $result['childSkuMap'] = $childSkuMap;
             }
         }
 
-        return json_encode($result);
+        return $this->json->serialize($result);
+    }
+
+    /**
+     * @param array       $jsonConfig
+     * @param Configurable $subject
+     * @return array
+     */
+    protected function buildChildSkuMap(array $jsonConfig, Configurable $subject): array
+    {
+        $childSkuMap = [];
+        if (!empty($jsonConfig['sku']) && is_array($jsonConfig['sku'])) {
+            foreach ($jsonConfig['sku'] as $productId => $sku) {
+                if (!is_scalar($sku)) {
+                    continue;
+                }
+                $childSkuMap[$productId] = $this->turnToProduct->turnToSafeEncoding((string)$sku);
+            }
+            return $childSkuMap;
+        }
+
+        foreach ($subject->getAllowProducts() as $childProduct) {
+            $childSkuMap[$childProduct->getId()] = $this->turnToProduct->turnToSafeEncoding($childProduct->getSku());
+        }
+
+        return $childSkuMap;
     }
 }

@@ -116,6 +116,7 @@ class Ratings
      * @param $sku
      * @param $reviewCount
      * @param $averageRating
+     * @param ProductInterface|null $product
      * @return bool
      * @throws Exception
      */
@@ -123,19 +124,22 @@ class Ratings
         StoreInterface $store,
         $sku,
         $reviewCount,
-        $averageRating
+        $averageRating,
+        $product = null
     ) {
-        $product = $this->productFactory->create()
-            ->setStoreId($store->getId())
-            ->loadByAttribute(
-                ProductInterface::SKU,
-                $sku,
-                [
-                    InstallHelper::RATING_ATTRIBUTE_CODE,
-                    InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE,
-                    InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE
-                ]
-            );
+        if (!$product) {
+            $product = $this->productFactory->create()
+                ->setStoreId($store->getId())
+                ->loadByAttribute(
+                    ProductInterface::SKU,
+                    $sku,
+                    [
+                        InstallHelper::RATING_ATTRIBUTE_CODE,
+                        InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE,
+                        InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE
+                    ]
+                );
+        }
 
         if (!$product) {
             return false;
@@ -207,15 +211,24 @@ class Ratings
             $feedProducts = [];
             foreach ($this->storeManager->getStores() as $store) {
                 $feedAddress = 'UNK';
-                if (!$this->config->getIsEnabled($store->getCode()) || !$this->config->getConfigValue(Config::AVERAGE_RATING_IMPORT_ENABLED, $store->getCode())) {
+                if (!$this->config->getIsEnabled($store->getCode()) || !$this->config->getConfigBool(Config::AVERAGE_RATING_IMPORT_ENABLED, $store->getCode())) {
                     continue;
                 }
-                // Create an array for reach store
+                // Create an array for each store
                 $feedProducts[$store->getId()] = [];
 
                 try {
                     $feedAddress = $this->getAggregateRatingsFeedAddress($store);
-                    $xmlFeed = simplexml_load_file($feedAddress);
+                    libxml_use_internal_errors(true);
+                    $xmlFeed = @simplexml_load_file($feedAddress);
+                    if (!$xmlFeed) {
+                        throw new UnexpectedValueException('Unable to parse TurnTo aggregate rating feed');
+                    }
+                    if (!isset($xmlFeed->products) || !isset($xmlFeed->products->product)) {
+                        throw new UnexpectedValueException('Aggregate rating feed is missing product data');
+                    }
+
+                    $turnToProductsBySku = [];
                     // Take each product in the feed and update its info
                     foreach ($xmlFeed->products->product as $turnToProduct) {
                         try {
@@ -224,8 +237,6 @@ class Ratings
                             ) {
                                 continue;
                             }
-                            $sku = null;
-                            $reviewCount = null;
 
                             $sku = $this->product->turnToSafeDecoding(
                                 (string)$turnToProduct[self::TURNTO_FEED_KEY_SKU]
@@ -236,24 +247,17 @@ class Ratings
 
                             // Save a record of the product
                             $feedProducts[$store->getId()][$sku] = true;
-
-                            // If the Import Average Rating Aggregate Data setting is on, include related reviews
-                            if ($this->config->getConfigValue(Config::AVERAGE_RATING_IMPORT_AGGREGATE_DATA)) {
-                                $reviewCount = (int)$turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT] +
-                                    $turnToProduct[self::TURNTO_FEED_KEY_RELATED_REVIEW_COUNT];
-                            } else {
-                                $reviewCount = (int)$turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT];
+                            $reviewCount = (int)$turnToProduct[self::TURNTO_FEED_KEY_REVIEW_COUNT];
+                            if ($this->config->getConfigBool(Config::AVERAGE_RATING_IMPORT_AGGREGATE_DATA, $store->getCode())
+                                && isset($turnToProduct[self::TURNTO_FEED_KEY_RELATED_REVIEW_COUNT])
+                            ) {
+                                $reviewCount += (int)$turnToProduct[self::TURNTO_FEED_KEY_RELATED_REVIEW_COUNT];
                             }
 
-                            if ($reviewCount > 0) {
-                                $averageRating = (float)$turnToProduct;
-                                if ($averageRating > 0.0) {
-                                    $this->updateProduct($store, $sku, $reviewCount, $averageRating);
-                                } else {
-                                    throw new UnexpectedValueException('Average rating is a non-positive '
-                                        . 'number despite product having reviews');
-                                }
-                            }
+                            $turnToProductsBySku[$sku] = [
+                                'reviewCount' => $reviewCount,
+                                'averageRating' => (float)$turnToProduct
+                            ];
                         } catch (Exception $e) {
                             $this->logger->error(
                                 'Failed to read TurnTo aggregate rating data for product',
@@ -265,6 +269,43 @@ class Ratings
                             );
                         }
                     }
+
+                    $productsToUpdate = $this->getProductsBySkus(
+                        $store,
+                        array_keys($turnToProductsBySku)
+                    );
+
+                    foreach ($turnToProductsBySku as $productSku => $productData) {
+                        try {
+                            $reviewCount = (int)$productData['reviewCount'];
+                            $averageRating = (float)$productData['averageRating'];
+                            if ($reviewCount <= 0) {
+                                continue;
+                            }
+                            if ($averageRating <= 0.0) {
+                                throw new UnexpectedValueException('Average rating is a non-positive '
+                                    . 'number despite product having reviews');
+                            }
+
+                            $this->updateProduct(
+                                $store,
+                                $productSku,
+                                $reviewCount,
+                                $averageRating,
+                                $productsToUpdate[$productSku] ?? null
+                            );
+                        } catch (Exception $productFeedItemException) {
+                            $this->logger->error(
+                                'Failed to apply aggregate rating data for product',
+                                [
+                                    'exception' => $productFeedItemException,
+                                    'storeCode' => $store->getCode(),
+                                    'sku' => $productSku
+                                ]
+                            );
+                        }
+                    }
+
                     // Now reset all products not in the feed
                     $this->resetProducts($feedProducts, $store);
                 } catch (Exception $feedRetrievalException) {
@@ -276,6 +317,8 @@ class Ratings
                             'feedAddress' => $feedAddress
                         ]
                     );
+                } finally {
+                    libxml_clear_errors();
                 }
             }
         } catch (Exception $exception) {
@@ -286,6 +329,34 @@ class Ratings
                 ]
             );
         }
+    }
+
+    /**
+     * @param StoreInterface $store
+     * @param array $skus
+     *
+     * @return array
+     */
+    protected function getProductsBySkus(StoreInterface $store, array $skus): array
+    {
+        if (empty($skus)) {
+            return [];
+        }
+
+        $collection = $this->productCollectionFactory->create()
+            ->setStoreId($store->getId())
+            ->addAttributeToSelect('sku')
+            ->addAttributeToSelect(InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE)
+            ->addAttributeToSelect(InstallHelper::RATING_ATTRIBUTE_CODE)
+            ->addAttributeToSelect(InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE)
+            ->addAttributeToFilter(ProductInterface::SKU, ['in' => array_values(array_unique($skus))]);
+
+        $products = [];
+        foreach ($collection as $product) {
+            $products[$product->getSku()] = $product;
+        }
+
+        return $products;
     }
 
     /**
@@ -308,6 +379,8 @@ class Ratings
             ->addAttributeToSelect('quantity_and_stock_status')
             ->addAttributeToSelect('price')
             ->addAttributeToSelect('status')
+            ->addAttributeToSelect(InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE)
+            ->addAttributeToSelect(InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE)
             ->addAttributeToFilter(
                 [
                     [
@@ -329,7 +402,7 @@ class Ratings
         // Loop over products and reset data if not found in $feedProducts
         foreach ($collection as $item) {
             if (!isset($feedProducts[$store->getId()][$item->getSku()])) {
-                $this->updateProduct($store, $item->getSku(), 0, 0);
+                $this->updateProduct($store, $item->getSku(), 0, 0, $item);
             }
         }
     }

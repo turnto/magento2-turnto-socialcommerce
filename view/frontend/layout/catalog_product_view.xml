@@ -16,6 +16,7 @@
                         <item name="pageId" xsi:type="string">pdp-page</item>
                         <item name="chatter" xsi:type="array"/>
                     </argument>
+                    <argument name="view_model" xsi:type="object">TurnTo\SocialCommerce\ViewModel\Widget</argument>
                 </arguments>
             </block>
             <block name="turnto.pdp" template="TurnTo_SocialCommerce::product/view/config.phtml">
@@ -56,7 +57,7 @@
 
         <!-- Top Comments PDP Content -->
         <referenceContainer name="content">
-            <block name="turnto_checkout_comments" template="TurnTo_SocialCommerce::product/view/comments.phtml" after="product.info.details" ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_product_detail">
+            <block name="turnto_checkout_comments" template="TurnTo_SocialCommerce::product/view/comments.phtml" after="product.info.details" ifconfig="turnto_socialcommerce_configuration/checkout_comments/enable_top_comments">
                 <arguments>
                     <argument name="view_model" xsi:type="object">TurnTo\SocialCommerce\ViewModel\Widget</argument>
                 </arguments>

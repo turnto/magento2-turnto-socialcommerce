@@ -14,6 +14,7 @@ use Magento\Sales\Model\Order\Item;
 use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Model\Product;
 use TurnTo\SocialCommerce\Model\Config\Source\AddressFallback;
+use TurnTo\SocialCommerce\Logger\Monolog;
 
 class JSOrderFeed implements ArgumentInterface
 {
@@ -36,23 +37,30 @@ class JSOrderFeed implements ArgumentInterface
      * @var Product
      */
     protected $product;
+    /**
+     * @var Monolog
+     */
+    protected $logger;
 
     /**
      * @param Config $config
      * @param Session $checkoutSession
      * @param Image $imageHelper
      * @param Product $product
+     * @param Monolog $logger
      */
     public function __construct(
         Config $config,
         Session $checkoutSession,
         Image   $imageHelper,
-        Product $product
+        Product $product,
+        Monolog $logger
     ) {
         $this->config = $config;
         $this->checkoutSession = $checkoutSession;
         $this->imageHelper = $imageHelper;
         $this->product = $product;
+        $this->logger = $logger;
     }
 
     /**
@@ -62,6 +70,24 @@ class JSOrderFeed implements ArgumentInterface
     {
         // Get the customer's first and last name from their account if possible
         $order = $this->checkoutSession->getLastRealOrder();
+        if (!$order || !$order->getEntityId()) {
+            $this->logger->error(
+                'Cannot render TurnTo order feed data because last real order is missing.',
+                [
+                    'last_real_order_id' => $this->checkoutSession->getLastRealOrderId(),
+                    'quote_id' => $this->checkoutSession->getQuoteId(),
+                ]
+            );
+            return json_encode(
+                [
+                    'error' => true,
+                    'errorCode' => 'order_not_found',
+                    'errorMessage' => 'No last real order available for order confirmation page.'
+                ],
+                JSON_PRETTY_PRINT
+            );
+        }
+
         $storeId = $order->getStoreId();
         $firstName = $order->getCustomerFirstname();
         $lastName = $order->getCustomerLastname();
@@ -82,8 +108,10 @@ class JSOrderFeed implements ArgumentInterface
                 }
             }
 
-            $firstName = $address->getFirstname();
-            $lastName = $address->getLastname();
+            if ($address) {
+                $firstName = $address->getFirstname();
+                $lastName = $address->getLastname();
+            }
         }
 
         $orderItems = [];

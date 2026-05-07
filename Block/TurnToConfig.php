@@ -92,11 +92,8 @@ class TurnToConfig extends Template
             $configData = $configData->getData();
         }
 
-        $additionalConfigData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
-        $additionalConfigData['siteKey' ] = $this->config->getSiteKey();
-        $additionalConfigData = ['locale' => $this->localeResolver->getLocale()];
+        $additionalConfigData['locale'] = $this->localeResolver->getLocale();
         $additionalConfigData['extensionVersion'] = ['magentoVersion'=> $this->version->getMagentoVersion(), 'turnToCart' => $this->version->getModuleVersion()];
-        $additionalConfigData['baseUrl'] = $this->_storeManager->getStore()->getBaseUrl();
         $additionalConfigData['sso'] = ['userDataFn' => null];
 
         if ($this->config->getConfigBool(ConfigModel::QA_ENABLE)) {
@@ -147,6 +144,7 @@ class TurnToConfig extends Template
     /**
      * @param $path
      * @return mixed|null
+     * @deprecated Use ViewModel
      */
     public function getConfigValue($path)
     {
@@ -155,6 +153,7 @@ class TurnToConfig extends Template
 
     /**
      * @return string
+     * @deprecated Use ViewModel
      */
     public function getSiteKey()
     {

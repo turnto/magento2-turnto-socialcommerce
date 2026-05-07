@@ -16,12 +16,14 @@ use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ProductRepository;
 use Magento\Framework\Api\AbstractSimpleObject;
 use Magento\Framework\Api\Filter;
-use Magento\Framework\Api\FilterBuilder;
+use Magento\Framework\Api\FilterBuilderFactory;
 use Magento\Framework\Api\SearchCriteria;
-use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Api\SearchCriteriaBuilderFactory;
 use Magento\Framework\Api\SortOrder;
-use Magento\Framework\Api\SortOrderBuilder;
+use Magento\Framework\Api\SortOrderBuilderFactory;
 use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Exception\FileSystemException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Filesystem\Io\File;
 use Magento\Framework\Intl\DateTimeFactory;
@@ -43,7 +45,7 @@ class Orders
     /**#@+
      * Field Id keys
      */
-    CONST MAIN_TABLE_PREFIX = 'main_table.';
+    const MAIN_TABLE_PREFIX = 'main_table.';
 
     const UPDATED_AT_FIELD_ID = 'updated_at';
 
@@ -65,6 +67,8 @@ class Orders
 
     const FEED_STYLE = 'tab-style.1';
     /**#@-*/
+
+    protected const LOOKBACK_INTERVAL = 'P2D';
 
     /**
      * Default page size
@@ -134,17 +138,17 @@ class Orders
      */
     protected $feedClient;
     /**
-     * @var SearchCriteriaBuilder
+     * @var SearchCriteriaBuilderFactory
      */
-    protected $searchCriteriaBuilder;
+    protected $searchCriteriaBuilderFactory;
     /**
-     * @var SortOrderBuilder
+     * @var SortOrderBuilderFactory
      */
-    protected $sortOrderBuilder;
+    protected $sortOrderBuilderFactory;
     /**
-     * @var FilterBuilder
+     * @var FilterBuilderFactory
      */
-    protected $filterBuilder;
+    protected $filterBuilderFactory;
 
     /**
      * Orders constructor.
@@ -163,9 +167,9 @@ class Orders
      * @param File $fileSystem
      * @param OrderCollectionFactory $orderCollection
      * @param ExportProduct $exportProduct
-     * @param FilterBuilder $filterBuilder
-     * @param SearchCriteriaBuilder $searchCriteriaBuilder
-     * @param SortOrderBuilder $sortOrderBuilder
+     * @param FilterBuilderFactory $filterBuilderFactory
+     * @param SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory
+     * @param SortOrderBuilderFactory $sortOrderBuilderFactory
      */
     public function __construct(
         Config $config,
@@ -182,9 +186,9 @@ class Orders
         File $fileSystem,
         OrderCollectionFactory $orderCollection,
         ExportProduct $exportProduct,
-        FilterBuilder $filterBuilder,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        SortOrderBuilder $sortOrderBuilder
+        FilterBuilderFactory $filterBuilderFactory,
+        SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory,
+        SortOrderBuilderFactory $sortOrderBuilderFactory
     ) {
         $this->config = $config;
         $this->logger = $logger;
@@ -200,9 +204,9 @@ class Orders
         $this->fileSystem = $fileSystem;
         $this->orderCollectionFactory = $orderCollection;
         $this->exportProduct = $exportProduct;
-        $this->filterBuilder = $filterBuilder;
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->sortOrderBuilder = $sortOrderBuilder;
+        $this->filterBuilderFactory = $filterBuilderFactory;
+        $this->searchCriteriaBuilderFactory = $searchCriteriaBuilderFactory;
+        $this->sortOrderBuilderFactory = $sortOrderBuilderFactory;
     }
 
     /**
@@ -213,16 +217,16 @@ class Orders
     {
         foreach ($this->storeManager->getStores() as $store) {
             if ($this->config->getIsEnabled($store->getCode())
-                && $this->config->getConfigValue(Config::ORDER_ENABLE_FEED, $store->getCode())
+                && $this->config->getConfigBool(Config::ORDER_ENABLE_FEED, $store->getCode())
             ) {
                 try {
-                    $orderFeed =$this->getOrdersFeed(
+                    $orderFeed = $this->getOrdersFeed(
                         $store->getId(),
-                        $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))->sub(new DateInterval('P25D')),
+                        $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))
+                            ->sub(new DateInterval(static::LOOKBACK_INTERVAL)),
                         $this->dateTimeFactory->create(
                             'now',
                             new DateTimeZone('UTC')
-
                         )
                     );
                     $this->feedClient->transmitFeedFile($orderFeed, self::FEED_NAME, self::FEED_STYLE, $store->getCode());
@@ -244,8 +248,9 @@ class Orders
      * @param DateTime $fromDate
      * @param DateTime $toDate
      * @param bool $forceIncludeAllItems
-     *
-     * @return null|string
+     * @return string
+     * @throws FileSystemException
+     * @throws LocalizedException
      */
     public function getOrdersFeed(
         $storeId,
@@ -253,12 +258,15 @@ class Orders
         DateTime $toDate,
         bool $forceIncludeAllItems = false
     ) {
-        $csvData = null;
+        $outputHandle = null;
         try {
 	        $this->fileSystem->checkAndCreateFolder($this->directoryList->getPath(DirectoryList::TMP));
 
-            $outputFile = $this->directoryList->getPath(DirectoryList::TMP) . '/tuntoexport.csv';
+            $outputFile = $this->directoryList->getPath(DirectoryList::TMP) . '/turntoexport.csv';
             $outputHandle = fopen($outputFile, 'w+');
+            if ($outputHandle === false) {
+                throw new LocalizedException(__('Unable to open temporary file.'));
+            }
             fputcsv(
                 $outputHandle,
                 [
@@ -278,24 +286,17 @@ class Orders
                 ],
                 "\t",
                 '"',
-                "\\",
-                PHP_EOL
+                "\\"
             );
             $orderFeed = $this->getOrders($storeId, $fromDate, $toDate);
             $this->writeOrdersFeed($orderFeed, $outputHandle, $forceIncludeAllItems);
             rewind($outputHandle);
             $csvData = stream_get_contents($outputHandle);
-
-        } catch (Exception $e) {
-            $this->logger->error(
-                'An error occurred while creating or writing data to the Historical Orders Feed export file. Error:',
-                [
-                    'storeId' => $storeId,
-                    'exception' => $e
-                ]
-            );
+            if ($csvData === false || $csvData === '') {
+                throw new LocalizedException(__('Invalid CSV data'));
+            }
         } finally {
-            if (isset($outputHandle)) {
+            if (is_resource($outputHandle)) {
                 fclose($outputHandle);
             }
         }
@@ -423,7 +424,7 @@ class Orders
         $items = $this->addShipDateToItemData($items, $orderId, $order->getStoreId());
         if (
             !$forceIncludeAllItems
-            && $this->config->getConfigValue(Config::ORDER_EXCLUDE_ITEMS_WITHOUT_DELIVERY_DATE, $order->getStore()->getCode())
+            && $this->config->getConfigBool(Config::ORDER_EXCLUDE_ITEMS_WITHOUT_DELIVERY_DATE, $order->getStore()->getCode())
         ) {
             foreach ($items as $key => $item) {
                 if (empty($item['shipDate'])) {
@@ -450,7 +451,7 @@ class Orders
         $pageSize = $shipmentsList->getPageSize();
 
         // If this setting is on, we only send shipment data if the whole order has shipped
-        $configExcludeDeliveryDateUntilAllItemsShipped = $this->config->getConfigValue(Config::ORDER_EXCLUDE_DELIVERY_DATE_ON_PARTIAL_SHIPMENT, $storeId);
+        $configExcludeDeliveryDateUntilAllItemsShipped = $this->config->getConfigBool(Config::ORDER_EXCLUDE_DELIVERY_DATE_ON_PARTIAL_SHIPMENT, $storeId);
         $allItemsShipped = false;
         if ($configExcludeDeliveryDateUntilAllItemsShipped) {
             $allItemsShipped = $this->getAllOrdersShipped($orderId);
@@ -505,7 +506,7 @@ class Orders
      */
     public function getFilter($fieldId, $value, $conditionType)
     {
-        return $this->filterBuilder
+        return $this->filterBuilderFactory->create()
             ->setField($fieldId)
             ->setValue($value)
             ->setConditionType($conditionType)
@@ -520,11 +521,13 @@ class Orders
      */
     public function getSearchCriteria($sortOrder, $filters = [], $pageSize = self::DEFAULT_PAGE_SIZE)
     {
-        $searchCriteriaBuilder = $this->searchCriteriaBuilder->setPageSize($pageSize)->addSortOrder($sortOrder);
+        $searchCriteriaBuilder = $this->searchCriteriaBuilderFactory->create();
+        $searchCriteriaBuilder->setPageSize($pageSize)->addSortOrder($sortOrder);
         foreach ($filters as $filter) {
             //add as separate groups to get AND join instead of OR
-            $searchCriteriaBuilder = $searchCriteriaBuilder->addFilters([$filter]);
+            $searchCriteriaBuilder->addFilters([$filter]);
         }
+
         return $searchCriteriaBuilder->create();
     }
 
@@ -535,7 +538,8 @@ class Orders
      */
     public function getSortOrder($fieldId, $direction = SortOrder::SORT_ASC)
     {
-        return $this->sortOrderBuilder->setField($fieldId)->setDirection($direction)->create();
+        return $this->sortOrderBuilderFactory->create()
+            ->setField($fieldId)->setDirection($direction)->create();
     }
 
     /**
@@ -578,7 +582,7 @@ class Orders
         $row[] = $this->productHelper->getImageUrl($product);
         $row[] = $shipmentDate;
 
-        fputcsv($outputHandle, $row, "\t");
+        fputcsv($outputHandle, $row, "\t", '"', "\\");
     }
 
     /**
@@ -620,13 +624,13 @@ class Orders
         $orderList->addFieldToFilter(self::MAIN_TABLE_PREFIX . self::STORE_ID_FIELD_ID, ['eq' => $storeId]);
         $orderList->addFieldToFilter(
             [self::MAIN_TABLE_PREFIX . self::UPDATED_AT_FIELD_ID, 'shipment_track.updated_at'], [
-                ['gteq' => $fromDate->format(DATE_ATOM)],
-                ['gteq' => $fromDate->format(DATE_ATOM)]
+                ['gteq' => $fromDate->format('Y-m-d H:i:s')],
+                ['gteq' => $fromDate->format('Y-m-d H:i:s')]
             ]
         );
         $orderList->addFieldToFilter(
             self::MAIN_TABLE_PREFIX . self::UPDATED_AT_FIELD_ID,
-            ['lteq' => $toDate->format(DATE_ATOM)]
+            ['lteq' => $toDate->format('Y-m-d H:i:s')]
         );
         $orderList->getSelect()->group('main_table.entity_id');
 
