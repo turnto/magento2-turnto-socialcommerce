@@ -139,6 +139,7 @@ class Catalog
                 $emulationStarted = false;
                 $page = 1;
                 $productCount = 0;
+                $pagesInCurrentFile = 0;
                 $fileIndex = 1;
                 $generator = null;
                 $batchSize = null;
@@ -271,15 +272,20 @@ class Catalog
                         $products->clear();
                         unset($products);
 
-                        if ($productCount >= $batchSize) {
+                        $pagesInCurrentFile++;
+                        $isLastPage = ($page >= $totalPages);
+                        $pageBatchComplete = ($pagesInCurrentFile >= $pagesPerBatch);
+                        if (($pageBatchComplete || $isLastPage) && $generator->isFeedOpen()) {
                             $feedData = $generator->finishFeed();
-                            $fileName = sprintf('%s_of_%s_store_%s_%s', $fileIndex, $totalFiles, $storeId, $feedStyle);
-                            $currentFeedFile = $fileName;
-
-                            $this->feedClient->transmitFeedFile($feedData, $fileName, $feedStyle, $store->getCode());
-
+                            $shouldTransmit = ($totalFiles > 1) || ($productCount > 0);
+                            if ($shouldTransmit) {
+                                $fileName = sprintf('%s_of_%s_store_%s_%s', $fileIndex, $totalFiles, $storeId, $feedStyle);
+                                $currentFeedFile = $fileName;
+                                $this->feedClient->transmitFeedFile($feedData, $fileName, $feedStyle, $store->getCode());
+                                $fileIndex++;
+                            }
                             $productCount = 0;
-                            $fileIndex++;
+                            $pagesInCurrentFile = 0;
                         }
                         if ($page >= $totalPages) {
                             break;
@@ -292,14 +298,14 @@ class Catalog
                         }
                     }
 
-                    if ($generator->isFeedOpen() && $productCount > 0) {
+                    if ($generator->isFeedOpen()) {
                         $feedData = $generator->finishFeed();
-                        $totalFiles = ceil($this->totalPages / $pagesPerBatch);
-                        $fileName = sprintf('%s_of_%s_store_%s_%s', $fileIndex, $totalFiles, $storeId, $feedStyle);
-                        $currentFeedFile = $fileName;
-                        $this->feedClient->transmitFeedFile($feedData, $fileName, $feedStyle, $store->getCode());
-                    } elseif ($generator->isFeedOpen()) {
-                        $generator->finishFeed();
+                        $shouldTransmit = ($totalFiles > 1) || ($productCount > 0);
+                        if ($shouldTransmit) {
+                            $fileName = sprintf('%s_of_%s_store_%s_%s', $fileIndex, $totalFiles, $storeId, $feedStyle);
+                            $currentFeedFile = $fileName;
+                            $this->feedClient->transmitFeedFile($feedData, $fileName, $feedStyle, $store->getCode());
+                        }
                     }
                 } catch (Exception $e) {
                     if ($generator !== null && $generator->isFeedOpen()) {

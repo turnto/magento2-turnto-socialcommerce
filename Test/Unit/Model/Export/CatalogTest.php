@@ -190,6 +190,7 @@ class CatalogTest extends TestCase
         $collection->method('setOrder')->willReturnSelf();
         $collection->method('setPage')->willReturnSelf();
         $collection->method('joinField')->willReturnSelf();
+        $collection->method('joinTable')->willReturnSelf();
         $collection->method('addStoreFilter')->willReturnSelf();
         $collection->method('addFieldToFilter')->willReturnSelf();
         $collection->method('getIterator')->willReturn(new ArrayIterator($products));
@@ -542,5 +543,81 @@ class CatalogTest extends TestCase
 
         $this->catalog = $this->createCatalog();
         $this->catalog->cronUploadFeed();
+    }
+
+    public function testCronUploadFeedTransmitsOnePartPerPageBatchEvenWhenNoProductsAreWritten()
+    {
+        $storeId = 1;
+        $store = $this->createStore($storeId);
+
+        $this->storeManager->method('getStores')->willReturn([$store]);
+        $this->configValues[ConfigModel::PRODUCT_FEED_SUBMISSION_URL] = 'https://feed.test/upload';
+
+        $totalPages = 21;
+        $createInvocation = 0;
+        $this->collectionFactory->method('create')->willReturnCallback(
+            function () use (&$createInvocation, $totalPages) {
+                $createInvocation++;
+                $product = $this->createMock(CatalogProduct::class);
+                $product->method('getId')->willReturn($createInvocation);
+                $product->method('getSku')->willReturn('SKU' . $createInvocation);
+                $product->method('getTypeId')->willReturn('simple');
+
+                return $this->createProductCollection([$product], $totalPages);
+            }
+        );
+
+        $generator = $this->createMock(FeedGeneratorInterface::class);
+        $generator->method('getFeedStyle')->willReturn(FeedFormat::COMMERCE);
+        $isFeedOpen = false;
+        $generator->method('isFeedOpen')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                return $isFeedOpen;
+            }
+        );
+        $generator->expects($this->exactly(2))->method('beginFeed')->with($store)->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = true;
+            }
+        );
+        $generator->expects($this->exactly(21))->method('addProduct')->willReturn(false);
+        $generator->expects($this->exactly(2))->method('finishFeed')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = false;
+
+                return 'feed-placeholder';
+            }
+        );
+        $this->feedGeneratorFactory->method('create')->with(FeedFormat::COMMERCE)->willReturn($generator);
+
+        $fileNames = [];
+        $this->feedClient->expects($this->exactly(2))
+            ->method('transmitFeedFile')
+            ->willReturnCallback(
+                function ($feedData, $fileName) use (&$fileNames) {
+                    $fileNames[] = $fileName;
+
+                    return null;
+                }
+            );
+
+        $this->exportProduct->expects($this->exactly(21))->method('preloadRewriteUrls');
+        $this->categoryPathResolver->expects($this->exactly(21))->method('preloadCategoryPaths');
+        $this->logger->expects($this->never())->method('error');
+        $this->emulation->expects($this->once())
+            ->method('startEnvironmentEmulation')
+            ->with($storeId, Area::AREA_FRONTEND, true);
+        $this->emulation->expects($this->once())->method('stopEnvironmentEmulation');
+
+        $this->catalog = $this->createCatalog();
+        $this->catalog->cronUploadFeed();
+
+        $this->assertSame(
+            [
+                '1_of_2_store_1_' . FeedFormat::COMMERCE,
+                '2_of_2_store_1_' . FeedFormat::COMMERCE,
+            ],
+            $fileNames
+        );
     }
 }
