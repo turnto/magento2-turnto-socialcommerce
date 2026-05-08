@@ -219,8 +219,13 @@ class Ratings
 
                 try {
                     $feedAddress = $this->getAggregateRatingsFeedAddress($store);
-                    libxml_use_internal_errors(true);
-                    $xmlFeed = @simplexml_load_file($feedAddress);
+                    $previousLibxmlUseInternalErrors = libxml_use_internal_errors(true);
+                    try {
+                        $xmlFeed = simplexml_load_file($feedAddress);
+                    } finally {
+                        libxml_clear_errors();
+                        libxml_use_internal_errors($previousLibxmlUseInternalErrors);
+                    }
                     if (!$xmlFeed) {
                         throw new UnexpectedValueException('Unable to parse TurnTo aggregate rating feed');
                     }
@@ -317,8 +322,6 @@ class Ratings
                             'feedAddress' => $feedAddress
                         ]
                     );
-                } finally {
-                    libxml_clear_errors();
                 }
             }
         } catch (Exception $exception) {

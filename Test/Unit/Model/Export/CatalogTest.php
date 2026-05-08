@@ -124,6 +124,15 @@ class CatalogTest extends TestCase
                 return $this->configValues[$path] ?? null;
             }
         );
+        $this->config->method('getConfigBool')->willReturnCallback(
+            function ($path, $scopeCode = null) {
+                if (!array_key_exists($path, $this->configValues)) {
+                    return false;
+                }
+
+                return (bool) $this->configValues[$path];
+            }
+        );
         $this->config->method('getFeedFormat')->willReturnCallback(function ($storeId = null) {
             return $this->feedFormat;
         });

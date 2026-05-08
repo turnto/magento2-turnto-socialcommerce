@@ -141,6 +141,8 @@ class Catalog
                 $productCount = 0;
                 $fileIndex = 1;
                 $generator = null;
+                $batchSize = null;
+                $currentFeedFile = null;
                 try {
                     $feedFormat = $this->config->getFeedFormat($storeId);
                     $siteKey = $this->config->getSiteKey($storeId);
@@ -187,126 +189,98 @@ class Catalog
                     $totalFiles = $totalPages > 0 ? ceil($totalPages / $pagesPerBatch) : 0;
 
                     while (true) {
-                        try {
-                            $productIds = [];
-                            foreach ($products as $product) {
-                                $productIds[] = $product->getId();
-                            }
-
-                            $childProducts = [];
-                            if ($this->config->getUseChildSku($storeId)) {
-                                $simpleIds = [];
-                                foreach ($products as $product) {
-                                    if ($product->getTypeId() !== Configurable::TYPE_CODE) {
-                                        $simpleIds[] = $product->getId();
-                                    }
-                                }
-
-                                if (!empty($simpleIds)) {
-                                    $connection = $this->resourceConnection->getConnection();
-                                    $select = $connection->select()
-                                        ->from(['l' => $connection->getTableName('catalog_product_super_link')], ['parent_id', 'product_id'])
-                                        ->join(['pe' => $connection->getTableName('catalog_product_entity')], 'pe.entity_id = l.parent_id', ['parent_sku' => 'sku'])
-                                        ->where('l.product_id IN (?)', $simpleIds);
-                                    $rows = $connection->fetchAll($select);
-
-                                    if (!empty($rows)) {
-                                        $parentMap = [];
-                                        $emptyCollection = $this->productCollectionFactory->create();
-                                        $parentIds = array_values(array_unique(array_map('intval', array_column($rows, 'parent_id'))));
-                                        $parentCollection = $this->productCollectionFactory->create();
-                                        $parentCollection->setStoreId($storeId)
-                                            ->addAttributeToSelect(['url_key', 'url_path'])
-                                            ->addFieldToFilter('entity_id', ['in' => $parentIds]);
-                                        $loadedParentProducts = [];
-                                        foreach ($parentCollection as $parentProduct) {
-                                            $loadedParentProducts[(int) $parentProduct->getId()] = $parentProduct;
-                                        }
-
-                                        foreach ($rows as $row) {
-                                            $parentId = (int) $row['parent_id'];
-
-                                            if (!isset($parentMap[$parentId])) {
-                                                if (isset($loadedParentProducts[$parentId])) {
-                                                    $parentProduct = $loadedParentProducts[$parentId];
-                                                } else {
-                                                    $parentProduct = $emptyCollection->getNewEmptyItem();
-                                                    $parentProduct->setData([
-                                                        'entity_id' => $parentId,
-                                                        'sku' => $row['parent_sku'],
-                                                        'type_id' => 'configurable',
-                                                        'store_id' => $storeId
-                                                    ]);
-                                                }
-
-                                                $parentMap[$parentId] = $parentProduct;
-                                            }
-
-                                            $childProducts[(int) $row['product_id']] = $parentMap[$parentId];
-                                        }
-
-                                        $productIds = array_merge($productIds, $parentIds);
-
-                                        unset($emptyCollection, $parentMap);
-                                    }
-                                }
-                            }
-
-                            $categoryProductIds = $productIds;
-                            $this->exportProduct->preloadRewriteUrls($storeId, $productIds);
-                            $this->categoryPathResolver->preloadCategoryPaths($storeId, $categoryProductIds);
-
-                            if (!$generator->isFeedOpen()) {
-                                $generator->beginFeed($store);
-                            }
-
-                            foreach ($products as $product) {
-                                $parent = isset($childProducts[(int) $product->getId()]) ? $childProducts[(int) $product->getId()] : false;
-                                if ($generator->addProduct($product, $parent, $storeId)) {
-                                    $productCount++;
-                                }
-                            }
-
-                            $products->clear();
-                            unset($products);
-
-                            if ($productCount >= $batchSize) {
-                                $feedData = $generator->finishFeed();
-                                $fileName = sprintf('%s_of_%s_store_%s_%s', $fileIndex, $totalFiles, $storeId, $feedStyle);
-
-                                try {
-                                    $this->feedClient->transmitFeedFile($feedData, $fileName, $feedStyle, $store->getCode());
-                                } catch (Exception $e) {
-                                    $this->logger->error(
-                                        'TurnTo catalog export transmit file error',
-                                        [
-                                            'store_id' => $storeId,
-                                            'file_name' => $fileName,
-                                            'page' => $page,
-                                            'batch_size' => $batchSize,
-                                            'file_index' => $fileIndex,
-                                            'exception' => $e
-                                        ]
-                                    );
-                                    throw $e;
-                                }
-
-                                $productCount = 0;
-                                $fileIndex++;
-                            }
-                        } catch (Exception $e) {
-                            $this->logger->error(
-                                'TurnTo catalog export error sending page',
-                                [
-                                    'store_id' => $storeId,
-                                    'store_code' => $store->getCode(),
-                                    'page' => $page ?? null,
-                                    'exception' => $e
-                                ]
-                            );
-                            throw $e;
+                        $productIds = [];
+                        foreach ($products as $product) {
+                            $productIds[] = $product->getId();
                         }
 
+                        $childProducts = [];
+                        if ($this->config->getUseChildSku($storeId)) {
+                            $simpleIds = [];
+                            foreach ($products as $product) {
+                                if ($product->getTypeId() !== Configurable::TYPE_CODE) {
+                                    $simpleIds[] = $product->getId();
+                                }
+                            }
+
+                            if (!empty($simpleIds)) {
+                                $connection = $this->resourceConnection->getConnection();
+                                $select = $connection->select()
+                                    ->from(['l' => $connection->getTableName('catalog_product_super_link')], ['parent_id', 'product_id'])
+                                    ->join(['pe' => $connection->getTableName('catalog_product_entity')], 'pe.entity_id = l.parent_id', ['parent_sku' => 'sku'])
+                                    ->where('l.product_id IN (?)', $simpleIds);
+                                $rows = $connection->fetchAll($select);
+
+                                if (!empty($rows)) {
+                                    $parentMap = [];
+                                    $emptyCollection = $this->productCollectionFactory->create();
+                                    $parentIds = array_values(array_unique(array_map('intval', array_column($rows, 'parent_id'))));
+                                    $parentCollection = $this->productCollectionFactory->create();
+                                    $parentCollection->setStoreId($storeId)
+                                        ->addAttributeToSelect(['url_key', 'url_path'])
+                                        ->addFieldToFilter('entity_id', ['in' => $parentIds]);
+                                    $loadedParentProducts = [];
+                                    foreach ($parentCollection as $parentProduct) {
+                                        $loadedParentProducts[(int) $parentProduct->getId()] = $parentProduct;
+                                    }
+
+                                    foreach ($rows as $row) {
+                                        $parentId = (int) $row['parent_id'];
+
+                                        if (!isset($parentMap[$parentId])) {
+                                            if (isset($loadedParentProducts[$parentId])) {
+                                                $parentProduct = $loadedParentProducts[$parentId];
+                                            } else {
+                                                $parentProduct = $emptyCollection->getNewEmptyItem();
+                                                $parentProduct->setData([
+                                                    'entity_id' => $parentId,
+                                                    'sku' => $row['parent_sku'],
+                                                    'type_id' => 'configurable',
+                                                    'store_id' => $storeId
+                                                ]);
+                                            }
+
+                                            $parentMap[$parentId] = $parentProduct;
+                                        }
+
+                                        $childProducts[(int) $row['product_id']] = $parentMap[$parentId];
+                                    }
+
+                                    $productIds = array_merge($productIds, $parentIds);
+
+                                    unset($emptyCollection, $parentMap);
+                                }
+                            }
+                        }
+
+                        $categoryProductIds = $productIds;
+                        $this->exportProduct->preloadRewriteUrls($storeId, $productIds);
+                        $this->categoryPathResolver->preloadCategoryPaths($storeId, $categoryProductIds);
+
+                        if (!$generator->isFeedOpen()) {
+                            $generator->beginFeed($store);
+                        }
+
+                        foreach ($products as $product) {
+                            $parent = isset($childProducts[(int) $product->getId()]) ? $childProducts[(int) $product->getId()] : false;
+                            if ($generator->addProduct($product, $parent, $storeId)) {
+                                $productCount++;
+                            }
+                        }
+
+                        $products->clear();
+                        unset($products);
+
+                        if ($productCount >= $batchSize) {
+                            $feedData = $generator->finishFeed();
+                            $fileName = sprintf('%s_of_%s_store_%s_%s', $fileIndex, $totalFiles, $storeId, $feedStyle);
+                            $currentFeedFile = $fileName;
+
+                            $this->feedClient->transmitFeedFile($feedData, $fileName, $feedStyle, $store->getCode());
+
+                            $productCount = 0;
+                            $fileIndex++;
+                        }
                         if ($page >= $totalPages) {
                             break;
                         }
@@ -322,19 +296,8 @@ class Catalog
                         $feedData = $generator->finishFeed();
                         $totalFiles = ceil($this->totalPages / $pagesPerBatch);
                         $fileName = sprintf('%s_of_%s_store_%s_%s', $fileIndex, $totalFiles, $storeId, $feedStyle);
-                        try {
-                            $this->feedClient->transmitFeedFile($feedData, $fileName, $feedStyle, $store->getCode());
-                        } catch (Exception $e) {
-                            $this->logger->error(
-                                'TurnTo catalog export transmit file error',
-                                [
-                                    'store_id' => $storeId,
-                                    'file_name' => $fileName,
-                                    'exception' => $e
-                                ]
-                            );
-                            throw $e;
-                        }
+                        $currentFeedFile = $fileName;
+                        $this->feedClient->transmitFeedFile($feedData, $fileName, $feedStyle, $store->getCode());
                     } elseif ($generator->isFeedOpen()) {
                         $generator->finishFeed();
                     }
@@ -360,6 +323,9 @@ class Catalog
                             'exception' => $e,
                             'store_id' => $storeId,
                             'store_code' => $store->getCode(),
+                            'page' => $page,
+                            'file_name' => $currentFeedFile,
+                            'batch_size' => $batchSize
                         ]
                     );
                 } finally {
