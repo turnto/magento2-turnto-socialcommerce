@@ -12,6 +12,8 @@ use DateTime;
 use DateTimeZone;
 use Exception;
 use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Exception\FileSystemException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Filesystem\Io\File;
 use Magento\Framework\Intl\DateTimeFactory;
 use Magento\Sales\Model\ResourceModel\Order\Collection;
@@ -26,6 +28,7 @@ class CanceledOrders
 {
     const FEED_NAME = 'canceled-orders-feed.tsv';
     const FEED_STYLE = 'cancelled-order.txt';
+    protected const LOOKBACK_INTERVAL = 'P2D';
     /**
      * @var Config
      */
@@ -110,16 +113,17 @@ class CanceledOrders
      * @param DateTime $fromDate
      * @param DateTime $toDate
      * @param bool $forceIncludeAllItems
-     *
-     * @return bool|string|null
+     * @return string
+     * @throws FileSystemException
+     * @throws LocalizedException
      */
     public function getCanceledOrdersFeed(
         $storeId,
         DateTime $fromDate,
         DateTime $toDate,
         bool $forceIncludeAllItems = false
-    ) {
-        $csvData = null;
+    ): string {
+        $outputHandle = null;
         $canceledOrders = $this->getCanceledOrders($storeId, $fromDate, $toDate);
 
         try {
@@ -127,27 +131,27 @@ class CanceledOrders
 
             $outputFile = $this->directoryList->getPath(DirectoryList::TMP) . '/' . self::FEED_NAME;
             $outputHandle = fopen($outputFile, 'w+');
+            if ($outputHandle === false) {
+                throw new LocalizedException(__('Unable to open temporary file.'));
+            }
             fputcsv(
                 $outputHandle,
                 [
                     'ORDERID',
                     'SKU'
                 ],
-                "\t"
+                "\t",
+                '"',
+                "\\"
             );
             $this->writeOrdersToFeed($outputHandle, $canceledOrders, $forceIncludeAllItems);
             rewind($outputHandle);
             $csvData = stream_get_contents($outputHandle);
-        } catch (Exception $e) {
-            $this->logger->error(
-                'An error occurred while creating or writing to the Historical Orders Feed export file',
-                [
-                    'storeId' => $storeId,
-                    'exception' => $e
-                ]
-            );
+            if ($csvData === false || $csvData === '') {
+                throw new LocalizedException(__('Invalid CSV data'));
+            }
         } finally {
-            if (isset($outputHandle)) {
+            if (is_resource($outputHandle)) {
                 fclose($outputHandle);
             }
         }
@@ -163,12 +167,13 @@ class CanceledOrders
     {
         foreach ($this->storeManager->getStores() as $store) {
             if ($this->config->getIsEnabled($store->getCode()) &&
-                $this->config->getConfigValue(Config::ORDER_ENABLE_CANCELLED_FEED, $store->getCode())
+                $this->config->getConfigBool(Config::ORDER_ENABLE_CANCELLED_FEED, $store->getCode())
             ) {
                 try {
                     $feedData = $this->getCanceledOrdersFeed(
                         $store->getId(),
-                        $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))->sub(new DateInterval('P80D')),
+                        $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))
+                            ->sub(new DateInterval(static::LOOKBACK_INTERVAL)),
                         $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))
                     );
                     $this->feedClient->transmitFeedFile($feedData, self::FEED_NAME, self::FEED_STYLE, $store->getCode());
@@ -197,8 +202,8 @@ class CanceledOrders
         return $this->orderCollectionFactory->create()
             ->addAttributeToFilter('status', ['eq' => 'canceled'])
             ->addAttributeToFilter(Orders::STORE_ID_FIELD_ID, ['eq' => $storeId])
-            ->addAttributeToFilter(Orders::UPDATED_AT_FIELD_ID, ['gteq' => $fromDate->format(DATE_ATOM)])
-            ->addAttributeToFilter(Orders::UPDATED_AT_FIELD_ID, ['lteq' => $toDate->format(DATE_ATOM)]);
+            ->addAttributeToFilter(Orders::UPDATED_AT_FIELD_ID, ['gteq' => $fromDate->format('Y-m-d H:i:s')])
+            ->addAttributeToFilter(Orders::UPDATED_AT_FIELD_ID, ['lteq' => $toDate->format('Y-m-d H:i:s')]);
     }
 
     /**
@@ -222,7 +227,7 @@ class CanceledOrders
                     $row[] = $order->getIncrementId();
                     $row[] = $this->product->turnToSafeEncoding($sku);
 
-                    fputcsv($outputHandle, $row, "\t");
+                    fputcsv($outputHandle, $row, "\t", '"', "\\");
                 }
             } catch (Exception $e) {
                 $this->logger->error(

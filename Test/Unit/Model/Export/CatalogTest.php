@@ -7,27 +7,27 @@ declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Test\Unit\Model\Export;
 
-use Magento\Catalog\Helper\Image;
+use Exception;
+use ArrayIterator;
 use Magento\Catalog\Model\Product as CatalogProduct;
-use Magento\Catalog\Model\Product\Attribute\Source\Status;
+use Magento\Catalog\Model\ResourceModel\Product\Collection;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
-use Magento\Directory\Model\Currency;
-use Magento\Framework\Intl\DateTimeFactory;
-use Magento\Framework\Pricing\PriceCurrencyInterface;
+use Magento\Framework\App\Area;
 use Magento\Store\Model\App\Emulation;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Eav\Model\Config as EavConfig;
-use Magento\Eav\Model\Entity\Attribute\AbstractAttribute;
-use PHPUnit\Framework\MockObject\Exception;
+use Magento\Store\Api\Data\StoreInterface;
+use Magento\Framework\App\ResourceConnection;
 use PHPUnit\Framework\TestCase;
-use SimpleXMLElement;
 use TurnTo\SocialCommerce\Api\FeedClient;
+use TurnTo\SocialCommerce\Api\FeedGeneratorInterface;
 use TurnTo\SocialCommerce\Model\Config as ConfigModel;
+use TurnTo\SocialCommerce\Model\Config\Source\FeedFormat;
 use TurnTo\SocialCommerce\Model\Config\Gtin;
-use TurnTo\SocialCommerce\Model\Product;
 use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Export\Catalog;
-use TurnTo\SocialCommerce\Test\Unit\Model\Export\TestableCatalog;
+use TurnTo\SocialCommerce\Model\Export\CategoryPathResolver;
+use TurnTo\SocialCommerce\Model\Export\Product;
+use TurnTo\SocialCommerce\Service\Feed\FeedGeneratorFactory;
 
 class CatalogTest extends TestCase
 {
@@ -35,193 +35,589 @@ class CatalogTest extends TestCase
      * @var Catalog
      */
     protected $catalog;
-
     /**
-     * @var EavConfig
+     * @var ConfigModel
      */
-    protected $eavConfig;
-
+    protected $config;
     /**
-     * Is called before running a test
-     * @throws Exception
+     * @var Gtin
      */
+    protected $gtin;
+    /**
+     * @var StoreManagerInterface
+     */
+    protected $storeManager;
+    /**
+     * @var array
+     */
+    protected $configValues = [];
+    /**
+     * @var string
+     */
+    protected $feedFormat = FeedFormat::COMMERCE;
+    /**
+     * @var string
+     */
+    protected $siteKey = 'site-key';
+    /**
+     * @var string
+     */
+    protected $authorizationKey = 'auth-key';
+    /**
+     * @var bool
+     */
+    protected $useChildSku = false;
+    /**
+     * @var CollectionFactory
+     */
+    protected $collectionFactory;
+    /**
+     * @var FeedClient
+     */
+    protected $feedClient;
+    /**
+     * @var Emulation
+     */
+    protected $emulation;
+    /**
+     * @var Monolog
+     */
+    protected $logger;
+    /**
+     * @var FeedGeneratorFactory
+     */
+    protected $feedGeneratorFactory;
+    /**
+     * @var ResourceConnection
+     */
+    protected $resourceConnection;
+    /**
+     * @var Product
+     */
+    protected $exportProduct;
+    /**
+     * @var CategoryPathResolver
+     */
+    protected $categoryPathResolver;
+
     protected function setUp(): void
     {
-        $config = $this->createMock(ConfigModel::class);
-        $gtin = $this->createMock(Gtin::class);
-        $storeManager = $this->createMock(StoreManagerInterface::class);
-        $collectionFactory = $this->createMock(CollectionFactory::class);
-        $dateTimeFactory = $this->createMock(DateTimeFactory::class);
-        $imageHelper = $this->createMock(Image::class);
-        $turntoProduct = $this->createMock(Product::class);
-        $this->eavConfig = $this->createMock(EavConfig::class);
-        $feedClient = $this->createMock(FeedClient::class);
-        $emulation = $this->createMock(Emulation::class);
-        $priceCurrency = $this->createMock(PriceCurrencyInterface::class);
-        $logger = $this->createMock(Monolog::class);
+        $this->config = $this->createMock(ConfigModel::class);
+        $this->gtin = $this->createMock(Gtin::class);
+        $this->storeManager = $this->createMock(StoreManagerInterface::class);
+        $this->collectionFactory = $this->createMock(CollectionFactory::class);
+        $this->feedClient = $this->createMock(FeedClient::class);
+        $this->emulation = $this->createMock(Emulation::class);
+        $this->logger = $this->createMock(Monolog::class);
+        $this->feedGeneratorFactory = $this->createMock(FeedGeneratorFactory::class);
+        $this->resourceConnection = $this->createMock(ResourceConnection::class);
+        $this->exportProduct = $this->createMock(Product::class);
+        $this->categoryPathResolver = $this->createMock(CategoryPathResolver::class);
+
+        $this->configValues = [
+            ConfigModel::PRODUCT_ENABLE_AUTOMATIC_SUBMISSION => true,
+            ConfigModel::PRODUCT_FEED_SUBMISSION_URL => 'https://feed.test/upload'
+        ];
+
+        $this->config->method('getConfigValue')->willReturnCallback(
+            function ($path, $scopeCode = null) {
+                return $this->configValues[$path] ?? null;
+            }
+        );
+        $this->config->method('getConfigBool')->willReturnCallback(
+            function ($path, $scopeCode = null) {
+                if (!array_key_exists($path, $this->configValues)) {
+                    return false;
+                }
+
+                return (bool) $this->configValues[$path];
+            }
+        );
+        $this->config->method('getFeedFormat')->willReturnCallback(function ($storeId = null) {
+            return $this->feedFormat;
+        });
+        $this->config->method('getSiteKey')->willReturnCallback(function ($storeId = null) {
+            return $this->siteKey;
+        });
+        $this->config->method('getAuthorizationKey')->willReturnCallback(function ($storeId = null) {
+            return $this->authorizationKey;
+        });
+        $this->config->method('getUseChildSku')->willReturnCallback(function ($storeId = null) {
+            return $this->useChildSku;
+        });
+        $this->config->method('getIsEnabled')->willReturn(true);
+
+        $this->gtin->method('getGtinAttributesMap')->willReturn([]);
 
         $this->catalog = new Catalog(
-            $config,
-            $gtin,
-            $storeManager,
-            $collectionFactory,
-            $dateTimeFactory,
-            $imageHelper,
-            $turntoProduct,
-            $this->eavConfig,
-            $feedClient,
-            $emulation,
-            $priceCurrency,
-            $logger
+            $this->config,
+            $this->gtin,
+            $this->storeManager,
+            $this->collectionFactory,
+            $this->feedClient,
+            $this->emulation,
+            $this->logger,
+            $this->feedGeneratorFactory,
+            $this->resourceConnection,
+            $this->exportProduct,
+            $this->categoryPathResolver
         );
     }
 
-    public function testIsCatalogClass(){
+    protected function createCatalog()
+    {
+        return new Catalog(
+            $this->config,
+            $this->gtin,
+            $this->storeManager,
+            $this->collectionFactory,
+            $this->feedClient,
+            $this->emulation,
+            $this->logger,
+            $this->feedGeneratorFactory,
+            $this->resourceConnection,
+            $this->exportProduct,
+            $this->categoryPathResolver
+        );
+    }
+
+    protected function createProductCollection(array $products, int $totalPages = 1)
+    {
+        $collection = $this->createMock(Collection::class);
+        $collection->method('setStoreId')->willReturnSelf();
+        $collection->method('addAttributeToSelect')->willReturnSelf();
+        $collection->method('addUrlRewrite')->willReturnSelf();
+        $collection->method('setOrder')->willReturnSelf();
+        $collection->method('setPage')->willReturnSelf();
+        $collection->method('joinField')->willReturnSelf();
+        $collection->method('joinTable')->willReturnSelf();
+        $collection->method('addStoreFilter')->willReturnSelf();
+        $collection->method('addFieldToFilter')->willReturnSelf();
+        $collection->method('getIterator')->willReturn(new ArrayIterator($products));
+        $collection->method('clear')->willReturnSelf();
+        $collection->method('getLastPageNumber')->willReturn($totalPages);
+
+        return $collection;
+    }
+
+    protected function createStore(int $storeId = 1, string $storeCode = 'default')
+    {
+        $store = $this->createMock(StoreInterface::class);
+        $store->method('getId')->willReturn($storeId);
+        $store->method('getCode')->willReturn($storeCode);
+        return $store;
+    }
+
+    public function testIsCatalogClass()
+    {
         $this->assertInstanceOf(Catalog::class, $this->catalog);
     }
 
-    public function testGetGtinValueReturnsLabelForSelectAttribute()
+    public function testCronUploadFeedDoesNotTransmitEmptyBatchWhenNoProductsAreAdded()
     {
-        $product = $this->createMock(CatalogProduct::class);
-        $attribute = $this->getMockBuilder(AbstractAttribute::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['usesSource'])
-            ->getMock();
-        $attribute->method('usesSource')->willReturn(true);
-        $this->eavConfig->method('getAttribute')->willReturn($attribute);
-
-        $product->method('getAttributeText')
-            ->with('upc')
-            ->willReturn('UPC Label');
-
-        $gtinMap = [Gtin::UPC_ATTRIBUTE => 'upc'];
-        $this->assertSame('UPC Label', $this->catalog->getGtinValue($product, $gtinMap));
-    }
-
-    public function testGetGtinValueReturnsCommaSeparatedForMultiselect()
-    {
-        $product = $this->createMock(CatalogProduct::class);
-        $attribute = $this->getMockBuilder(AbstractAttribute::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['usesSource'])
-            ->getMock();
-        $attribute->method('usesSource')->willReturn(true);
-        $this->eavConfig->method('getAttribute')->willReturn($attribute);
-
-        $product->method('getAttributeText')
-            ->with('upc')
-            ->willReturn(['Red', 'Blue']);
-
-        $gtinMap = [Gtin::UPC_ATTRIBUTE => 'upc'];
-        $this->assertSame('Red, Blue', $this->catalog->getGtinValue($product, $gtinMap));
-    }
-
-    public function testGetGtinValueReturnsRawForNonSourceAttribute()
-    {
-        $product = $this->createMock(CatalogProduct::class);
-        $attribute = $this->getMockBuilder(AbstractAttribute::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['usesSource'])
-            ->getMock();
-        $attribute->method('usesSource')->willReturn(false);
-        $this->eavConfig->method('getAttribute')->willReturn($attribute);
-
-        $product->method('getData')
-            ->with('upc')
-            ->willReturn('12345');
-
-        $gtinMap = [Gtin::UPC_ATTRIBUTE => 'upc'];
-        $this->assertSame('12345', $this->catalog->getGtinValue($product, $gtinMap));
-    }
-
-    public function testGetGtinValueReturnsImplodedForArrayData()
-    {
-        $product = $this->createMock(CatalogProduct::class);
-        $attribute = $this->getMockBuilder(AbstractAttribute::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['usesSource'])
-            ->getMock();
-        $attribute->method('usesSource')->willReturn(false);
-        $this->eavConfig->method('getAttribute')->willReturn($attribute);
-
-        $product->method('getData')
-            ->with('upc')
-            ->willReturn([1, 2]);
-
-        $gtinMap = [Gtin::UPC_ATTRIBUTE => 'upc'];
-        $this->assertSame('1, 2', $this->catalog->getGtinValue($product, $gtinMap));
-    }
-
-    public function testAddProductToAtomFeedWritesConvertedFinalPriceWithCurrency()
-    {
-        $config = $this->createMock(ConfigModel::class);
-        $gtin = $this->createMock(Gtin::class);
-        $storeManager = $this->createMock(StoreManagerInterface::class);
-        $collectionFactory = $this->createMock(CollectionFactory::class);
-        $dateTimeFactory = $this->createMock(DateTimeFactory::class);
-        $imageHelper = $this->createMock(Image::class);
-        $turntoProduct = $this->createMock(Product::class);
-        $feedClient = $this->createMock(FeedClient::class);
-        $emulation = $this->createMock(Emulation::class);
-        $priceCurrency = $this->createMock(PriceCurrencyInterface::class);
-        $logger = $this->createMock(Monolog::class);
-
-        // Ensure safe SKU encoding passthrough
-        $turntoProduct->method('turnToSafeEncoding')->willReturnCallback(function ($value) {
-            return (string) $value;
-        });
-
-        // Set expectations for currency conversion and currency code retrieval
         $storeId = 1;
-        $finalPrice = 12.34;
+        $store = $this->createStore($storeId);
 
-        $priceCurrency
-            ->expects($this->once())
-            ->method('convertAndRound')
-            ->with($finalPrice, $storeId)
-            ->willReturn($finalPrice);
+        $this->storeManager->method('getStores')->willReturn([$store]);
 
-        $currencyMock = $this->createPartialMock(
-            Currency::class,
-            ['getCurrencyCode']
+        $this->configValues[ConfigModel::PRODUCT_FEED_SUBMISSION_URL] = 'https://feed.test/upload';
+
+        $generator = $this->createMock(FeedGeneratorInterface::class);
+        $generator->expects($this->once())->method('getFeedStyle')->willReturn(FeedFormat::COMMERCE);
+        $isFeedOpen = false;
+        $generator->method('isFeedOpen')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                return $isFeedOpen;
+            }
         );
-        $currencyMock->method('getCurrencyCode')->willReturn('USD');
-        $priceCurrency->method('getCurrency')->with($storeId)->willReturn($currencyMock);
-
-        // Build the catalog instance under test
-        $catalog = new TestableCatalog(
-            $config,
-            $gtin,
-            $storeManager,
-            $collectionFactory,
-            $dateTimeFactory,
-            $imageHelper,
-            $turntoProduct,
-            $this->eavConfig,
-            $feedClient,
-            $emulation,
-            $priceCurrency,
-            $logger
+        $generator->expects($this->once())->method('beginFeed')->with($store)->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = true;
+                return null;
+            }
         );
+        $generator->expects($this->once())->method('addProduct')->willReturn(false);
+        $generator->expects($this->once())->method('finishFeed')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = false;
+                return 'feed';
+            }
+        );
+        $this->feedGeneratorFactory->method('create')->with(FeedFormat::COMMERCE)->willReturn($generator);
 
-        // Minimal product stub to satisfy feed requirements
         $product = $this->createMock(CatalogProduct::class);
-        $product->method('getSku')->willReturn('SKU-1');
-        $product->method('getProductUrl')->willReturn('https://example.com/p');
-        $product->method('getName')->willReturn('Product Name');
-        $product->method('getImage')->willReturn(null); // avoid image helper chain
-        $product->method('getFinalPrice')->willReturn($finalPrice);
-        $product->method('getCustomAttribute')->willReturn(null);
-        $product->method('getStatus')->willReturn(Status::STATUS_ENABLED);
+        $product->method('getId')->willReturn(1);
+        $product->method('getSku')->willReturn('SKU1');
+        $product->method('getTypeId')->willReturn('simple');
 
-        $entry = new SimpleXMLElement('<entry />');
+        $this->collectionFactory->method('create')->willReturn($this->createProductCollection([$product]));
 
-        // Execute
-        $catalog->callAddProductToAtomFeed($entry, $product, $storeId, false);
+        $this->exportProduct->expects($this->once())->method('preloadRewriteUrls')->with($storeId, [1]);
+        $this->categoryPathResolver->expects($this->once())->method('preloadCategoryPaths')->with($storeId, [1]);
+        $this->feedClient->expects($this->never())->method('transmitFeedFile');
+        $this->logger->expects($this->never())->method('error');
+        $this->emulation->expects($this->once())
+            ->method('startEnvironmentEmulation')
+            ->with($storeId, Area::AREA_FRONTEND, true);
+        $this->emulation->expects($this->once())->method('stopEnvironmentEmulation');
 
-        // Assert price element is present and formatted with currency code
-        $xmlString = $entry->asXML();
-        $this->assertIsString($xmlString);
-        $this->assertStringContainsString('<price>12.34 USD</price>', $xmlString);
+        $this->catalog = $this->createCatalog();
+        $this->catalog->cronUploadFeed();
+    }
+
+    public function testCronUploadFeedStartsFeedBeforeProcessingFirstProduct()
+    {
+        $storeId = 1;
+        $store = $this->createStore($storeId);
+
+        $this->storeManager->method('getStores')->willReturn([$store]);
+
+        $this->configValues[ConfigModel::PRODUCT_FEED_SUBMISSION_URL] = 'https://feed.test/upload';
+
+        $callOrder = [];
+
+        $generator = $this->createMock(FeedGeneratorInterface::class);
+        $generator->method('getFeedStyle')->willReturn(FeedFormat::COMMERCE);
+        $isFeedOpen = false;
+        $generator->method('isFeedOpen')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                return $isFeedOpen;
+            }
+        );
+        $generator->expects($this->once())->method('beginFeed')->with($store)->willReturnCallback(
+            function () use (&$callOrder, &$isFeedOpen) {
+                $isFeedOpen = true;
+                $callOrder[] = 'beginFeed';
+                return null;
+            }
+        );
+        $generator->expects($this->atLeastOnce())->method('addProduct')->willReturnCallback(
+            function () use (&$callOrder) {
+                $callOrder[] = 'addProduct';
+                return false;
+            }
+        );
+        $generator->expects($this->once())->method('finishFeed')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = false;
+                return 'feed';
+            }
+        );
+        $this->feedGeneratorFactory->method('create')->with(FeedFormat::COMMERCE)->willReturn($generator);
+
+        $product = $this->createMock(CatalogProduct::class);
+        $product->method('getId')->willReturn(1);
+        $product->method('getSku')->willReturn('SKU1');
+        $product->method('getTypeId')->willReturn('simple');
+
+        $this->collectionFactory->method('create')->willReturn($this->createProductCollection([$product]));
+
+        $this->exportProduct->expects($this->once())->method('preloadRewriteUrls')->with($storeId, [1]);
+        $this->categoryPathResolver->expects($this->once())->method('preloadCategoryPaths')->with($storeId, [1]);
+        $this->feedClient->expects($this->never())->method('transmitFeedFile');
+        $this->logger->expects($this->never())->method('error');
+        $this->emulation->expects($this->once())
+            ->method('startEnvironmentEmulation')
+            ->with($storeId, Area::AREA_FRONTEND, true);
+        $this->emulation->expects($this->once())->method('stopEnvironmentEmulation');
+
+        $this->catalog = $this->createCatalog();
+        $this->catalog->cronUploadFeed();
+
+        $this->assertSame('beginFeed', $callOrder[0]);
+        $this->assertEquals('addProduct', $callOrder[1]);
+    }
+
+    public function testCronUploadFeedFinishesFeedWhenProductWriteFails()
+    {
+        $storeId = 1;
+        $store = $this->createStore($storeId);
+
+        $this->storeManager->method('getStores')->willReturn([$store]);
+
+        $this->configValues[ConfigModel::PRODUCT_FEED_SUBMISSION_URL] = 'https://feed.test/upload';
+
+        $generator = $this->createMock(FeedGeneratorInterface::class);
+        $generator->method('getFeedStyle')->willReturn(FeedFormat::COMMERCE);
+        $isFeedOpen = false;
+        $generator->method('isFeedOpen')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                return $isFeedOpen;
+            }
+        );
+        $generator->expects($this->once())->method('beginFeed')->with($store)->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = true;
+                return null;
+            }
+        );
+        $generator->expects($this->once())->method('addProduct')->willThrowException(new Exception('add failed'));
+        $generator->expects($this->once())->method('finishFeed')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = false;
+                return 'feed';
+            }
+        );
+        $this->feedGeneratorFactory->method('create')->with(FeedFormat::COMMERCE)->willReturn($generator);
+
+        $product = $this->createMock(CatalogProduct::class);
+        $product->method('getId')->willReturn(1);
+        $product->method('getSku')->willReturn('SKU1');
+        $product->method('getTypeId')->willReturn('simple');
+
+        $this->collectionFactory->method('create')->willReturn($this->createProductCollection([$product]));
+
+        $this->exportProduct->expects($this->once())->method('preloadRewriteUrls')->with($storeId, [1]);
+        $this->categoryPathResolver->expects($this->once())->method('preloadCategoryPaths')->with($storeId, [1]);
+        $this->feedClient->expects($this->never())->method('transmitFeedFile');
+        $this->logger->expects($this->atLeastOnce())->method('error');
+        $this->emulation->expects($this->once())
+            ->method('startEnvironmentEmulation')
+            ->with($storeId, Area::AREA_FRONTEND, true);
+        $this->emulation->expects($this->once())->method('stopEnvironmentEmulation');
+
+        $this->catalog = $this->createCatalog();
+        $this->catalog->cronUploadFeed();
+    }
+
+    public function testCronUploadFeedLogsAndStopsWhenTransmitFails()
+    {
+        $storeId = 1;
+        $store = $this->createStore($storeId);
+
+        $this->storeManager->method('getStores')->willReturn([$store]);
+
+        $this->configValues[ConfigModel::PRODUCT_FEED_SUBMISSION_URL] = 'https://feed.test/upload';
+        $this->gtin->method('getGtinAttributesMap')->willReturn([]);
+
+        $generator = $this->createMock(FeedGeneratorInterface::class);
+        $generator->method('getFeedStyle')->willReturn(FeedFormat::COMMERCE);
+        $isFeedOpen = false;
+        $generator->method('isFeedOpen')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                return $isFeedOpen;
+            }
+        );
+        $generator->expects($this->once())->method('beginFeed')->with($store)->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = true;
+                return null;
+            }
+        );
+        $generator->expects($this->once())->method('addProduct')->willReturn(true);
+        $generator->expects($this->once())->method('finishFeed')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = false;
+                return 'feed';
+            }
+        );
+        $this->feedGeneratorFactory->method('create')->with(FeedFormat::COMMERCE)->willReturn($generator);
+
+        $product = $this->createMock(CatalogProduct::class);
+        $product->method('getId')->willReturn(1);
+        $product->method('getSku')->willReturn('SKU1');
+        $product->method('getTypeId')->willReturn('simple');
+
+        $this->collectionFactory->method('create')->willReturn($this->createProductCollection([$product]));
+
+        $this->exportProduct->expects($this->once())->method('preloadRewriteUrls')->with($storeId, [1]);
+        $this->categoryPathResolver->expects($this->once())->method('preloadCategoryPaths')->with($storeId, [1]);
+        $this->feedClient->expects($this->once())
+            ->method('transmitFeedFile')
+            ->willThrowException(new Exception('transmit failed'));
+        $this->logger->expects($this->atLeastOnce())->method('error');
+        $this->emulation->expects($this->once())
+            ->method('startEnvironmentEmulation')
+            ->with($storeId, Area::AREA_FRONTEND, true);
+        $this->emulation->expects($this->once())->method('stopEnvironmentEmulation');
+
+        $this->catalog = $this->createCatalog();
+        $this->catalog->cronUploadFeed();
+    }
+
+    public function testGetProductsAddsDeterministicOrder()
+    {
+        $productCollection = $this->createProductCollection([], 3);
+        $productCollection->expects($this->once())->method('setOrder')->with('entity_id', 'ASC');
+        $this->collectionFactory->method('create')->willReturn($productCollection);
+
+        $this->catalog = $this->createCatalog();
+        $result = $this->catalog->getProducts(1, 1, 500);
+
+        $this->assertSame($productCollection, $result);
+    }
+
+    public function testGetProductsReturnsFalseWhenPageExceedsLastPage()
+    {
+        $productCollection = $this->createProductCollection([], 1);
+        $this->collectionFactory->method('create')->willReturn($productCollection);
+
+        $this->catalog = $this->createCatalog();
+        $result = $this->catalog->getProducts(1, 3, 500);
+
+        $this->assertFalse($result);
+    }
+
+    public function testCronUploadFeedSkipsStoreIfFeedFormatInvalid()
+    {
+        $storeId = 1;
+        $store = $this->createStore($storeId);
+
+        $this->storeManager->method('getStores')->willReturn([$store]);
+        $this->configValues[ConfigModel::PRODUCT_FEED_SUBMISSION_URL] = 'https://feed.test/upload';
+        $this->feedFormat = 'invalid_format';
+
+        $this->feedGeneratorFactory->expects($this->never())->method('create');
+        $this->collectionFactory->expects($this->never())->method('create');
+        $this->feedClient->expects($this->never())->method('transmitFeedFile');
+        $this->emulation->expects($this->never())->method('startEnvironmentEmulation');
+        $this->emulation->expects($this->never())->method('stopEnvironmentEmulation');
+        $this->logger->expects($this->once())->method('error');
+
+        $this->catalog->cronUploadFeed();
+    }
+
+    public function testCronUploadFeedSkipsStoreIfCredentialsIncomplete()
+    {
+        $storeId = 1;
+        $store = $this->createStore($storeId);
+
+        $this->storeManager->method('getStores')->willReturn([$store]);
+        $this->configValues[ConfigModel::PRODUCT_FEED_SUBMISSION_URL] = 'https://feed.test/upload';
+        $this->siteKey = '';
+
+        $this->feedGeneratorFactory->expects($this->never())->method('create');
+        $this->collectionFactory->expects($this->never())->method('create');
+        $this->feedClient->expects($this->never())->method('transmitFeedFile');
+        $this->logger->expects($this->once())->method('error');
+        $this->emulation->expects($this->never())->method('startEnvironmentEmulation');
+        $this->emulation->expects($this->never())->method('stopEnvironmentEmulation');
+
+        $this->catalog->cronUploadFeed();
+    }
+
+    public function testCronUploadFeedTransmitsFeedFileOnce()
+    {
+        $storeId = 1;
+        $store = $this->createStore($storeId);
+
+        $this->storeManager->method('getStores')->willReturn([$store]);
+        $this->configValues[ConfigModel::PRODUCT_FEED_SUBMISSION_URL] = 'https://feed.test/upload';
+
+        $generator = $this->createMock(FeedGeneratorInterface::class);
+        $generator->method('getFeedStyle')->willReturn(FeedFormat::COMMERCE);
+        $isFeedOpen = false;
+        $generator->method('isFeedOpen')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                return $isFeedOpen;
+            }
+        );
+        $generator->expects($this->once())->method('beginFeed')->with($store)->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = true;
+                return null;
+            }
+        );
+        $generator->expects($this->once())->method('addProduct')->willReturn(true);
+        $generator->method('finishFeed')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = false;
+                return 'feed';
+            }
+        );
+        $this->feedGeneratorFactory->method('create')->with(FeedFormat::COMMERCE)->willReturn($generator);
+
+        $product = $this->createMock(CatalogProduct::class);
+        $product->method('getId')->willReturn(1);
+        $product->method('getSku')->willReturn('SKU1');
+        $product->method('getTypeId')->willReturn('simple');
+
+        $this->collectionFactory->method('create')->willReturn($this->createProductCollection([$product]));
+
+        $this->exportProduct->expects($this->once())->method('preloadRewriteUrls')->with($storeId, [1]);
+        $this->categoryPathResolver->expects($this->once())->method('preloadCategoryPaths')->with($storeId, [1]);
+        $this->feedClient->expects($this->once())
+            ->method('transmitFeedFile')
+            ->willReturn(null);
+        $this->logger->expects($this->never())->method('error');
+
+        $this->catalog = $this->createCatalog();
+        $this->catalog->cronUploadFeed();
+    }
+
+    public function testCronUploadFeedTransmitsOnePartPerPageBatchEvenWhenNoProductsAreWritten()
+    {
+        $storeId = 1;
+        $store = $this->createStore($storeId);
+
+        $this->storeManager->method('getStores')->willReturn([$store]);
+        $this->configValues[ConfigModel::PRODUCT_FEED_SUBMISSION_URL] = 'https://feed.test/upload';
+
+        $totalPages = 21;
+        $createInvocation = 0;
+        $this->collectionFactory->method('create')->willReturnCallback(
+            function () use (&$createInvocation, $totalPages) {
+                $createInvocation++;
+                $product = $this->createMock(CatalogProduct::class);
+                $product->method('getId')->willReturn($createInvocation);
+                $product->method('getSku')->willReturn('SKU' . $createInvocation);
+                $product->method('getTypeId')->willReturn('simple');
+
+                return $this->createProductCollection([$product], $totalPages);
+            }
+        );
+
+        $generator = $this->createMock(FeedGeneratorInterface::class);
+        $generator->method('getFeedStyle')->willReturn(FeedFormat::COMMERCE);
+        $isFeedOpen = false;
+        $generator->method('isFeedOpen')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                return $isFeedOpen;
+            }
+        );
+        $generator->expects($this->exactly(2))->method('beginFeed')->with($store)->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = true;
+            }
+        );
+        $generator->expects($this->exactly(21))->method('addProduct')->willReturn(false);
+        $generator->expects($this->exactly(2))->method('finishFeed')->willReturnCallback(
+            function () use (&$isFeedOpen) {
+                $isFeedOpen = false;
+
+                return 'feed-placeholder';
+            }
+        );
+        $this->feedGeneratorFactory->method('create')->with(FeedFormat::COMMERCE)->willReturn($generator);
+
+        $fileNames = [];
+        $this->feedClient->expects($this->exactly(2))
+            ->method('transmitFeedFile')
+            ->willReturnCallback(
+                function ($feedData, $fileName) use (&$fileNames) {
+                    $fileNames[] = $fileName;
+
+                    return null;
+                }
+            );
+
+        $this->exportProduct->expects($this->exactly(21))->method('preloadRewriteUrls');
+        $this->categoryPathResolver->expects($this->exactly(21))->method('preloadCategoryPaths');
+        $this->logger->expects($this->never())->method('error');
+        $this->emulation->expects($this->once())
+            ->method('startEnvironmentEmulation')
+            ->with($storeId, Area::AREA_FRONTEND, true);
+        $this->emulation->expects($this->once())->method('stopEnvironmentEmulation');
+
+        $this->catalog = $this->createCatalog();
+        $this->catalog->cronUploadFeed();
+
+        $this->assertSame(
+            [
+                '1_of_2_store_1_' . FeedFormat::COMMERCE,
+                '2_of_2_store_1_' . FeedFormat::COMMERCE,
+            ],
+            $fileNames
+        );
     }
 }

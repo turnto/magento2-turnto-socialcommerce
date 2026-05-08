@@ -26,10 +26,9 @@ $viewModel = $block->getViewModel();
                             "component": "TurnTo_SocialCommerce/js/reviews-tab",
                             "config": {
                                 "siteKey": "<?= $viewModel->getSiteKey() ?>",
-                                "reviewSku": "<?= $viewModel->turnToSafeEncoding($viewModel->getProductSku()) ?>",
+                                "reviewSku": "<?= $viewModel->getProductSku() ?>",
                                 "reviewsEnabled": "<?= $viewModel->getConfigBool(Config::REVIEWS_ENABLE) ? 'true' : 'false' ?>",
                                 "reviewsUrl": "<?= $viewModel->getConfigValue(Config::PRODUCT_REVIEW_URL) ?>"
-
                             }
                         }
                     }

@@ -8,8 +8,8 @@ namespace TurnTo\SocialCommerce\Model\Config\Source;
 
 use Magento\Catalog\Api\Data\ProductAttributeInterface;
 use Magento\Eav\Api\AttributeRepositoryInterface;
-use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\Api\SortOrderBuilder;
+use Magento\Framework\Api\SearchCriteriaBuilderFactory;
+use Magento\Framework\Api\SortOrderBuilderFactory;
 use Magento\Framework\Data\OptionSourceInterface;
 
 /**
@@ -23,27 +23,27 @@ class ProductAttributeSelect implements OptionSourceInterface
      */
     protected $attributeRepository;
     /**
-     * @var SearchCriteriaBuilder
+     * @var SearchCriteriaBuilderFactory
      */
-    protected $searchCriteriaBuilder;
+    protected $searchCriteriaBuilderFactory;
     /**
-     * @var SortOrderBuilder
+     * @var SortOrderBuilderFactory
      */
-    protected $sortOrderBuilder;
+    protected $sortOrderBuilderFactory;
 
     /**
      * @param AttributeRepositoryInterface $attributeRepository
-     * @param SearchCriteriaBuilder $searchCriteriaBuilder
-     * @param SortOrderBuilder $sortOrderBuilder
+     * @param SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory
+     * @param SortOrderBuilderFactory $sortOrderBuilderFactory
      */
     public function __construct(
         AttributeRepositoryInterface $attributeRepository,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        SortOrderBuilder $sortOrderBuilder
+        SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory,
+        SortOrderBuilderFactory $sortOrderBuilderFactory
     ) {
         $this->attributeRepository = $attributeRepository;
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->sortOrderBuilder = $sortOrderBuilder;
+        $this->searchCriteriaBuilderFactory = $searchCriteriaBuilderFactory;
+        $this->sortOrderBuilderFactory = $sortOrderBuilderFactory;
     }
 
     /**
@@ -59,9 +59,10 @@ class ProductAttributeSelect implements OptionSourceInterface
             ]
         ];
 
-        $sortOrder = $this->sortOrderBuilder->setField('frontend_label')->setAscendingDirection()->create();
+        $sortOrder = $this->sortOrderBuilderFactory->create()
+            ->setField('frontend_label')->setAscendingDirection()->create();
         // Filter out system only attributes e.g. created_at, entity_id, etc.
-        $searchCriteria = $this->searchCriteriaBuilder
+        $searchCriteria = $this->searchCriteriaBuilderFactory->create()
             ->addFilter('frontend_label', null, 'neq')
             ->addSortOrder($sortOrder)
             ->create();

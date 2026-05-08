@@ -154,7 +154,7 @@
                     </depends>
                 </field>
                 <field id="enable_comments_pdp" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Enable Display Widget on Product Page</label>
+                    <label>Enable Comments Display</label>
                     <comment><![CDATA[
                         Enable viewing checkout comments on the product details page.
                     ]]></comment>
@@ -164,7 +164,7 @@
                     </depends>
                 </field>
                 <field id="enable_top_comments" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Enable Top Comments</label>
+                    <label>Enable Top Comments Display</label>
                     <comment><![CDATA[
                         Enable top comments block on the product details page
                     ]]></comment>
@@ -174,7 +174,7 @@
                     </depends>
                 </field>
                 <field id="enable_comments_pinboard_teaser" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInStore="1" showInWebsite="1">
-                    <label>Enable Top Comments</label>
+                    <label>Enable Comments Pinboard Teaser</label>
                     <comment><![CDATA[
                         Enable comments pinboard teaser block on the product details page
                     ]]></comment>
@@ -207,6 +207,15 @@
                     <comment>Should not be disabled, unless instructed by your Emplifi customer success team.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="feed_format" translate="label comment" type="select" sortOrder="15" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Feed Format</label>
+                    <comment><![CDATA[Recommend commerce feed for new installs. Should not be changed, without contacting your Emplifi customer success team.]]></comment>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\FeedFormat</source_model>
+                    <depends>
+                        <field id="enable_automatic_submission">1</field>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                     </depends>
                 </field>

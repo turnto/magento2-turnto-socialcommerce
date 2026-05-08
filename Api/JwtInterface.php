@@ -12,7 +12,7 @@ use Exception;
 interface JwtInterface
 {
     /**
-     * @param array|object $payload
+     * @param array $payload
      * @return string
      * @throws Exception
      */
