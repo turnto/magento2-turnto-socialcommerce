@@ -383,6 +383,7 @@ class Ratings
             ->addAttributeToSelect('price')
             ->addAttributeToSelect('status')
             ->addAttributeToSelect(InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE)
+            ->addAttributeToSelect(InstallHelper::RATING_ATTRIBUTE_CODE)
             ->addAttributeToSelect(InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE)
             ->addAttributeToFilter(
                 [
