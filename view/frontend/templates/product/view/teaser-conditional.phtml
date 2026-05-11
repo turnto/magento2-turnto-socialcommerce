@@ -26,14 +26,22 @@ $viewModel = $block->getViewModel();
                             "teaser": {
                                 "component": "TurnTo_SocialCommerce/js/teaser",
                                 "config": {
-                                    "siteKey": "<?= $viewModel->getSiteKey() ?>",
-                                    "teaserSku": "<?= $viewModel->getProductSku() ?>",
-                                    "reviewsEnabled": "<?= $viewModel->getConfigBool(Config::REVIEWS_ENABLE) ? 'true' : 'false' ?>",
-                                    "reviewsTeaserEnabled": "<?= $viewModel->getConfigBool(Config::TEASER_REVIEWS_TEASER_ENABLE) ? 'true' : 'false' ?>",
-                                    "qaEnabled": "<?= $viewModel->getConfigBool(Config::QA_ENABLE) ? 'true' : 'false' ?>",
-                                    "qaTeaserEnabled": "<?= $viewModel->getConfigBool(Config::TEASER_ENABLE_QA_TEASER) ? 'true' : 'false' ?>",
-                                    "commentsTeaserEnabled": "<?= $viewModel->getConfigBool(Config::TEASER_ENABLE_COMMENTS_TEASER) ? 'true' : 'false' ?>",
-                                    "teaserUrl": "<?= $viewModel->getConfigValue(Config::PRODUCT_REVIEW_URL) ?>"
+                                    "siteKey":
+                                        "<?= $block->escapeJs($viewModel->getSiteKey()) ?>",
+                                    "teaserSku":
+                                        "<?= $block->escapeJs($viewModel->getProductSku()) ?>",
+                                    "reviewsEnabled":
+                                        "<?= $block->escapeJs($viewModel->getConfigBoolString(Config::REVIEWS_ENABLE)) ?>",
+                                    "reviewsTeaserEnabled":
+                                        "<?= $block->escapeJs($viewModel->getConfigBoolString(Config::TEASER_REVIEWS_TEASER_ENABLE)) ?>",
+                                    "qaEnabled":
+                                        "<?= $block->escapeJs($viewModel->getConfigBoolString(Config::QA_ENABLE)) ?>",
+                                    "qaTeaserEnabled":
+                                        "<?= $block->escapeJs($viewModel->getConfigBoolString(Config::TEASER_ENABLE_QA_TEASER)) ?>",
+                                    "commentsTeaserEnabled":
+                                        "<?= $block->escapeJs($viewModel->getConfigBoolString(Config::TEASER_ENABLE_COMMENTS_TEASER)) ?>",
+                                    "teaserUrl":
+                                        "<?= $block->escapeJs($viewModel->getConfigValue(Config::PRODUCT_REVIEW_URL) ?: '') ?>"
                                 }
                             }
                         }

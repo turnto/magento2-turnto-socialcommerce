@@ -3,8 +3,11 @@
  * Copyright © Emplifi, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
+
+use TurnTo\SocialCommerce\Block\System\Config\ExportCatalog;
+
+/* @var $block ExportCatalog */
 ?>
-<?php /* @var $block \TurnTo\SocialCommerce\Block\System\Config\ExportCatalog */ ?>
 
 <script>
     require([
@@ -16,7 +19,7 @@
             const exportCatalogSuccess = exportCatalogSpan.find('.collected');
             const exportCatalogProcessing = exportCatalogSpan.find('.processing');
             const exportMessageSpan = $('#export_message_span');
-            new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
+            new Ajax.Request('<?= $block->escapeUrl($block->getAjaxUrl()) ?>', {
                 loaderArea: false,
                 asynchronous: true,
                 onCreate: function() {
@@ -54,9 +57,18 @@
     });
 </script>
 
-<?php echo $block->getButtonHtml() ?>
+<?= /** @noEscape */ $block->getButtonHtml() ?>
 <span class="export-catalog-indicator" id="export_catalog_span">
-    <img class="processing" hidden="hidden" alt="Collecting" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
-    <img class="collected" hidden="hidden" alt="Collected" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
+    <img class="processing"
+         hidden="hidden"
+         alt="<?= $block->escapeHtmlAttr(__('Collecting')) ?>"
+         style="margin:0 5px"
+         src="<?= $block->escapeUrl($block->getViewFileUrl('images/process_spinner.gif')) ?>"/>
+    <img class="collected"
+         hidden="hidden"
+         alt="<?= $block->escapeHtmlAttr(__('Collected')) ?>"
+         style="margin:-3px 5px"
+         src="<?= $block->escapeUrl($block->getViewFileUrl('images/rule_component_apply.gif')) ?>"/>
     <span id="export_message_span"></span>
 </span>
+

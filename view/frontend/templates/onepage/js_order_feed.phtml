@@ -14,8 +14,8 @@ use TurnTo\SocialCommerce\ViewModel\JSOrderFeed;
 $viewModel = $block->getViewModel();
 ?>
 
-<script type="text/javascript">
-    let turnToOrderFeedData = <?= $viewModel->getFeedPurchaseOrderData() ?>;
+<script>
+    let turnToOrderFeedData = <?= /* @noEscape */ $viewModel->getFeedPurchaseOrderData() ?>;
     if (!turnToOrderFeedData || turnToOrderFeedData.error) {
         console.error('TurnTo order feed payload invalid or unavailable.', turnToOrderFeedData);
     } else {

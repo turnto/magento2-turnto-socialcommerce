@@ -17,16 +17,29 @@ $viewModel = $block->getViewModel();
     <div class="messages">
         <div class="message message-warning warning">
             <div data-ui-id="messages-message-warning">
-                <p>This feature requires that you enter your Emplifi Ratings & Reviews Site Key and Authorization Key in
-                    the <a href="<?= $viewModel->storeConfigUrl() ?>">system configuration</a>.
+                <p>
+                    <?= $block->escapeHtml(
+                        __(
+                            'This feature requires that you enter your '
+                            . 'Emplifi Ratings & Reviews Site Key and Authorization Key in the'
+                        )
+                    ) ?>
+                    <a href="<?= $block->escapeUrl($viewModel->storeConfigUrl()) ?>">
+                        <?= $block->escapeHtml(__('system configuration')) ?>
+                    </a>.
                 </p>
-                <p>You can find your Site Key and Auth Key in the
-                    <a href="https://emplifi.io/login" class="external-link" target="_blank"
-                       rel="nofollow noopener" title="Follow link">Emplifi portal</a>
-                    or by contacting your Customer Success team.
+                <p>
+                    <?= $block->escapeHtml(__('You can find your Site Key and Auth Key in the')) ?>
+                    <a href="<?= $block->escapeUrl('https://emplifi.io/login') ?>"
+                       class="external-link"
+                       target="_blank"
+                       rel="nofollow noopener"
+                       title="<?= $block->escapeHtmlAttr(__('Follow link')) ?>">
+                        <?= $block->escapeHtml(__('Emplifi portal')) ?>
+                    </a>
+                    <?= $block->escapeHtml(__('or by contacting your Customer Success team.')) ?>
                 </p>
             </div>
         </div>
     </div>
 <?php endif; ?>
-

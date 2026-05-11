@@ -16,6 +16,6 @@ $viewModel = $block->getViewModel();
 ?>
 <div id="tt-instant-answers-widget"></div>
 <div id="tt-qa-list"></div>
-<?php if ($viewModel->getConfigValue(Config::CHECKOUT_ENABLE_COMMENTS_PDP)): ?>
+<?php if ($viewModel->getConfigBool(Config::CHECKOUT_ENABLE_COMMENTS_PDP)): ?>
 <div id="tt-chatter-widget"></div>
 <?php endif; ?>

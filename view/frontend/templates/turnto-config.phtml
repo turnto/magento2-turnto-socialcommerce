@@ -19,9 +19,9 @@ $initConfig = [
     'logoutUrl' => $block->getUrl('customer/account/logout'),
 ];
 ?>
-<script type="text/javascript">
+<script>
     (function (window) {
-        window.turnToConfig = <?= $block->getJavaScriptConfig() ?>;
+        window.turnToConfig = <?= /* @noEscape */ $block->getJavaScriptConfig() ?>;
         window.TurnToCmd = window.TurnToCmd || function () {
             (TurnToCmd.q = TurnToCmd.q || []).push(arguments);
         };
@@ -38,7 +38,7 @@ $initConfig = [
 
 
 <?php if ($widgetUrl): ?>
-    <script src="<?= $block->escapeUrl($widgetUrl) ?>" type="text/javascript" async></script>
+    <script src="<?= $block->escapeUrl($widgetUrl) ?>" async></script>
 <?php endif; ?>
 
-<?= $block->getChildHtml() ?>
+<?= /** @noEscape */ $block->getChildHtml() ?>

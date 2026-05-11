@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Test\Unit\Service\Feed;
 
+use DateTime;
+use LogicException;
 use Magento\Catalog\Helper\Image;
 use Magento\Catalog\Model\Product as CatalogProduct;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
@@ -17,6 +19,7 @@ use Magento\Eav\Model\Config as EavConfig;
 use Magento\Eav\Model\Entity\Attribute\AbstractAttribute;
 use Magento\Store\Model\Store;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 use SimpleXMLElement;
 use TurnTo\SocialCommerce\Model\Config as ConfigModel;
 use TurnTo\SocialCommerce\Model\Config\Gtin;
@@ -24,33 +27,7 @@ use TurnTo\SocialCommerce\Model\Export\CategoryPathResolver;
 use TurnTo\SocialCommerce\Model\Export\Product as ExportProduct;
 use TurnTo\SocialCommerce\Model\Product;
 use TurnTo\SocialCommerce\Logger\Monolog;
-use TurnTo\SocialCommerce\Service\Feed\GoogleFeedGenerator;
-
-/**
- * Exposes protected feed helpers for unit testing.
- */
-class TestableGoogleFeedGenerator extends GoogleFeedGenerator
-{
-    /**
-     * @param SimpleXMLElement $entry
-     * @param CatalogProduct $product
-     * @param int|string $storeId
-     * @param bool|CatalogProduct $parent
-     * @return void
-     */
-    public function callAddProductToAtomFeed($entry, $product, $storeId, $parent)
-    {
-        $this->addProductToAtomFeed($entry, $product, $storeId, $parent);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    protected function getCategoryTreeString(CatalogProduct $product, $storeId)
-    {
-        return '';
-    }
-}
+use TurnTo\SocialCommerce\Service\Feed\AbstractFeedGenerator;
 
 class GoogleFeedGeneratorTest extends TestCase
 {
@@ -78,7 +55,7 @@ class GoogleFeedGeneratorTest extends TestCase
         $priceCurrency = $this->createMock(PriceCurrencyInterface::class);
         $logger = $this->createMock(Monolog::class);
         $dateTimeFactory = $this->createMock(DateTimeFactory::class);
-        $dateTime = $this->createMock(\DateTime::class);
+        $dateTime = $this->createMock(DateTime::class);
         $dateTime->method('format')->willReturn('2026-01-01T00:00:00+00:00');
         $dateTimeFactory->method('create')->willReturn($dateTime);
         $exportProduct = $this->createMock(ExportProduct::class);
@@ -100,32 +77,32 @@ class GoogleFeedGeneratorTest extends TestCase
     }
 
     /**
-     * Mutates the feed stream property on the generator using native property scope binding.
+     * Mutates the generator's inherited protected $stream for error-path assertions.
      *
      * @param mixed $value
      * @return void
      */
     private function setGeneratorStream($value): void
     {
-        $setter = function ($value): void {
-            $this->stream = $value;
-        };
-        $setter = $setter->bindTo($this->generator, $this->generator::class);
-        $setter($value);
+        $this->feedStreamReflection()->setValue($this->generator, $value);
     }
 
     /**
-     * Reads the feed stream property on the generator using native property scope binding.
-     *
      * @return mixed
      */
     private function getGeneratorStream()
     {
-        $getter = function () {
-            return $this->stream;
-        };
-        $getter = $getter->bindTo($this->generator, $this->generator::class);
-        return $getter();
+        return $this->feedStreamReflection()->getValue($this->generator);
+    }
+
+    private function feedStreamReflection(): ReflectionProperty
+    {
+        $reflection = new ReflectionProperty(AbstractFeedGenerator::class, 'stream');
+        if (\PHP_VERSION_ID < 80100) {
+            $reflection->setAccessible(true);
+        }
+
+        return $reflection;
     }
 
     public function testGetGtinValueReturnsLabelForSelectAttribute()
@@ -362,7 +339,7 @@ class GoogleFeedGeneratorTest extends TestCase
         $priceCurrency = $this->createMock(PriceCurrencyInterface::class);
         $logger = $this->createMock(Monolog::class);
         $dateTimeFactory = $this->createMock(DateTimeFactory::class);
-        $dateTime = $this->createMock(\DateTime::class);
+        $dateTime = $this->createMock(DateTime::class);
         $dateTime->method('format')->willReturn('2026-01-01T00:00:00+00:00');
         $dateTimeFactory->method('create')->willReturn($dateTime);
 
@@ -415,7 +392,7 @@ class GoogleFeedGeneratorTest extends TestCase
 
     public function testFinishFeedThrowsWhenCalledWithoutBeginFeed()
     {
-        $this->expectException(\LogicException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessage('Feed stream is not initialized. Call beginFeed() before finishFeed().');
 
         $this->generator->finishFeed();
@@ -435,7 +412,7 @@ class GoogleFeedGeneratorTest extends TestCase
         try {
             $this->generator->finishFeed();
             $this->fail('Expected finishFeed to throw an exception when stream resource is invalid');
-        } catch (\LogicException $e) {
+        } catch (LogicException $e) {
             $this->assertStringContainsString('Feed stream is invalid', $e->getMessage());
         } finally {
             $this->setGeneratorStream(null);

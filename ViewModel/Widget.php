@@ -64,11 +64,20 @@ class Widget implements ArgumentInterface
     }
 
     /**
+     * @param $path
+     * @return string "true" or "false"
+     */
+    public function getConfigBoolString($path)
+    {
+        return $this->config->getConfigBool($path) ? 'true' : 'false';
+    }
+
+    /**
      * @return string
      */
     public function getSiteKey()
     {
-        return $this->config->getSiteKey();
+        return (string) $this->config->getSiteKey();
     }
 
     /**
@@ -91,7 +100,7 @@ class Widget implements ArgumentInterface
      */
     public function getAuthorizationKey()
     {
-        return $this->config->getAuthorizationKey();
+        return (string) $this->config->getAuthorizationKey();
     }
 
     /**
