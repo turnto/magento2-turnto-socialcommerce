@@ -1,6 +1,6 @@
 <?php
 /**
-f * Copyright © Emplifi, Inc. All rights reserved.
+ * Copyright © Emplifi, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 declare(strict_types=1);
@@ -63,7 +63,7 @@ class Pinboard extends ProductsList
         Rule $rule,
         Conditions $conditionsHelper,
         array $data = [],
-        Json $json = null
+        ?Json $json = null
     ) {
         $this->config = $config;
         $this->pinboardConfigFactory = $pinboardConfigFactory;
