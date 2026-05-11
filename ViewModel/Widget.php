@@ -96,6 +96,21 @@ class Widget implements ArgumentInterface
     }
 
     /**
+     * @return string|null
+     */
+    public function getWidgetUrl()
+    {
+        $baseUrl = $this->config->getConfigValue(ConfigModel::PRODUCT_WIDGET_URL);
+        $siteKey = $this->config->getSiteKey();
+
+        if (!$baseUrl || !$siteKey) {
+            return null;
+        }
+
+        return rtrim($baseUrl, '/') . '/' . ConfigModel::SOCIALCOMMERCE_VERSION . '/widgets/' . $siteKey . '/js/turnto.js';
+    }
+
+    /**
      * @return string
      */
     public function getAuthorizationKey()
