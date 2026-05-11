@@ -7,137 +7,25 @@ declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Test\Unit\Service\Feed;
 
+use LogicException;
 use Magento\Catalog\Helper\Image;
-use Magento\Catalog\Model\Category;
 use Magento\Catalog\Model\Product as CatalogProduct;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Bundle\Model\Product\Type as BundleType;
-use Magento\Catalog\Model\Product\Type\AbstractType;
 use Magento\GroupedProduct\Model\Product\Type\Grouped as GroupedType;
 use Magento\Directory\Model\Currency;
 use Magento\Eav\Model\Config as EavConfig;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Store\Model\Store;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 use TurnTo\SocialCommerce\Model\Config as ConfigModel;
 use TurnTo\SocialCommerce\Model\Config\Gtin;
 use TurnTo\SocialCommerce\Model\Export\CategoryPathResolver;
 use TurnTo\SocialCommerce\Model\Export\Product as ExportProduct;
 use TurnTo\SocialCommerce\Model\Product;
 use TurnTo\SocialCommerce\Logger\Monolog;
-use TurnTo\SocialCommerce\Service\Feed\CommerceFeedGenerator;
-
-/**
- * Exposes protected feed helpers for unit testing.
- */
-class TestableCommerceFeedGenerator extends CommerceFeedGenerator
-{
-    /**
-     * @param ConfigModel $config
-     * @param Gtin $gtin
-     * @param Image $imageHelper
-     * @param Product $turntoProduct
-     * @param EavConfig $eavConfig
-     * @param PriceCurrencyInterface $priceCurrency
-     * @param Monolog $logger
-     * @param CategoryPathResolver $categoryPathResolver
-     * @param ExportProduct $exportProduct
-     */
-    public function __construct(
-        ConfigModel $config,
-        Gtin $gtin,
-        Image $imageHelper,
-        Product $turntoProduct,
-        EavConfig $eavConfig,
-        PriceCurrencyInterface $priceCurrency,
-        Monolog $logger,
-        CategoryPathResolver $categoryPathResolver,
-        ExportProduct $exportProduct
-    ) {
-        parent::__construct(
-            $config,
-            $gtin,
-            $imageHelper,
-            $turntoProduct,
-            $eavConfig,
-            $priceCurrency,
-            $logger,
-            $categoryPathResolver,
-            $exportProduct
-        );
-    }
-
-    /**
-     * @param CatalogProduct $product
-     * @param int|string|null $storeId
-     * @param bool|CatalogProduct|null $parent
-     * @return string
-     */
-    public function callGenerateProductLine($product, $storeId, $parent)
-    {
-        return $this->generateProductLine($product, $storeId, $parent);
-    }
-
-    /**
-     * @param CatalogProduct $product
-     * @return string
-     */
-    public function callGetMembers($product)
-    {
-        return $this->getMembers($product);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    protected function getCategoryTreeString(CatalogProduct $product, $storeId)
-    {
-        return 'Category 1 > Category 2';
-    }
-
-    /**
-     * @param CatalogProduct $product
-     * @param int|string|null $storeId
-     * @return array
-     */
-    protected function getDeepestCategoryTree(CatalogProduct $product, $storeId)
-    {
-        return [
-            $this->getCategoryFixture('Category 1', 100),
-            $this->getCategoryFixture('Category 2', 200)
-        ];
-    }
-
-    /**
-     * @param string $name
-     * @param int $id
-     * @return Category
-     */
-    protected function getCategoryFixture(string $name, int $id)
-    {
-        $category = new class($name, $id) {
-            private string $name;
-            private int $id;
-
-            public function __construct(string $name, int $id)
-            {
-                $this->name = $name;
-                $this->id = $id;
-            }
-
-            public function getName(): string
-            {
-                return $this->name;
-            }
-
-            public function getId(): int
-            {
-                return $this->id;
-            }
-        };
-        return $category;
-    }
-}
+use TurnTo\SocialCommerce\Service\Feed\AbstractFeedGenerator;
 
 class CommerceFeedGeneratorTest extends TestCase
 {
@@ -182,32 +70,32 @@ class CommerceFeedGeneratorTest extends TestCase
     }
 
     /**
-     * Mutates the feed stream property on the generator using native property scope binding.
+     * Mutates the generator's inherited protected $stream for error-path assertions.
      *
      * @param mixed $value
      * @return void
      */
     private function setGeneratorStream($value): void
     {
-        $setter = function ($value): void {
-            $this->stream = $value;
-        };
-        $setter = $setter->bindTo($this->generator, $this->generator::class);
-        $setter($value);
+        $this->feedStreamReflection()->setValue($this->generator, $value);
     }
 
     /**
-     * Reads the feed stream property on the generator using native property scope binding.
-     *
      * @return mixed
      */
     private function getGeneratorStream()
     {
-        $getter = function () {
-            return $this->stream;
-        };
-        $getter = $getter->bindTo($this->generator, $this->generator::class);
-        return $getter();
+        return $this->feedStreamReflection()->getValue($this->generator);
+    }
+
+    private function feedStreamReflection(): ReflectionProperty
+    {
+        $reflection = new ReflectionProperty(AbstractFeedGenerator::class, 'stream');
+        if (\PHP_VERSION_ID < 80100) {
+            $reflection->setAccessible(true);
+        }
+
+        return $reflection;
     }
 
     public function testGetMembersForBundleProduct()
@@ -705,7 +593,7 @@ class CommerceFeedGeneratorTest extends TestCase
 
     public function testFinishFeedThrowsWhenCalledWithoutBeginFeed()
     {
-        $this->expectException(\LogicException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessage('Feed stream is not initialized. Call beginFeed() before finishFeed().');
 
         $this->generator->finishFeed();
@@ -725,7 +613,7 @@ class CommerceFeedGeneratorTest extends TestCase
         try {
             $this->generator->finishFeed();
             $this->fail('Expected finishFeed to throw an exception when stream resource is invalid');
-        } catch (\LogicException $e) {
+        } catch (LogicException $e) {
             $this->assertStringContainsString('Feed stream is invalid', $e->getMessage());
         } finally {
             $this->setGeneratorStream(null);

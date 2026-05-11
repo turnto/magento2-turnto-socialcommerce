@@ -19,14 +19,6 @@ use TurnTo\SocialCommerce\Model\Config\Source\FeedFormat;
 use TurnTo\SocialCommerce\Model\File;
 use TurnTo\SocialCommerce\Service\GoogleFeed\Client;
 
-class TestableClient extends Client
-{
-    protected function getRetryDelayMicroseconds(int $attempt): int
-    {
-        return 0;
-    }
-}
-
 class ClientTest extends TestCase
 {
     /**

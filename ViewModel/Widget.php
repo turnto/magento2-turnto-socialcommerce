@@ -64,11 +64,35 @@ class Widget implements ArgumentInterface
     }
 
     /**
+     * @param $path
+     * @return string "true" or "false"
+     */
+    public function getConfigBoolString($path)
+    {
+        return $this->config->getConfigBool($path) ? 'true' : 'false';
+    }
+
+    /**
      * @return string
      */
     public function getSiteKey()
     {
-        return $this->config->getSiteKey();
+        return (string) $this->config->getSiteKey();
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getWidgetUrl()
+    {
+        $baseUrl = $this->config->getConfigValue(ConfigModel::PRODUCT_WIDGET_URL);
+        $siteKey = $this->config->getSiteKey();
+
+        if (!$baseUrl || !$siteKey) {
+            return null;
+        }
+
+        return rtrim($baseUrl, '/') . '/' . ConfigModel::SOCIALCOMMERCE_VERSION . '/widgets/' . $siteKey . '/js/turnto.js';
     }
 
     /**
@@ -91,7 +115,7 @@ class Widget implements ArgumentInterface
      */
     public function getAuthorizationKey()
     {
-        return $this->config->getAuthorizationKey();
+        return (string) $this->config->getAuthorizationKey();
     }
 
     /**

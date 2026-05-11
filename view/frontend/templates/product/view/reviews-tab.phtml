@@ -13,6 +13,9 @@ use TurnTo\SocialCommerce\ViewModel\Widget as ViewModel;
  * @var ViewModel $viewModel
  */
 $viewModel = $block->getViewModel();
+
+$reviewsEnabledJs = $viewModel->getConfigBoolString(Config::REVIEWS_ENABLE);
+$reviewsUrl = $viewModel->getConfigValue(Config::PRODUCT_REVIEW_URL) ?: '';
 ?>
 
 <div id="tt-reviews-summary"></div>
@@ -25,10 +28,14 @@ $viewModel = $block->getViewModel();
                         "reviews": {
                             "component": "TurnTo_SocialCommerce/js/reviews-tab",
                             "config": {
-                                "siteKey": "<?= $viewModel->getSiteKey() ?>",
-                                "reviewSku": "<?= $viewModel->getProductSku() ?>",
-                                "reviewsEnabled": "<?= $viewModel->getConfigBool(Config::REVIEWS_ENABLE) ? 'true' : 'false' ?>",
-                                "reviewsUrl": "<?= $viewModel->getConfigValue(Config::PRODUCT_REVIEW_URL) ?>"
+                                "siteKey":
+                                    "<?= $block->escapeJs($viewModel->getSiteKey()) ?>",
+                                "reviewSku":
+                                    "<?= $block->escapeJs($viewModel->getProductSku()) ?>",
+                                "reviewsEnabled":
+                                    "<?= $block->escapeJs($reviewsEnabledJs) ?>",
+                                "reviewsUrl":
+                                    "<?= $block->escapeJs($reviewsUrl) ?>"
                             }
                         }
                     }

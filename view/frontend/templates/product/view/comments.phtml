@@ -4,7 +4,7 @@
  * See COPYING.txt for license details.
  */
 
-use Magento\Backend\Block\Template;
+use Magento\Framework\View\Element\Template;
 use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\ViewModel\Widget as ViewModel;
 
@@ -15,6 +15,7 @@ use TurnTo\SocialCommerce\ViewModel\Widget as ViewModel;
 $viewModel = $block->getViewModel();
 ?>
 
-<?php if($viewModel->getConfigValue(Config::CHECKOUT_ENABLE_TOP_COMMENTS)): ?>
-<div class="tt-top-comment" data-ttsku="<?= $viewModel->getProductSku() ?>"></div>
+<?php if ($viewModel->getConfigBool(Config::CHECKOUT_ENABLE_TOP_COMMENTS)): ?>
+<div class="tt-top-comment"
+     data-ttsku="<?= $block->escapeHtmlAttr($viewModel->getProductSku()) ?>"></div>
 <?php endif; ?>
