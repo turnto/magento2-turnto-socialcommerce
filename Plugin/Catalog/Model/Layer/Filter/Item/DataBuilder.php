@@ -41,22 +41,17 @@ class DataBuilder
      */
     protected function getRatingLabel($label)
     {
-        $idx = array_search($label, InstallHelper::RATING_FILTER_VALUES);
+        $idx = array_search($label, InstallHelper::RATING_FILTER_VALUES, true);
         if ($idx === false) {
             return $label;
         }
         $rating = ($idx + 1) * ReviewRenderer::RATING_TO_PERCENTILE_MULTIPLIER;
-        $andUp = $rating < 100 ? __(self::RATING_APPEND_AND_UP) : '';
-        $label = "
-            <span class='rating-summary'>
-                <span class='rating-result' title='$rating%'>
-                    <span style='width:$rating%;'>
-                        <span>$rating%</span>
-                    </span>
-                </span>&nbsp;$andUp&nbsp;
-            </span>";
+        $andUp = $rating < 100 ? trim((string) __(self::RATING_APPEND_AND_UP)) : '';
+        if ($andUp !== '') {
+            return (string) $rating . '% ' . $andUp;
+        }
 
-        return $label;
+        return (string) $rating . '%';
     }
 
     /**

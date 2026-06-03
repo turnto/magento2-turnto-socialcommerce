@@ -116,6 +116,15 @@ class TurnToConfig extends Template
             $additionalConfigData['commentCapture'] = ['suppress' => true];
         }
 
+        $widgetBaseUrl = $this->config->getConfigValue(ConfigModel::PRODUCT_WIDGET_URL);
+        if (!empty($widgetBaseUrl)) {
+            $additionalConfigData['baseUrl'] = rtrim((string) $widgetBaseUrl, '/');
+        }
+        $siteKey = $this->config->getSiteKey();
+        if (!empty($siteKey)) {
+            $additionalConfigData['siteKey'] = (string) $siteKey;
+        }
+
         return $this->addConfigFunctions($configData, $additionalConfigData);
     }
 
