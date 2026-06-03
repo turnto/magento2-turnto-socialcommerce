@@ -45,8 +45,8 @@
                     <label>Use child SKU instead of parent SKU</label>
                     <comment><![CDATA[
                         Default: <b>No</b><br>
-                        <b>No</b>: The parent SKU of configurable products will be used.<br>
-                        <b>Yes</b>: The child SKU will be used everywhere that this extension references SKUs.
+                        <b>No</b>: The parent SKU will be used for configurable products.<br>
+                        <b>Yes</b>: The simple and child SKU will be used everywhere that this extension references SKUs.
                     ]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>

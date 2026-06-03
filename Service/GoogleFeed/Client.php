@@ -63,8 +63,13 @@ class Client implements FeedClient
      * @inheritdoc
      * @throws GuzzleException
      */
-    public function transmitFeedFile($feedData, string $fileName, string $feedStyle, string $storeCode)
-    {
+    public function transmitFeedFile(
+        $feedData,
+        string $fileName,
+        string $feedStyle,
+        string $storeCode,
+        bool $feedDataIsLocalPath = false
+    ) {
         for ($attempt = 1; $attempt <= self::MAX_TRANSMISSION_ATTEMPTS; $attempt++) {
             $responseContents = '';
             $statusCode = null;
@@ -76,17 +81,33 @@ class Client implements FeedClient
                 'attempt' => $attempt,
                 'max_attempts' => self::MAX_TRANSMISSION_ATTEMPTS
             ];
+            $multipartFileStream = null;
 
             try {
                 if ($feedStyle === FeedFormat::GOOGLE_PRODUCT) {
                     if ($feedData instanceof SimpleXMLElement) {
                         $feedData = $feedData->asXML();
                     }
-                    $path = "turnto/google-product_storecode_$storeCode.xml";
-                    $this->file->writeFile($path, $feedData);
-                } elseif ($feedStyle === FeedFormat::COMMERCE) {
+                    if (!$feedDataIsLocalPath) {
+                        $path = "turnto/google-product_storecode_$storeCode.xml";
+                        $this->file->writeFile($path, $feedData);
+                    }
+                } elseif ($feedStyle === FeedFormat::COMMERCE && !$feedDataIsLocalPath) {
                     $path = "turnto/commerce-product_storecode_$storeCode.tsv";
                     $this->file->writeFile($path, $feedData);
+                }
+
+                if ($feedDataIsLocalPath) {
+                    if (!is_string($feedData) || !is_readable($feedData)) {
+                        throw new \InvalidArgumentException('Feed data path is not a readable local file');
+                    }
+                    $multipartFileStream = fopen($feedData, 'rb');
+                    if ($multipartFileStream === false) {
+                        throw new \RuntimeException('Unable to open feed file for transmission');
+                    }
+                    $fileFieldContents = $multipartFileStream;
+                } else {
+                    $fileFieldContents = $feedData;
                 }
 
                 $response = $this->client->request(
@@ -109,7 +130,7 @@ class Client implements FeedClient
                             ],
                             [
                                 'name' => 'file',
-                                'contents' => $feedData,
+                                'contents' => $fileFieldContents,
                                 'filename' => $fileName
                             ]
                         ]
@@ -169,6 +190,10 @@ class Client implements FeedClient
                 );
 
                 throw $e;
+            } finally {
+                if (is_resource($multipartFileStream)) {
+                    fclose($multipartFileStream);
+                }
             }
         }
     }

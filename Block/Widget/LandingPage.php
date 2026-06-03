@@ -12,23 +12,37 @@ use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Widget\Block\BlockInterface;
 use TurnTo\SocialCommerce\Block\TurnToConfig;
+use TurnTo\SocialCommerce\ViewModel\Widget;
 
 class LandingPage extends Template implements BlockInterface
 {
+    /**
+     * @var string
+     */
     protected $_template = "TurnTo_SocialCommerce::widget/landing_page.phtml";
 
+    /**
+     * @var Widget
+     */
+    private $viewModel;
+
+    /**
+     * @param Context $context
+     * @param Widget $viewModel
+     * @param array $data
+     */
     public function __construct(
         Context $context,
+        Widget $viewModel,
         array $data = []
     ) {
-        parent::__construct(
-            $context,
-            $data
-        );
+        $this->viewModel = $viewModel;
+        parent::__construct($context, $data);
     }
 
     /**
      * Creates a TurnTo config block and outputs its html content
+     *
      * @return string
      */
     public function getTurnToConfigHtml()
@@ -37,7 +51,12 @@ class LandingPage extends Template implements BlockInterface
         try {
             $landingPageBlock = $this->getLayout()->createBlock(
                 TurnToConfig::class,
-                'turnto.config.landingPage'
+                'turnto.config.landingPage',
+                [
+                    'data' => [
+                        'view_model' => $this->getViewModel(),
+                    ],
+                ]
             );
         } catch (LocalizedException $e) {
             return '';
@@ -45,5 +64,13 @@ class LandingPage extends Template implements BlockInterface
 
         $landingPageBlock->setConfigData(['pageId' => 'email-landing-page']);
         return $landingPageBlock->toHtml();
+    }
+
+    /**
+     * @return Widget
+     */
+    public function getViewModel(): Widget
+    {
+        return $this->viewModel;
     }
 }

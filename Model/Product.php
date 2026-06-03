@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Model;
 
-use Magento\Catalog\Block\Product\View\Description;
-use Magento\Catalog\Model\Product as ProductModel;
+use Magento\Catalog\Model\Locator\RegistryLocator;
+use Magento\Framework\Exception\NotFoundException;
 
 class Product
 {
@@ -27,18 +27,17 @@ class Product
     ];
 
     /**
-     * @var ProductModel
+     * @var RegistryLocator
      */
-    protected $product;
+    protected $locator;
 
     /**
-     * Product constructor.
-     * @param Description $descriptionBlock
+     * @param RegistryLocator $locator
      */
     public function __construct(
-        Description $descriptionBlock
+        RegistryLocator $locator
     ) {
-        $this->product = $descriptionBlock->getProduct();
+        $this->locator = $locator;
     }
 
     /**
@@ -64,15 +63,21 @@ class Product
     }
 
     /**
+     * Encoded SKU for the current product in PDP / catalog context.
+     *
      * @return string
      */
     public function getProductSku()
     {
-        $value = "";
-        if ($this->product && $this->product->getSku()) {
-            $value = $this->turnToSafeEncoding($this->product->getSku());
+        try {
+            $product = $this->locator->getProduct();
+            if ($product && $product->getSku()) {
+                return $this->turnToSafeEncoding((string) $product->getSku());
+            }
+        } catch (NotFoundException $e) {
+            return '';
         }
 
-        return $value;
+        return '';
     }
 }

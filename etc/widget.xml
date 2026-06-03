@@ -30,7 +30,7 @@
                         <label>Visual Content Pinboard</label>
                     </option>
                     <option name="commentsPinboardTeaser" value="commentsPinboardTeaser">
-                        <label>Checkout Comment Pinboard Teaser</label>
+                        <label>Comment Pinboard Teaser</label>
                     </option>
                 </options>
             </parameter>

@@ -12,8 +12,8 @@ use DateTime;
 use DateTimeZone;
 use Exception;
 use Magento\Catalog\Helper\Product as ProductHelper;
-use Magento\Catalog\Model\Product;
-use Magento\Catalog\Model\ProductRepository;
+use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Api\AbstractSimpleObject;
 use Magento\Framework\Api\Filter;
 use Magento\Framework\Api\FilterBuilderFactory;
@@ -25,10 +25,12 @@ use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Filesystem\Io\File;
+use Magento\Framework\Filesystem;
+use Magento\Framework\Filesystem\File\WriteInterface;
 use Magento\Framework\Intl\DateTimeFactory;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderItemInterface;
+use Magento\Sales\Api\Data\ShipmentInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Api\ShipmentRepositoryInterface;
 use Magento\Sales\Model\ResourceModel\Order\Collection;
@@ -76,6 +78,13 @@ class Orders
     const DEFAULT_PAGE_SIZE = 25;
 
     /**
+     * Batch size for shipment API pagination / order id chunks
+     */
+    private const SHIPMENT_PAGE_SIZE = 500;
+
+    private const ORDER_ID_CHUNK_SIZE = 100;
+
+    /**
      * @var OrderRepositoryInterface
      */
     protected $orderService;
@@ -86,7 +95,7 @@ class Orders
     protected $shipmentsService;
 
     /**
-     * @var ProductRepository
+     * @var ProductRepositoryInterface
      */
     protected $productRepository;
 
@@ -96,18 +105,14 @@ class Orders
     protected $productHelper;
 
     /**
-     * @var DirectoryList
+     * @var Filesystem
      */
-    protected $directoryList;
+    protected $filesystem;
+
     /**
      * @var ProductModel
      */
     protected $productModel;
-
-    /**
-     * @var File
-     */
-    protected $fileSystem;
 
     /**
      * @var OrderCollectionFactory
@@ -158,13 +163,12 @@ class Orders
      * @param DateTimeFactory $dateTimeFactory
      * @param OrderRepositoryInterface $orderRepositoryInterface
      * @param ShipmentRepositoryInterface $shipmentsService
-     * @param ProductRepository $productRepository
-     * @param Product $productHelper
+     * @param ProductRepositoryInterface $productRepository
+     * @param ProductHelper $productHelper
      * @param StoreManagerInterface $storeManager
-     * @param DirectoryList $directoryList
      * @param ProductModel $productModel
      * @param FeedClient $feedClient
-     * @param File $fileSystem
+     * @param Filesystem $filesystem
      * @param OrderCollectionFactory $orderCollection
      * @param ExportProduct $exportProduct
      * @param FilterBuilderFactory $filterBuilderFactory
@@ -177,13 +181,12 @@ class Orders
         DateTimeFactory $dateTimeFactory,
         OrderRepositoryInterface $orderRepositoryInterface,
         ShipmentRepositoryInterface $shipmentsService,
-        ProductRepository $productRepository,
-        Product $productHelper,
+        ProductRepositoryInterface $productRepository,
+        ProductHelper $productHelper,
         StoreManagerInterface $storeManager,
-        DirectoryList $directoryList,
         ProductModel $productModel,
         FeedClient $feedClient,
-        File $fileSystem,
+        Filesystem $filesystem,
         OrderCollectionFactory $orderCollection,
         ExportProduct $exportProduct,
         FilterBuilderFactory $filterBuilderFactory,
@@ -198,10 +201,9 @@ class Orders
         $this->productRepository = $productRepository;
         $this->productHelper = $productHelper;
         $this->storeManager = $storeManager;
-        $this->directoryList = $directoryList;
         $this->productModel = $productModel;
         $this->feedClient = $feedClient;
-        $this->fileSystem = $fileSystem;
+        $this->filesystem = $filesystem;
         $this->orderCollectionFactory = $orderCollection;
         $this->exportProduct = $exportProduct;
         $this->filterBuilderFactory = $filterBuilderFactory;
@@ -219,8 +221,9 @@ class Orders
             if ($this->config->getIsEnabled($store->getCode())
                 && $this->config->getConfigBool(Config::ORDER_ENABLE_FEED, $store->getCode())
             ) {
+                $feedPath = null;
                 try {
-                    $orderFeed = $this->getOrdersFeed(
+                    $feedPath = $this->getOrdersFeed(
                         $store->getId(),
                         $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))
                             ->sub(new DateInterval(static::LOOKBACK_INTERVAL)),
@@ -229,26 +232,38 @@ class Orders
                             new DateTimeZone('UTC')
                         )
                     );
-                    $this->feedClient->transmitFeedFile($orderFeed, self::FEED_NAME, self::FEED_STYLE, $store->getCode());
+                    $this->feedClient->transmitFeedFile(
+                        $feedPath,
+                        self::FEED_NAME,
+                        self::FEED_STYLE,
+                        $store->getCode(),
+                        true
+                    );
                 } catch (Exception $e) {
                     $this->logger->error(
-                        'An error occurred while sending the Historical Orders Feed report to TurnTo. Error:',
+                        'An error occurred while sending the Historical Orders Feed report to TurnTo.',
                         [
                             'storeId' => $store->getId(),
                             'exception' => $e
                         ]
                     );
+                } finally {
+                    if (is_string($feedPath) && $feedPath !== '' && is_file($feedPath)) {
+                        unlink($feedPath);
+                    }
                 }
             }
         }
     }
 
     /**
-     * @param           $storeId
+     * Build feed as a TSV file and return its absolute path (caller should delete after transmission).
+     *
+     * @param int|string $storeId
      * @param DateTime $fromDate
      * @param DateTime $toDate
      * @param bool $forceIncludeAllItems
-     * @return string
+     * @return string Absolute filesystem path
      * @throws FileSystemException
      * @throws LocalizedException
      */
@@ -257,18 +272,14 @@ class Orders
         DateTime $fromDate,
         DateTime $toDate,
         bool $forceIncludeAllItems = false
-    ) {
-        $outputHandle = null;
-        try {
-	        $this->fileSystem->checkAndCreateFolder($this->directoryList->getPath(DirectoryList::TMP));
+    ): string {
+        $tmpDir = $this->filesystem->getDirectoryWrite(DirectoryList::TMP);
+        $tmpDir->create();
+        $fileName = 'turnto_orders_feed_' . uniqid('', true) . '.tsv';
+        $outputFile = $tmpDir->openFile($fileName, 'w+');
 
-            $outputFile = $this->directoryList->getPath(DirectoryList::TMP) . '/turntoexport.csv';
-            $outputHandle = fopen($outputFile, 'w+');
-            if ($outputHandle === false) {
-                throw new LocalizedException(__('Unable to open temporary file.'));
-            }
-            fputcsv(
-                $outputHandle,
+        try {
+            $outputFile->writeCsv(
                 [
                     'ORDERID',
                     'ORDERDATE',
@@ -285,32 +296,32 @@ class Orders
                     'DELIVERYDATE'
                 ],
                 "\t",
-                '"',
-                "\\"
+                '"'
             );
             $orderFeed = $this->getOrders($storeId, $fromDate, $toDate);
-            $this->writeOrdersFeed($orderFeed, $outputHandle, $forceIncludeAllItems);
-            rewind($outputHandle);
-            $csvData = stream_get_contents($outputHandle);
-            if ($csvData === false || $csvData === '') {
-                throw new LocalizedException(__('Invalid CSV data'));
-            }
+            $this->writeOrdersFeed($orderFeed, $outputFile, $forceIncludeAllItems);
         } finally {
-            if (is_resource($outputHandle)) {
-                fclose($outputHandle);
-            }
+            $outputFile->close();
         }
 
-        return $csvData;
+        $absolutePath = $tmpDir->getAbsolutePath($fileName);
+        if (!is_readable($absolutePath) || filesize($absolutePath) === 0) {
+            if (is_file($absolutePath)) {
+                unlink($absolutePath);
+            }
+            throw new LocalizedException(__('Invalid CSV data'));
+        }
+
+        return $absolutePath;
     }
 
 
     /**
      * @param $orderList
-     * @param                                       $outputHandle
+     * @param WriteInterface $outputFile
      * @param bool $forceIncludeAllItems
      */
-    public function writeOrdersFeed($orderList, $outputHandle, $forceIncludeAllItems)
+    public function writeOrdersFeed($orderList, WriteInterface $outputFile, $forceIncludeAllItems)
     {
         $pageLimit = $orderList->getLastPageNumber();
         $pageSize = $orderList->getPageSize();
@@ -323,12 +334,14 @@ class Orders
                 $paginatedCollection->load();
 
                 if ($paginatedCollection->count() > 0) {
-                    $this->writeOrdersToFeed($outputHandle, $paginatedCollection, $forceIncludeAllItems);
+                    $this->writeOrdersToFeed($outputFile, $paginatedCollection, $forceIncludeAllItems);
                 }
             } catch (Exception $e) {
                 $this->logger->error(
-                    "TurnTo Orders Export Exception: An exception was triggered on page $i of $pageLimit.",
+                    'TurnTo Orders Export Exception: An exception was triggered while exporting orders.',
                     [
+                        'page' => $i,
+                        'page_limit' => $pageLimit,
                         'exception' => $e
                     ]
                 );
@@ -337,25 +350,46 @@ class Orders
     }
 
     /**
-     * @param      $outputHandle
-     * @param      $orders
+     * @param WriteInterface $outputFile
+     * @param Collection $orders
      * @param bool $forceIncludeAllItems
      *
      * @return int
      */
-    protected function writeOrdersToFeed($outputHandle, $orders, $forceIncludeAllItems)
+    protected function writeOrdersToFeed(WriteInterface $outputFile, $orders, $forceIncludeAllItems)
     {
-        if (empty($orders)) {
+        if ($orders->getSize() === 0) {
             return 0;
         }
+
+        $orderIds = [];
+        $productIds = [];
+        foreach ($orders as $order) {
+            $orderIds[] = (int) $order->getEntityId();
+            foreach ($order->getItems() as $item) {
+                if ($item->isDeleted() || $item->getParentItemId()) {
+                    continue;
+                }
+                $pid = (int) $item->getProductId();
+                if ($pid > 0) {
+                    $productIds[] = $pid;
+                }
+            }
+        }
+        $storeId = (int) $orders->getFirstItem()->getStoreId();
+        $shipmentsByOrderId = $this->fetchShipmentsIndexedByOrderId($orderIds, $storeId);
+        // Preload every product referenced on this page in a single query to avoid an N+1 load per order.
+        $productsById = $this->loadProductsByIds($productIds);
 
         $numberOfRecordsWritten = 0;
         foreach ($orders as $order) {
             try {
-                $this->writeOrderToFeed($outputHandle, $order, $forceIncludeAllItems);
+                $oid = (int) $order->getEntityId();
+                $orderShipments = $shipmentsByOrderId[$oid] ?? [];
+                $this->writeOrderToFeed($outputFile, $order, $forceIncludeAllItems, $orderShipments, $productsById);
             } catch (Exception $e) {
                 $this->logger->error(
-                    'An error occurred while writing order data to the historical orders feed. Error:',
+                    'An error occurred while writing order data to the historical orders feed.',
                     [
                         'exception' => $e,
                     ]
@@ -369,14 +403,21 @@ class Orders
     }
 
     /**
-     * @param                                        $outputHandle
+     * @param WriteInterface $outputFile
      * @param OrderInterface $order
      * @param bool $forceIncludeAllItems
+     * @param ShipmentInterface[] $shipmentsForOrder
+     * @param array|null $productsById Products preloaded for the batch, keyed by entity id.
      * @throws NoSuchEntityException
      */
-    protected function writeOrderToFeed($outputHandle, OrderInterface $order, $forceIncludeAllItems)
-    {
-        $items = $this->getItemData($order, $forceIncludeAllItems);
+    protected function writeOrderToFeed(
+        WriteInterface $outputFile,
+        OrderInterface $order,
+        $forceIncludeAllItems,
+        array $shipmentsForOrder = [],
+        ?array $productsById = null
+    ) {
+        $items = $this->getItemData($order, $forceIncludeAllItems, $shipmentsForOrder, $productsById);
         if (empty($items)) {
             return;
         }
@@ -384,7 +425,7 @@ class Orders
         $itemNumber = 0;
         foreach ($items as $item) {
             $this->writeLineToFeed(
-                $outputHandle,
+                $outputFile,
                 $order,
                 $item[self::LINE_ITEM_FIELD_ID],
                 $item[self::PRODUCT_FIELD_ID],
@@ -397,22 +438,49 @@ class Orders
     /**
      * @param OrderInterface $order
      * @param bool $forceIncludeAllItems
+     * @param ShipmentInterface[] $shipmentsForOrder
+     * @param array|null $productsById Products preloaded for the batch, keyed by entity id. When null,
+     *                                 products for this order are loaded on demand.
      *
      * @return array
      */
-    public function getItemData(OrderInterface $order, $forceIncludeAllItems)
-    {
+    public function getItemData(
+        OrderInterface $order,
+        $forceIncludeAllItems,
+        array $shipmentsForOrder = [],
+        ?array $productsById = null
+    ) {
         $items = [];
-        $orderId = $order->getEntityId();
+        $orderId = (int) $order->getEntityId();
+
+        if ($productsById === null) {
+            $productIds = [];
+            foreach ($order->getItems() as $item) {
+                if ($item->isDeleted() || $item->getParentItemId()) {
+                    continue;
+                }
+                $pid = (int) $item->getProductId();
+                if ($pid > 0) {
+                    $productIds[] = $pid;
+                }
+            }
+
+            $productsById = $this->loadProductsByIds($productIds);
+        }
 
         foreach ($order->getItems() as $item) {
             try {
                 if (!$item->isDeleted() && !$item->getParentItemId()) {
                     $itemId = $item->getItemId();
                     $key = "$orderId.$itemId";
+                    $productId = (int) $item->getProductId();
+                    $product = $productsById[$productId] ?? null;
+                    if (!$product) {
+                        continue;
+                    }
                     $items[$key] = [
                         self::LINE_ITEM_FIELD_ID => $item,
-                        self::PRODUCT_FIELD_ID => $this->productRepository->getById($item->getProductId()),
+                        self::PRODUCT_FIELD_ID => $product,
                         self::SHIP_DATE_FIELD_ID => ''
                     ];
                 }
@@ -421,7 +489,7 @@ class Orders
             }
         }
 
-        $items = $this->addShipDateToItemData($items, $orderId, $order->getStoreId());
+        $items = $this->addShipDateToItemData($items, $order, $shipmentsForOrder);
         if (
             !$forceIncludeAllItems
             && $this->config->getConfigBool(Config::ORDER_EXCLUDE_ITEMS_WITHOUT_DELIVERY_DATE, $order->getStore()->getCode())
@@ -437,65 +505,131 @@ class Orders
     }
 
     /**
+     * Bulk load products for a batch of order items, keyed by entity id.
+     *
+     * @param int[] $productIds
+     * @return array Products keyed by entity id.
+     */
+    public function getProductsIndexedById(array $productIds): array
+    {
+        return $this->loadProductsByIds($productIds);
+    }
+
+    /**
+     * @param int[] $productIds
+     * @return array Products keyed by entity id.
+     */
+    private function loadProductsByIds(array $productIds): array
+    {
+        $productIds = array_values(array_unique(array_filter($productIds)));
+        if ($productIds === []) {
+            return [];
+        }
+
+        $searchCriteriaBuilder = $this->searchCriteriaBuilderFactory->create();
+        $searchCriteriaBuilder->addFilter('entity_id', $productIds, 'in');
+        $searchCriteriaBuilder->setPageSize(max(count($productIds), 1));
+
+        $result = $this->productRepository->getList($searchCriteriaBuilder->create());
+        $byId = [];
+        foreach ($result->getItems() as $product) {
+            $byId[(int) $product->getId()] = $product;
+        }
+
+        return $byId;
+    }
+
+    /**
+     * @param int[] $orderIds
+     * @return array<int, ShipmentInterface[]>
+     */
+    public function getShipmentsIndexedByOrderId(array $orderIds, int $storeId): array
+    {
+        return $this->fetchShipmentsIndexedByOrderId($orderIds, $storeId);
+    }
+
+    /**
+     * @param int[] $orderIds
+     * @return array<int, ShipmentInterface[]>
+     */
+    private function fetchShipmentsIndexedByOrderId(array $orderIds, int $storeId): array
+    {
+        $orderIds = array_values(array_unique(array_filter($orderIds)));
+        if ($orderIds === []) {
+            return [];
+        }
+
+        $grouped = [];
+        foreach (array_chunk($orderIds, self::ORDER_ID_CHUNK_SIZE) as $orderIdChunk) {
+            $page = 1;
+            $totalPages = 1;
+
+            do {
+                $orderIdFilter = $this->filterBuilderFactory->create()
+                    ->setField(self::ORDER_ID_FIELD_ID)
+                    ->setValue($orderIdChunk)
+                    ->setConditionType('in')
+                    ->create();
+                $storeFilter = $this->getFilter(self::STORE_ID_FIELD_ID, $storeId, 'eq');
+
+                $searchCriteriaBuilder = $this->searchCriteriaBuilderFactory->create();
+                $searchCriteriaBuilder->setPageSize(self::SHIPMENT_PAGE_SIZE);
+                $searchCriteriaBuilder->setCurrentPage($page);
+                $searchCriteriaBuilder->addSortOrder($this->getSortOrder(self::ORDER_ID_FIELD_ID));
+                $searchCriteriaBuilder->addFilters([$orderIdFilter]);
+                $searchCriteriaBuilder->addFilters([$storeFilter]);
+
+                $searchResult = $this->shipmentsService->getList($searchCriteriaBuilder->create());
+                foreach ($searchResult->getItems() as $shipment) {
+                    $oid = (int) $shipment->getOrderId();
+                    $grouped[$oid][] = $shipment;
+                }
+
+                $totalCount = (int) $searchResult->getTotalCount();
+                $totalPages = max(1, (int) ceil($totalCount / self::SHIPMENT_PAGE_SIZE));
+                $page++;
+            } while ($page <= $totalPages);
+        }
+
+        return $grouped;
+    }
+
+    /**
      * @param $itemData
-     * @param $orderId
-     * @param $storeId
+     * @param OrderInterface $order
+     * @param ShipmentInterface[] $shipments
      *
      * @return array
      */
-    protected function addShipDateToItemData($itemData, $orderId, $storeId)
+    protected function addShipDateToItemData($itemData, OrderInterface $order, array $shipments)
     {
-        $searchCriteria = $this->getShipmentSearchCriteriaForOrder($orderId, $storeId);
-        $shipmentsList = $this->shipmentsService->getList($searchCriteria);
-        $pageLimit = $shipmentsList->getLastPageNumber();
-        $pageSize = $shipmentsList->getPageSize();
+        $orderId = (int) $order->getEntityId();
+        $storeId = (int) $order->getStoreId();
 
         // If this setting is on, we only send shipment data if the whole order has shipped
-        $configExcludeDeliveryDateUntilAllItemsShipped = $this->config->getConfigBool(Config::ORDER_EXCLUDE_DELIVERY_DATE_ON_PARTIAL_SHIPMENT, $storeId);
+        $configExcludeDeliveryDateUntilAllItemsShipped = $this->config->getConfigBool(
+            Config::ORDER_EXCLUDE_DELIVERY_DATE_ON_PARTIAL_SHIPMENT,
+            $storeId
+        );
         $allItemsShipped = false;
         if ($configExcludeDeliveryDateUntilAllItemsShipped) {
-            $allItemsShipped = $this->getAllOrdersShipped($orderId);
+            $allItemsShipped = $this->getAllOrdersShipped($order);
         }
         // TRUE if: "Exclude Delivery Date..." is off, OR if it's on and all items have shipped
-        $includeShipped = ($configExcludeDeliveryDateUntilAllItemsShipped && $allItemsShipped) || !$configExcludeDeliveryDateUntilAllItemsShipped;
+        $includeShipped = ($configExcludeDeliveryDateUntilAllItemsShipped && $allItemsShipped)
+            || !$configExcludeDeliveryDateUntilAllItemsShipped;
 
-        for ($i = 1; $i <= $pageLimit; $i++) {
-            $paginatedCollection = clone $shipmentsList;
-            $paginatedCollection->clear();
-            $paginatedCollection->setPageSize($pageSize)->setCurPage($i);
-            $paginatedCollection->load();
-
-            if ($paginatedCollection->count() > 0) {
-                foreach ($paginatedCollection->getItems() as $shipment) {
-                    foreach ($shipment->getItems() as $shipmentItem) {
-                        $itemId = $shipmentItem->getOrderItemId();
-                        $key = "$orderId.$itemId";
-                        if (isset($itemData[$key]) && $includeShipped) {
-                            $itemData[$key][self::SHIP_DATE_FIELD_ID] = $shipment->getCreatedAt();
-                        }
-                    }
+        foreach ($shipments as $shipment) {
+            foreach ($shipment->getItems() as $shipmentItem) {
+                $itemId = $shipmentItem->getOrderItemId();
+                $key = "$orderId.$itemId";
+                if (isset($itemData[$key]) && $includeShipped) {
+                    $itemData[$key][self::SHIP_DATE_FIELD_ID] = $shipment->getCreatedAt();
                 }
             }
         }
 
         return $itemData;
-    }
-
-    /**
-     * @param $orderId
-     * @param $storeId
-     *
-     * @return SearchCriteria
-     */
-    public function getShipmentSearchCriteriaForOrder($orderId, $storeId)
-    {
-        return $this->getSearchCriteria(
-            $this->getSortOrder(self::ORDER_ID_FIELD_ID),
-            [
-                $this->getFilter(self::STORE_ID_FIELD_ID, $storeId, 'eq'),
-                $this->getFilter(self::ORDER_ID_FIELD_ID, $orderId, 'eq')
-            ]
-        );
     }
 
     /**
@@ -543,7 +677,7 @@ class Orders
     }
 
     /**
-     * @param                                            $outputHandle
+     * @param WriteInterface $outputFile
      * @param OrderInterface $order
      * @param OrderItemInterface $lineItem
      * @param Product $product
@@ -552,10 +686,10 @@ class Orders
      * @throws NoSuchEntityException
      */
     protected function writeLineToFeed(
-        $outputHandle,
+        WriteInterface $outputFile,
         OrderInterface $order,
         OrderItemInterface $lineItem,
-        Product $product,
+        ProductInterface $product,
         $lineItemNumber,
         $shipmentDate
     ) {
@@ -582,7 +716,7 @@ class Orders
         $row[] = $this->productHelper->getImageUrl($product);
         $row[] = $shipmentDate;
 
-        fputcsv($outputHandle, $row, "\t", '"', "\\");
+        $outputFile->writeCsv($row, "\t", '"');
     }
 
     /**
@@ -638,12 +772,13 @@ class Orders
     }
 
     /**
-     * @param $orderId
+     * @param OrderInterface $order
      * @return bool
      */
-    protected function getAllOrdersShipped($orderId) {
+    protected function getAllOrdersShipped(OrderInterface $order): bool
+    {
 
-        $items = $this->orderService->get($orderId)->getItems();
+        $items = $order->getItems();
 
         $allItemsShipped = true;
         foreach ($items as $item) {
