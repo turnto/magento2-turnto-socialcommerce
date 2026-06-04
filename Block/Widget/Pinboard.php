@@ -7,24 +7,23 @@ declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Block\Widget;
 
-use Magento\Catalog\Block\Product\Context;
-use Magento\Catalog\Model\Product\Visibility;
-use Magento\Catalog\Model\ResourceModel\Product\Collection;
-use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
-use Magento\CatalogWidget\Block\Product\ProductsList;
-use Magento\CatalogWidget\Model\Rule;
-use Magento\Framework\App\Http\Context as HttpContext;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Serialize\Serializer\Json;
-use Magento\Rule\Model\Condition\Sql\Builder;
-use Magento\Widget\Helper\Conditions;
+use Magento\Framework\View\Element\Template;
+use Magento\Framework\View\Element\Template\Context;
+use Magento\Widget\Block\BlockInterface;
 use TurnTo\SocialCommerce\Block\TurnToConfig;
 use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Model\Product;
 use TurnTo\SocialCommerce\Model\Data\PinboardConfigFactory;
+use TurnTo\SocialCommerce\ViewModel\Widget;
 
-class Pinboard extends ProductsList
+class Pinboard extends Template implements BlockInterface
 {
+    /**
+     * @var string
+     */
+    protected $_template = "TurnTo_SocialCommerce::widget/pinboard.phtml";
+
     /**
      * @var Config
      */
@@ -37,80 +36,32 @@ class Pinboard extends ProductsList
      * @var Product
      */
     protected $product;
+    /**
+     * @var Widget
+     */
+    protected $viewModel;
 
     /**
      * @param Config $config
      * @param PinboardConfigFactory $pinboardConfigFactory
+     * @param Product $product
      * @param Context $context
-     * @param CollectionFactory $productCollectionFactory
-     * @param Visibility $catalogProductVisibility
-     * @param HttpContext $httpContext
-     * @param Builder $sqlBuilder
-     * @param Rule $rule
-     * @param Conditions $conditionsHelper
+     * @param Widget $viewModel
      * @param array $data
-     * @param Json|null $json
      */
     public function __construct(
         Config $config,
         PinboardConfigFactory $pinboardConfigFactory,
         Product $product,
         Context $context,
-        CollectionFactory $productCollectionFactory,
-        Visibility $catalogProductVisibility,
-        HttpContext $httpContext,
-        Builder $sqlBuilder,
-        Rule $rule,
-        Conditions $conditionsHelper,
-        array $data = [],
-        ?Json $json = null
+        Widget $viewModel,
+        array $data = []
     ) {
         $this->config = $config;
         $this->pinboardConfigFactory = $pinboardConfigFactory;
         $this->product = $product;
-        parent::__construct(
-            $context,
-            $productCollectionFactory,
-            $catalogProductVisibility,
-            $httpContext,
-            $sqlBuilder,
-            $rule,
-            $conditionsHelper,
-            $data,
-            $json
-        );
-    }
-
-    /**
-     * Prepare and return product collection
-     *
-     * @return Collection
-     * @SuppressWarnings(PHPMD.RequestAwareBlockMethod)
-     */
-    public function createCollection()
-    {
-        $collection = $this->productCollectionFactory->create();
-        if ($this->getData('store_id') !== null) {
-            $collection->setStoreId($this->getData('store_id'));
-        }
-
-        $collection->setVisibility($this->catalogProductVisibility->getVisibleInCatalogIds());
-
-        $collection = $this->_addProductAttributesAndPrices($collection)
-            ->addStoreFilter()
-            ->addAttributeToSort('entity_id', 'desc')
-            ->setPageSize($this->getPageSize())
-            ->setCurPage($this->getRequest()->getParam($this->getData('page_var_name'), 1));
-
-        // Removed conditions; getBaseCollection doesn't exist in Magento 3.3
-
-        /**
-         * Prevent retrieval of duplicate records. This may occur when multiselect product attribute matches
-         * several allowed values from condition simultaneously
-         */
-        $collection->distinct(true);
-
-        return $collection;
+        $this->viewModel = $viewModel;
+        parent::__construct($context, $data);
     }
 
     /**
@@ -136,7 +87,8 @@ class Pinboard extends ProductsList
     public function getProductBrands()
     {
         $productBrands = $this->getData('brands');
-        return $productBrands ? array_map('trim' , explode(',', $productBrands)) : [];
+
+        return $productBrands ? array_map('trim', explode(',', $productBrands)) : [];
     }
 
     /**
@@ -147,11 +99,13 @@ class Pinboard extends ProductsList
     public function getProductTags()
     {
         $productTags = $this->getData('tags');
-        return $productTags ? array_map('trim' , explode(',', $productTags)) : [];
+
+        return $productTags ? array_map('trim', explode(',', $productTags)) : [];
     }
 
     /**
      * Creates a TurnTo config block and outputs its html content
+     *
      * @return string
      */
     public function getTurnToConfigHtml()
@@ -160,7 +114,12 @@ class Pinboard extends ProductsList
         try {
             $pinboardBlock = $this->getLayout()->createBlock(
                 TurnToConfig::class,
-                'turnto.config.pinboard'
+                'turnto.config.pinboard',
+                [
+                    'data' => [
+                        'view_model' => $this->getViewModel(),
+                    ],
+                ]
             );
         } catch (LocalizedException $e) {
             return '';
@@ -171,17 +130,34 @@ class Pinboard extends ProductsList
         return $pinboardBlock->toHtml();
     }
 
+    /**
+     * Returns the page title from the pinboard widget configuration.
+     *
+     * @return string
+     */
     public function getPageTitle()
     {
         return $this->getData('title');
     }
 
     /**
-     * @param $path
+     * Returns the value of a configuration setting
+     *
+     * @param string $path
      * @return mixed|null
      */
     public function getConfigValue($path)
     {
         return $this->config->getConfigValue($path);
+    }
+
+    /**
+     * Returns the view model
+     *
+     * @return Widget
+     */
+    public function getViewModel(): Widget
+    {
+        return $this->viewModel;
     }
 }
