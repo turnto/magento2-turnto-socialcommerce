@@ -100,6 +100,9 @@ class TurnToConfig extends Template
             $additionalConfigData['qa'] = [];
         }
 
+        if ($this->config->getConfigBool(ConfigModel::CHECKOUT_ENABLE_COMMENTS_PINBOARD_TEASER)) {
+            $additionalConfigData['commentsPinboardTeaser'] = [];
+        }
         if ($this->config->getConfigBool(ConfigModel::VISUAL_CONTENT_ENABLE_GALLERY_ROW)) {
             $product = $this->helper->getProduct();
             if ($product) {
