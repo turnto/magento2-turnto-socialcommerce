@@ -130,10 +130,11 @@ class TurnToConfig extends Template
     {
         $value = '%teaser%';
         $additionalConfigData['teaser'] = $value;
-        $teaser = "{
-            \"showReviews\": function(){jQuery('#tab-label-reviews-title').click()},
-            \"showQa\": function(){jQuery('#tab-label-turnto_qa-title').click()}
-        }";
+        $reviewsTabSelector = (string) ($this->getData('teaser_reviews_tab_selector') ?: '#tab-label-reviews-title');
+        $qaTabSelector = (string) ($this->getData('teaser_qa_tab_selector') ?: '#tab-label-turnto_qa-title');
+        $reviewsTabJson = $this->json->serialize($reviewsTabSelector);
+        $qaTabJson = $this->json->serialize($qaTabSelector);
+        $teaser = '{' . "\"showReviews\": function(){jQuery({$reviewsTabJson}).click()}," . "\"showQa\": function(){jQuery({$qaTabJson}).click()}" . '}';
 
         $configData = array_merge($additionalConfigData, $configData);
         $json = $this->json->serialize($configData);
