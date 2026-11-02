@@ -68,11 +68,11 @@ class TestableCommerceFeedGenerator extends CommerceFeedGenerator
             /**
              * @var string
              */
-            private $name;
+            protected $name;
             /**
              * @var int
              */
-            private $id;
+            protected $id;
 
             /**
              * @param string $name

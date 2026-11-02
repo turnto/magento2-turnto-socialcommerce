@@ -21,7 +21,21 @@ $initConfig = [
 ?>
 <script>
     (function (window) {
-        window.turnToConfig = <?= /* @noEscape */ $block->getJavaScriptConfig() ?>;
+        const turnToConfig = <?= /* @noEscape */ $block->getConfigJson() ?>,
+            teaserSelectors = <?= /* @noEscape */ $block->getTeaserSelectorsJson() ?>;
+
+        if (!Object.prototype.hasOwnProperty.call(turnToConfig, 'teaser')) {
+            turnToConfig.teaser = {
+                showReviews: function () {
+                    window.jQuery(teaserSelectors.reviews).click();
+                },
+                showQa: function () {
+                    window.jQuery(teaserSelectors.qa).click();
+                }
+            };
+        }
+
+        window.turnToConfig = turnToConfig;
         window.TurnToCmd = window.TurnToCmd || function () {
             (TurnToCmd.q = TurnToCmd.q || []).push(arguments);
         };

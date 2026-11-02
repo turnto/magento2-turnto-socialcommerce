@@ -21,6 +21,12 @@
             </argument>
         </arguments>
     </type>
+    <type name="TurnTo\SocialCommerce\Model\Product">
+        <arguments>
+            <!-- LocatorInterface only has an adminhtml preference in core; the storefront needs it explicitly. -->
+            <argument name="locator" xsi:type="object">Magento\Catalog\Model\Locator\RegistryLocator</argument>
+        </arguments>
+    </type>
     <type name="TurnTo\SocialCommerce\Service\Feed\FeedGeneratorFactory">
         <arguments>
             <argument name="generators" xsi:type="array">
