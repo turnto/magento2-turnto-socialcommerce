@@ -10,33 +10,23 @@ namespace TurnTo\SocialCommerce\Controller\Adminhtml\System\HistoricalOrders;
 use DateInterval;
 use DateTimeZone;
 use Exception;
+use Magento\Backend\App\Action;
+use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpPostActionInterface;
-use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Intl\DateTimeFactory;
-use Magento\Framework\Message\ManagerInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use TurnTo\SocialCommerce\Api\FeedClient;
 use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Export\Orders;
+use TurnTo\SocialCommerce\Model\Export\TemporaryFeedFile;
 
-class Export implements HttpPostActionInterface
+class Export extends Action implements HttpPostActionInterface
 {
     /**
-     * @var RequestInterface
+     * Matches the resource of the Historical Orders Export menu item that opens this form.
      */
-    protected $request;
-
-    /**
-     * @var ManagerInterface
-     */
-    protected $messageManager;
-
-    /**
-     * @var ResultFactory
-     */
-    protected $resultFactory;
+    public const ADMIN_RESOURCE = 'Magento_Backend::content';
 
     /**
      * @var Orders
@@ -59,80 +49,74 @@ class Export implements HttpPostActionInterface
     protected $storeManager;
 
     /**
-     * @var FeedClient
+     * @var TemporaryFeedFile
      */
-    protected $feedClient;
+    protected $temporaryFeedFile;
 
     /**
-     * @param RequestInterface $request
-     * @param ManagerInterface $messageManager
-     * @param ResultFactory $resultFactory
+     * @param Context $context
      * @param Orders $ordersExport
      * @param Monolog $logger
      * @param DateTimeFactory $dateTimeFactory
      * @param StoreManagerInterface $storeManager
-     * @param FeedClient $feedClient
+     * @param TemporaryFeedFile $temporaryFeedFile
      */
     public function __construct(
-        RequestInterface $request,
-        ManagerInterface $messageManager,
-        ResultFactory $resultFactory,
+        Context $context,
         Orders $ordersExport,
         Monolog $logger,
         DateTimeFactory $dateTimeFactory,
         StoreManagerInterface $storeManager,
-        FeedClient $feedClient
+        TemporaryFeedFile $temporaryFeedFile
     ) {
-        $this->request = $request;
-        $this->messageManager = $messageManager;
-        $this->resultFactory = $resultFactory;
+        parent::__construct($context);
         $this->ordersExport = $ordersExport;
         $this->logger = $logger;
         $this->dateTimeFactory = $dateTimeFactory;
         $this->storeManager = $storeManager;
-        $this->feedClient = $feedClient;
+        $this->temporaryFeedFile = $temporaryFeedFile;
     }
 
     /**
+     * Export and transmit the orders placed in the requested date range
+     *
      * @return ResultInterface
      */
     public function execute()
     {
-        $fromDate = $this->request->getParam('from_date');
-        $toDate = $this->request->getParam('to_date');
-        $storeId = $this->request->getParam('store_ids');
+        $fromDate = $this->getRequest()->getParam('from_date');
+        $toDate = $this->getRequest()->getParam('to_date');
+        $storeId = $this->getRequest()->getParam('store_ids');
 
         try {
             $fromDate = $this->dateTimeFactory->create($fromDate, new DateTimeZone('UTC'));
-            // A normal user would expect the "To" date to include orders on that date. However, by default the field will
-            // hold a value where the time is YYYY-MM-DD 00:00:00.000000. The below code will add one day the "To" date then
-            // subtract 1 second so that all orders placed before YYYY-MM-DD 23:59:59:000000 will be picked up.
+            // Subtract one second
             $toDate = $this->dateTimeFactory
                 ->create($toDate, new DateTimeZone('UTC'))
                 ->add(new DateInterval('P1D'))
                 ->sub(new DateInterval('PT1S'));
 
-            $feedPath = $this->ordersExport->getOrdersFeed($storeId, $fromDate, $toDate, true);
+            $feedPath = $this->ordersExport->createOrdersFeedFile($storeId, $fromDate, $toDate, true);
             $store = $this->storeManager->getStore($storeId);
-            try {
-                $this->feedClient->transmitFeedFile(
-                    $feedPath,
-                    Orders::FEED_NAME,
-                    Orders::FEED_STYLE,
-                    $store->getCode(),
-                    true
-                );
-                $this->messageManager->addSuccessMessage('Orders exported successfully.');
-            } finally {
-                if (is_string($feedPath) && is_file($feedPath)) {
-                    unlink($feedPath);
-                }
-            }
+            $this->temporaryFeedFile->transmitAndDelete(
+                $feedPath,
+                Orders::FEED_NAME,
+                Orders::FEED_STYLE,
+                $store->getCode()
+            );
+            $this->messageManager->addSuccessMessage(__('Orders exported successfully.'));
         } catch (Exception $e) {
-            $this->messageManager->addErrorMessage('There was an issue processing your request. Please try again later.');
+            $this->messageManager->addErrorMessage(
+                __('There was an issue processing your request. Please try again later.')
+            );
             $this->logger->error(
                 'Historical orders export request failed',
-                ['exception' => $e]
+                [
+                    'store_id' => $storeId,
+                    'from_date' => $this->getRequest()->getParam('from_date'),
+                    'to_date' => $this->getRequest()->getParam('to_date'),
+                    'exception' => $e
+                ]
             );
         }
 

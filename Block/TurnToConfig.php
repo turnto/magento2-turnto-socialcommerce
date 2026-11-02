@@ -80,11 +80,63 @@ class TurnToConfig extends Template
     }
 
     /**
-     * Create turnToConfig json
+     * Create turnToConfig json including the teaser callback functions
+     *
+     * @return string
+     * @throws NoSuchEntityException
+     * @deprecated The default template adds the teaser callbacks itself; use getConfigJson() and getTeaserSelectors()
+     * @see getConfigJson()
+     */
+    public function getJavaScriptConfig()
+    {
+        return $this->addConfigFunctions($this->getConfigDataSource(), $this->getAdditionalConfigData());
+    }
+
+    /**
+     * The turnToConfig object as plain JSON
+     *
+     * Configuration data set on the block takes precedence over the generated values.
+     * The teaser callbacks are added in the template when no "teaser" key is configured.
+     *
      * @return string
      * @throws NoSuchEntityException
      */
-    public function getJavaScriptConfig()
+    public function getConfigJson(): string
+    {
+        return $this->json->serialize(
+            array_merge($this->getAdditionalConfigData(), (array) $this->getConfigDataSource())
+        );
+    }
+
+    /**
+     * Selectors for the tabs opened by the teaser "showReviews" and "showQa" callbacks
+     *
+     * @return array{reviews: string, qa: string}
+     */
+    public function getTeaserSelectors(): array
+    {
+        return [
+            'reviews' => (string) ($this->getData('teaser_reviews_tab_selector') ?: '#tab-label-reviews-title'),
+            'qa' => (string) ($this->getData('teaser_qa_tab_selector') ?: '#tab-label-turnto_qa-title'),
+        ];
+    }
+
+    /**
+     * Teaser tab selectors as a JSON object
+     *
+     * @return string
+     */
+    public function getTeaserSelectorsJson(): string
+    {
+        return $this->json->serialize($this->getTeaserSelectors());
+    }
+
+    /**
+     * Configuration data provided through the block's config_data argument
+     *
+     * @return array|mixed
+     */
+    protected function getConfigDataSource()
     {
         $configData = $this->getConfigData();
 
@@ -92,6 +144,18 @@ class TurnToConfig extends Template
             $configData = $configData->getData();
         }
 
+        return $configData ?? [];
+    }
+
+    /**
+     * Generated turnToConfig values
+     *
+     * @return array
+     * @throws NoSuchEntityException
+     */
+    protected function getAdditionalConfigData(): array
+    {
+        $additionalConfigData = [];
         $additionalConfigData['locale'] = $this->localeResolver->getLocale();
         $additionalConfigData['extensionVersion'] = ['magentoVersion'=> $this->version->getMagentoVersion(), 'turnToCart' => $this->version->getModuleVersion()];
         $additionalConfigData['sso'] = ['userDataFn' => null];
@@ -125,7 +189,7 @@ class TurnToConfig extends Template
             $additionalConfigData['siteKey'] = (string) $siteKey;
         }
 
-        return $this->addConfigFunctions($configData, $additionalConfigData);
+        return $additionalConfigData;
     }
 
     /**
@@ -134,15 +198,16 @@ class TurnToConfig extends Template
      * @param array $configData
      * @param array $additionalConfigData
      * @return string
+     * @deprecated The teaser callbacks are defined in TurnTo_SocialCommerce::turnto-config.phtml
+     * @see getConfigJson()
      */
     public function addConfigFunctions($configData, $additionalConfigData)
     {
         $value = '%teaser%';
         $additionalConfigData['teaser'] = $value;
-        $reviewsTabSelector = (string) ($this->getData('teaser_reviews_tab_selector') ?: '#tab-label-reviews-title');
-        $qaTabSelector = (string) ($this->getData('teaser_qa_tab_selector') ?: '#tab-label-turnto_qa-title');
-        $reviewsTabJson = $this->json->serialize($reviewsTabSelector);
-        $qaTabJson = $this->json->serialize($qaTabSelector);
+        $selectors = $this->getTeaserSelectors();
+        $reviewsTabJson = $this->json->serialize($selectors['reviews']);
+        $qaTabJson = $this->json->serialize($selectors['qa']);
         $teaser = '{' . "\"showReviews\": function(){jQuery({$reviewsTabJson}).click()}," . "\"showQa\": function(){jQuery({$qaTabJson}).click()}" . '}';
 
         $configData = array_merge($additionalConfigData, $configData);

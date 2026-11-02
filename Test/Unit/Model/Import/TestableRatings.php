@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Test\Unit\Model\Import;
 
+use GuzzleHttp\Exception\GuzzleException;
 use Magento\Store\Api\Data\StoreInterface;
 use TurnTo\SocialCommerce\Model\Import\Ratings;
 
@@ -26,6 +27,11 @@ class TestableRatings extends Ratings
      */
     public $productsBySku = [];
 
+    /**
+     * @var GuzzleException|null
+     */
+    public $feedException = null;
+
     public function setFeedBody(string $xml): void
     {
         $this->feedBody = $xml;
@@ -36,12 +42,26 @@ class TestableRatings extends Ratings
         $this->productsBySku = $productsBySku;
     }
 
+    public function setFeedException(GuzzleException $exception): void
+    {
+        $this->feedException = $exception;
+    }
+
     /**
      * @inheritdoc
      */
     protected function fetchAggregateRatingsFeedBody(string $feedAddress): string
     {
+        if ($this->feedException) {
+            throw $this->feedException;
+        }
+
         return $this->feedBody;
+    }
+
+    public function callRealFetchAggregateRatingsFeedBody(string $feedAddress): string
+    {
+        return parent::fetchAggregateRatingsFeedBody($feedAddress);
     }
 
     /**

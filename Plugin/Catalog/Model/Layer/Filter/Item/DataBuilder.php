@@ -8,16 +8,22 @@ declare(strict_types=1);
 namespace TurnTo\SocialCommerce\Plugin\Catalog\Model\Layer\Filter\Item;
 
 use Magento\Catalog\Model\Layer\Filter\Item\DataBuilder as MagentoDataBuilder;
+use Magento\Framework\App\ObjectManager;
 use TurnTo\SocialCommerce\Model\Config;
-use TurnTo\SocialCommerce\Setup\InstallHelper;
-use TurnTo\SocialCommerce\Plugin\Review\Block\Product\ReviewRenderer;
+use TurnTo\SocialCommerce\Model\Layer\RatingFilterOption;
 
+/**
+ * Replaces TurnTo rating option labels with a plain text percentage label, e.g. "80% & Up"
+ *
+ * The layered navigation star markup is rendered by TurnTo_SocialCommerce::layer/filter/rating.phtml;
+ * this text is used wherever the label is printed as-is, such as the "Now Shopping by" state block.
+ */
 class DataBuilder
 {
     /**
      * Used to append & Up to rendered star rating label
      */
-    const RATING_APPEND_AND_UP = '& Up';
+    const RATING_APPEND_AND_UP = RatingFilterOption::AND_UP;
 
     /**
      * @var Config
@@ -25,12 +31,20 @@ class DataBuilder
     protected $config;
 
     /**
+     * @var RatingFilterOption
+     */
+    protected $ratingFilterOption;
+
+    /**
      * DataBuilder constructor.
      * @param Config $config
+     * @param RatingFilterOption|null $ratingFilterOption
      */
-    public function __construct(Config $config)
+    public function __construct(Config $config, ?RatingFilterOption $ratingFilterOption = null)
     {
         $this->config = $config;
+        $this->ratingFilterOption = $ratingFilterOption
+            ?? ObjectManager::getInstance()->get(RatingFilterOption::class);
     }
 
     /**
@@ -41,20 +55,14 @@ class DataBuilder
      */
     protected function getRatingLabel($label)
     {
-        $idx = array_search($label, InstallHelper::RATING_FILTER_VALUES, true);
-        if ($idx === false) {
-            return $label;
-        }
-        $rating = ($idx + 1) * ReviewRenderer::RATING_TO_PERCENTILE_MULTIPLIER;
-        $andUp = $rating < 100 ? trim((string) __(self::RATING_APPEND_AND_UP)) : '';
-        if ($andUp !== '') {
-            return (string) $rating . '% ' . $andUp;
-        }
+        $percent = $this->ratingFilterOption->getPercent($label);
 
-        return (string) $rating . '%';
+        return $percent === null ? $label : $this->ratingFilterOption->getTextLabel($percent);
     }
 
     /**
+     * Replace TurnTo rating option labels before the filter item is built
+     *
      * @param MagentoDataBuilder $subject
      * @param string $label
      * @param string $value
@@ -67,7 +75,7 @@ class DataBuilder
         $value,
         $count
     ) {
-        if ($this->config->getIsEnabled() && $this->config->getConfigBool(Config::REVIEWS_ENABLE)) {
+        if ($this->ratingFilterOption->isEnabled()) {
             $label = $this->getRatingLabel($label);
         }
         return [$label, $value, $count];

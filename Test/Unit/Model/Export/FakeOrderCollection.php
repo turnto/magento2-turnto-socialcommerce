@@ -12,14 +12,14 @@ use IteratorAggregate;
 use Traversable;
 
 /**
- * Minimal iterable stand-in for a sales order collection used by the canceled-orders feed writer.
+ * Minimal iterable stand-in for a page of a sales order collection used by the order feed writers.
  */
 class FakeOrderCollection implements IteratorAggregate
 {
     /**
      * @var array
      */
-    private $items;
+    protected $items;
 
     public function __construct(array $items = [])
     {

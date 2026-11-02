@@ -43,13 +43,13 @@ class LoggedInDataTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->resultFactory = $this->createMock(ResultFactory::class);
-        $this->customerSession = $this->createMock(Session::class);
-        $this->jwt = $this->createMock(JwtInterface::class);
-        $this->logger = $this->createMock(Monolog::class);
+        $this->resultFactory = $this->createStub(ResultFactory::class);
+        $this->customerSession = $this->createStub(Session::class);
+        $this->jwt = $this->createStub(JwtInterface::class);
+        $this->logger = $this->createStub(Monolog::class);
         $this->capturedResponse = null;
 
-        $json = $this->createMock(Json::class);
+        $json = $this->createStub(Json::class);
         $json->method('setData')->willReturnCallback(
             function ($data) use ($json) {
                 $this->capturedResponse = $data;
@@ -75,10 +75,11 @@ class LoggedInDataTest extends TestCase
 
     public function testExecuteReturnsLoggedOutResponseForGuest(): void
     {
-        $customer = $this->createMock(Customer::class);
+        $customer = $this->createStub(Customer::class);
         $customer->method('getId')->willReturn(null);
         $this->customerSession->method('getCustomer')->willReturn($customer);
 
+        $this->jwt = $this->createMock(JwtInterface::class);
         $this->jwt->expects($this->never())->method('getJwt');
 
         $this->createController()->execute();
@@ -89,10 +90,11 @@ class LoggedInDataTest extends TestCase
 
     public function testExecuteReturnsJwtForLoggedInCustomer(): void
     {
-        $customer = $this->createMock(Customer::class);
+        $customer = $this->createStub(Customer::class);
         $customer->method('getId')->willReturn(9);
         $this->customerSession->method('getCustomer')->willReturn($customer);
 
+        $this->jwt = $this->createMock(JwtInterface::class);
         $this->jwt->expects($this->once())
             ->method('getJwt')
             ->willReturn('signed-token');

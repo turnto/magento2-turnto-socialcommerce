@@ -27,6 +27,11 @@ class Widget implements ArgumentInterface
      */
     protected $backendUrl;
 
+    /**
+     * @param ConfigModel $config
+     * @param Product $product
+     * @param UrlInterface $backendUrl
+     */
     public function __construct(
         ConfigModel $config,
         Product $product,
@@ -78,21 +83,6 @@ class Widget implements ArgumentInterface
     public function getSiteKey()
     {
         return (string) $this->config->getSiteKey();
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getWidgetUrl()
-    {
-        $baseUrl = $this->config->getConfigValue(ConfigModel::PRODUCT_WIDGET_URL);
-        $siteKey = $this->config->getSiteKey();
-
-        if (!$baseUrl || !$siteKey) {
-            return null;
-        }
-
-        return rtrim($baseUrl, '/') . '/' . ConfigModel::SOCIALCOMMERCE_VERSION . '/widgets/' . $siteKey . '/js/turnto.js';
     }
 
     /**

@@ -11,25 +11,23 @@ use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Exception;
-use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Filesystem;
 use Magento\Framework\Filesystem\File\WriteInterface;
 use Magento\Framework\Intl\DateTimeFactory;
 use Magento\Sales\Model\ResourceModel\Order\Collection;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
-use TurnTo\SocialCommerce\Api\FeedClient;
 use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Model\Product;
 use TurnTo\SocialCommerce\Logger\Monolog;
 
 class CanceledOrders
 {
-    const FEED_NAME = 'canceled-orders-feed.tsv';
-    const FEED_STYLE = 'cancelled-order.txt';
+    public const FEED_NAME = 'canceled-orders-feed.tsv';
+    public const FEED_STYLE = 'cancelled-order.txt';
     protected const LOOKBACK_INTERVAL = 'P2D';
+    protected const FEED_FILE_PREFIX = 'turnto_canceled_orders_feed_';
     /**
      * @var Config
      */
@@ -51,14 +49,6 @@ class CanceledOrders
      */
     protected $product;
     /**
-     * @var FeedClient
-     */
-    protected $feedClient;
-    /**
-     * @var Filesystem
-     */
-    protected $filesystem;
-    /**
      * @var Orders
      */
     protected $ordersExport;
@@ -66,6 +56,10 @@ class CanceledOrders
      * @var OrderCollectionFactory
      */
     protected $orderCollectionFactory;
+    /**
+     * @var TemporaryFeedFile
+     */
+    protected $temporaryFeedFile;
 
     /**
      * CanceledOrders constructor.
@@ -75,10 +69,9 @@ class CanceledOrders
      * @param DateTimeFactory $dateTimeFactory
      * @param StoreManagerInterface $storeManager
      * @param Product $product
-     * @param FeedClient $feedClient
-     * @param Filesystem $filesystem
      * @param Orders $ordersExport
      * @param OrderCollectionFactory $orderCollectionFactory
+     * @param TemporaryFeedFile $temporaryFeedFile
      */
     public function __construct(
         Config $config,
@@ -86,24 +79,26 @@ class CanceledOrders
         DateTimeFactory $dateTimeFactory,
         StoreManagerInterface $storeManager,
         Product $product,
-        FeedClient $feedClient,
-        Filesystem $filesystem,
         Orders $ordersExport,
-        OrderCollectionFactory $orderCollectionFactory
+        OrderCollectionFactory $orderCollectionFactory,
+        TemporaryFeedFile $temporaryFeedFile
     ) {
         $this->config = $config;
         $this->logger = $logger;
         $this->dateTimeFactory = $dateTimeFactory;
         $this->storeManager = $storeManager;
         $this->product = $product;
-        $this->feedClient = $feedClient;
-        $this->filesystem = $filesystem;
         $this->ordersExport = $ordersExport;
         $this->orderCollectionFactory = $orderCollectionFactory;
+        $this->temporaryFeedFile = $temporaryFeedFile;
     }
 
     /**
-     * @param           $storeId
+     * Build the canceled orders feed and return its TSV contents
+     *
+     * Prefer createCanceledOrdersFeedFile() for large exports; this loads the whole feed into memory.
+     *
+     * @param int|string $storeId
      * @param DateTime $fromDate
      * @param DateTime $toDate
      * @param bool $forceIncludeAllItems
@@ -117,40 +112,49 @@ class CanceledOrders
         DateTime $toDate,
         bool $forceIncludeAllItems = false
     ): string {
+        return $this->temporaryFeedFile->readAndDelete(
+            $this->createCanceledOrdersFeedFile($storeId, $fromDate, $toDate, $forceIncludeAllItems)
+        );
+    }
+
+    /**
+     * Build the canceled orders feed as a TSV file in var/tmp and return its absolute path
+     *
+     * @param int|string $storeId
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     * @param bool $forceIncludeAllItems
+     * @return string
+     * @throws FileSystemException
+     * @throws LocalizedException
+     */
+    public function createCanceledOrdersFeedFile(
+        $storeId,
+        DateTime $fromDate,
+        DateTime $toDate,
+        bool $forceIncludeAllItems = false
+    ): string {
         $canceledOrders = $this->getCanceledOrders($storeId, $fromDate, $toDate);
 
-        $tmpDir = $this->filesystem->getDirectoryWrite(DirectoryList::TMP);
-        $tmpDir->create();
-        $fileName = 'turnto_canceled_orders_feed_' . uniqid('', true) . '.tsv';
-        $outputFile = $tmpDir->openFile($fileName, 'w+');
-
-        try {
-            $outputFile->writeCsv(
-                [
-                    'ORDERID',
-                    'SKU'
-                ],
-                "\t",
-                '"'
-            );
-            $this->writeOrdersToFeed($outputFile, $canceledOrders, $forceIncludeAllItems);
-        } finally {
-            $outputFile->close();
-        }
-
-        $absolutePath = $tmpDir->getAbsolutePath($fileName);
-        if (!is_readable($absolutePath) || filesize($absolutePath) === 0) {
-            if (is_file($absolutePath)) {
-                unlink($absolutePath);
+        return $this->temporaryFeedFile->create(
+            self::FEED_FILE_PREFIX,
+            function (WriteInterface $outputFile) use ($canceledOrders, $forceIncludeAllItems) {
+                $outputFile->writeCsv(
+                    [
+                        'ORDERID',
+                        'SKU'
+                    ],
+                    "\t",
+                    '"'
+                );
+                $this->writeOrdersToFeed($outputFile, $canceledOrders, $forceIncludeAllItems);
             }
-            throw new LocalizedException(__('Invalid CSV data'));
-        }
-
-        return $absolutePath;
+        );
     }
 
     /**
      * CRON handler that sends the last 2 days of orders to TurnTo
+     *
      * @return void
      */
     public function cronUploadFeed()
@@ -159,20 +163,18 @@ class CanceledOrders
             if ($this->config->getIsEnabled($store->getCode()) &&
                 $this->config->getConfigBool(Config::ORDER_ENABLE_CANCELLED_FEED, $store->getCode())
             ) {
-                $feedPath = null;
                 try {
-                    $feedPath = $this->getCanceledOrdersFeed(
+                    $feedPath = $this->createCanceledOrdersFeedFile(
                         $store->getId(),
                         $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))
                             ->sub(new DateInterval(static::LOOKBACK_INTERVAL)),
                         $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))
                     );
-                    $this->feedClient->transmitFeedFile(
+                    $this->temporaryFeedFile->transmitAndDelete(
                         $feedPath,
                         self::FEED_NAME,
                         self::FEED_STYLE,
-                        $store->getCode(),
-                        true
+                        $store->getCode()
                     );
                 } catch (Exception $e) {
                     $this->logger->error(
@@ -182,19 +184,17 @@ class CanceledOrders
                             'exception' => $e
                         ]
                     );
-                } finally {
-                    if (is_string($feedPath) && $feedPath !== '' && is_file($feedPath)) {
-                        unlink($feedPath);
-                    }
                 }
             }
         }
     }
 
     /**
-     * @param $storeId
-     * @param $fromDate
-     * @param $toDate
+     * Create collection of canceled orders
+     *
+     * @param int|string $storeId
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
      *
      * @return Collection
      */
@@ -208,57 +208,40 @@ class CanceledOrders
     }
 
     /**
+     * Write orders to file
+     *
      * @param WriteInterface $outputFile
-     * @param      $orders
+     * @param Collection $orders
      * @param bool $forceIncludeAllItems
      *
      * @return void
      */
     protected function writeOrdersToFeed(WriteInterface $outputFile, $orders, $forceIncludeAllItems)
     {
-        if ($orders->getSize() === 0) {
-            return;
-        }
-
-        $orderIds = [];
-        $productIds = [];
-        foreach ($orders as $order) {
-            $orderIds[] = (int) $order->getEntityId();
-            foreach ($order->getItems() as $item) {
-                if ($item->isDeleted() || $item->getParentItemId()) {
-                    continue;
-                }
-                $pid = (int) $item->getProductId();
-                if ($pid > 0) {
-                    $productIds[] = $pid;
-                }
-            }
-        }
-        $storeId = (int) $orders->getFirstItem()->getStoreId();
-        $shipmentsByOrderId = $this->ordersExport->getShipmentsIndexedByOrderId($orderIds, $storeId);
-        // Preload products for the whole batch once instead of loading per order.
-        $productsById = $this->ordersExport->getProductsIndexedById($productIds);
+        $itemDataByOrderId = $this->ordersExport->getItemDataForOrders($orders, $forceIncludeAllItems);
 
         foreach ($orders as $order) {
+            $orderId = (int) $order->getEntityId();
             try {
-                $oid = (int) $order->getEntityId();
-                $orderShipments = $shipmentsByOrderId[$oid] ?? [];
-                $items = $this->ordersExport->getItemData($order, $forceIncludeAllItems, $orderShipments, $productsById);
-                foreach ($items as $item) {
-                    $row = [];
+                foreach ($itemDataByOrderId[$orderId] ?? [] as $item) {
                     $lineItem = $item[Orders::LINE_ITEM_FIELD_ID];
                     $product = $item[Orders::PRODUCT_FIELD_ID];
-                    $sku = $this->config->getUseChildSku($order->getStoreId()) ? $lineItem->getSku() : $product->getSku();
+                    $sku = $this->config->getUseChildSku($order->getStoreId()) ?
+                        $lineItem->getSku() :
+                        $product->getSku();
 
-                    $row[] = $order->getIncrementId();
-                    $row[] = $this->product->turnToSafeEncoding($sku);
-
-                    $outputFile->writeCsv($row, "\t", '"');
+                    $outputFile->writeCsv(
+                        [$order->getIncrementId(), $this->product->turnToSafeEncoding($sku)],
+                        "\t",
+                        '"'
+                    );
                 }
             } catch (Exception $e) {
                 $this->logger->error(
                     'An error occurred while writing order data to the canceled orders feed',
                     [
+                        'order_id' => $orderId,
+                        'store_id' => (int) $order->getStoreId(),
                         'exception' => $e,
                     ]
                 );

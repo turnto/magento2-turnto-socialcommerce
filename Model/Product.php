@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\Model;
 
-use Magento\Catalog\Model\Locator\RegistryLocator;
+use Magento\Catalog\Model\Locator\LocatorInterface;
 use Magento\Framework\Exception\NotFoundException;
 
 class Product
@@ -27,15 +27,15 @@ class Product
     ];
 
     /**
-     * @var RegistryLocator
+     * @var LocatorInterface
      */
     protected $locator;
 
     /**
-     * @param RegistryLocator $locator
+     * @param LocatorInterface $locator
      */
     public function __construct(
-        RegistryLocator $locator
+        LocatorInterface $locator
     ) {
         $this->locator = $locator;
     }
