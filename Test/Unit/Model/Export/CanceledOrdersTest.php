@@ -204,6 +204,49 @@ class CanceledOrdersTest extends TestCase
         $this->createCanceledOrders(true)->cronUploadFeed();
     }
 
+    public function testCronUploadFeedIncludesItemsWithoutADeliveryDate(): void
+    {
+        $this->stubStore();
+        $this->stubCanceledOrderCollection([$this->createOrder(1, '100000001')]);
+        $this->ordersExport = $this->createMock(Orders::class);
+        $this->ordersExport->expects($this->once())
+            ->method('getItemDataForOrders')
+            ->with($this->anything(), true)
+            ->willReturn([1 => [$this->createItemData('child-a', 'parent-a')]]);
+        $this->temporaryFeedFile->method('create')->willReturnCallback(
+            function (string $prefix, callable $writeRows) {
+                $writeRows($this->createOutputFile());
+
+                return '/tmp/' . $prefix . 'x.tsv';
+            }
+        );
+
+        $this->createCanceledOrders(true)->cronUploadFeed();
+
+        $this->assertSame([['ORDERID', 'SKU'], ['100000001', 'parent-a']], $this->writtenRows);
+    }
+
+    public function testWriteOrdersToFeedPassesTheOrderedProductToTheSkuResolver(): void
+    {
+        $item = $this->createItemData('child-a', 'parent-a');
+        $orderedProduct = $this->createStub(CatalogProduct::class);
+        $item[Orders::ORDERED_PRODUCT_FIELD_ID] = $orderedProduct;
+        $this->ordersExport = $this->createMock(Orders::class);
+        $this->ordersExport->method('getItemDataForOrders')->willReturn([1 => [$item]]);
+        $this->ordersExport->expects($this->once())
+            ->method('getFeedSku')
+            ->with($item[Orders::LINE_ITEM_FIELD_ID], $item[Orders::PRODUCT_FIELD_ID], 1, $orderedProduct)
+            ->willReturn('grouped-child');
+
+        $this->createCanceledOrders()->callWriteOrdersToFeed(
+            $this->createOutputFile(),
+            new FakeOrderCollection([$this->createOrder(1, '100000001')]),
+            false
+        );
+
+        $this->assertSame([['100000001', 'grouped-child']], $this->writtenRows);
+    }
+
     public function testCronUploadFeedLogsTheStoreWhenTheFeedFails(): void
     {
         $this->stubStore();
@@ -238,6 +281,12 @@ class CanceledOrdersTest extends TestCase
 
         $product = $this->createStub(Product::class);
         $product->method('turnToSafeEncoding')->willReturnArgument(0);
+
+        $this->ordersExport->method('getFeedSku')->willReturnCallback(
+            function ($lineItem, $catalogProduct) {
+                return $this->useChildSku ? $lineItem->getSku() : $catalogProduct->getSku();
+            }
+        );
 
         $dateTimeFactory = $this->createStub(DateTimeFactory::class);
         $dateTimeFactory->method('create')->willReturnCallback(function () {

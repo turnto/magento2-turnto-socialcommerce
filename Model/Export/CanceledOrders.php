@@ -153,7 +153,9 @@ class CanceledOrders
     }
 
     /**
-     * CRON handler that sends the last 2 days of orders to TurnTo
+     * CRON handler that sends the last 2 days of canceled orders to TurnTo
+     *
+     * Canceled items are rarely shipped, so every item is sent regardless of the delivery date settings.
      *
      * @return void
      */
@@ -168,7 +170,8 @@ class CanceledOrders
                         $store->getId(),
                         $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))
                             ->sub(new DateInterval(static::LOOKBACK_INTERVAL)),
-                        $this->dateTimeFactory->create('now', new DateTimeZone('UTC'))
+                        $this->dateTimeFactory->create('now', new DateTimeZone('UTC')),
+                        true
                     );
                     $this->temporaryFeedFile->transmitAndDelete(
                         $feedPath,
@@ -224,11 +227,12 @@ class CanceledOrders
             $orderId = (int) $order->getEntityId();
             try {
                 foreach ($itemDataByOrderId[$orderId] ?? [] as $item) {
-                    $lineItem = $item[Orders::LINE_ITEM_FIELD_ID];
-                    $product = $item[Orders::PRODUCT_FIELD_ID];
-                    $sku = $this->config->getUseChildSku($order->getStoreId()) ?
-                        $lineItem->getSku() :
-                        $product->getSku();
+                    $sku = $this->ordersExport->getFeedSku(
+                        $item[Orders::LINE_ITEM_FIELD_ID],
+                        $item[Orders::PRODUCT_FIELD_ID],
+                        $order->getStoreId(),
+                        $item[Orders::ORDERED_PRODUCT_FIELD_ID] ?? null
+                    );
 
                     $outputFile->writeCsv(
                         [$order->getIncrementId(), $this->product->turnToSafeEncoding($sku)],

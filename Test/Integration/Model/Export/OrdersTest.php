@@ -11,6 +11,8 @@ use DateTime;
 use DateTimeZone;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Filesystem;
+use Magento\Sales\Api\Data\OrderInterfaceFactory;
+use Magento\Sales\Api\OrderItemRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
@@ -88,6 +90,36 @@ class OrdersTest extends TestCase
         $this->assertStringStartsWith("ORDERID\t", $contents);
         $this->assertStringContainsString('100000001', $contents);
         $this->assertSame($tmpFeedsBefore, $this->getTmpOrderFeedFiles());
+    }
+
+    /**
+     * Virtual items never ship, so the invoice date is their delivery date and they survive the delivery date filter.
+     *
+     * @magentoDataFixture Magento/Sales/_files/invoice.php
+     * @magentoConfigFixture current_store turnto_socialcommerce_configuration/historical_orders_feed/exclude_items_without_delivery_date 1
+     */
+    public function testCreateOrdersFeedFileUsesTheInvoiceDateAsTheDeliveryDateOfVirtualItems(): void
+    {
+        $order = $this->objectManager->get(OrderInterfaceFactory::class)->create()->loadByIncrementId('100000001');
+        $orderItemRepository = $this->objectManager->get(OrderItemRepositoryInterface::class);
+        foreach ($order->getAllItems() as $item) {
+            $item->setIsVirtual(1);
+            $orderItemRepository->save($item);
+        }
+        $invoice = $order->getInvoiceCollection()->getFirstItem();
+
+        $this->generatedFeedPath = $this->createOrders()->createOrdersFeedFile(
+            $this->getStoreId(),
+            new DateTime('-1 day', new DateTimeZone('UTC')),
+            new DateTime('+1 day', new DateTimeZone('UTC')),
+            false
+        );
+
+        $rows = $this->parseFeed((string) file_get_contents($this->generatedFeedPath));
+        $this->assertCount(2, $rows, 'The invoiced virtual item should be exported.');
+        $this->assertSame('100000001', $rows[1][0]);
+        $this->assertNotEmpty($invoice->getCreatedAt());
+        $this->assertSame($invoice->getCreatedAt(), $rows[1][12], 'The delivery date should be the invoice date.');
     }
 
     protected function createOrders(): Orders
