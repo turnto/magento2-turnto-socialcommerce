@@ -10,13 +10,19 @@ namespace TurnTo\SocialCommerce\Controller\Adminhtml\System\ExportCatalog;
 use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
 use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Export\Catalog;
 
-class Export extends Action
+class Export extends Action implements HttpPostActionInterface
 {
+    /**
+     * The export button lives on the TurnTo configuration section, so it shares that ACL resource.
+     */
+    public const ADMIN_RESOURCE = 'TurnTo_SocialCommerce::socialcommerce_general_config';
+
     /**
      * @var JsonFactory
      */
@@ -51,7 +57,7 @@ class Export extends Action
     }
 
     /**
-     * Collect relations data
+     * Transmit the catalog feed on demand
      *
      * @return Json
      */
@@ -62,12 +68,14 @@ class Export extends Action
         try {
             $this->catalogExport->cronUploadFeed();
         } catch (Exception $e) {
-            $this->logger->error("An error occurred while transmitting the catalog feed to TurnTo. [Manual Export]",
+            $this->logger->error(
+                'An error occurred while transmitting the catalog feed to TurnTo. [Manual Export]',
                 [
                     'exception' => $e,
                     'message' => $e->getMessage()
                 ]
             );
+
             return $result->setData(['success' => false]);
         }
 

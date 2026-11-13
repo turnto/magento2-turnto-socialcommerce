@@ -13,6 +13,7 @@ use Magento\Catalog\Api\Data\ProductAttributeInterface;
 use Magento\Catalog\Helper\Image;
 use Magento\Catalog\Model\Category;
 use Magento\Catalog\Model\Product as CatalogProduct;
+use Magento\Catalog\Pricing\Price\FinalPrice;
 use Magento\Eav\Model\Config as EavConfig;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -23,6 +24,7 @@ use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Model\Config\Gtin;
 use TurnTo\SocialCommerce\Model\Export\CategoryPathResolver;
+use TurnTo\SocialCommerce\Model\Export\ProductRelations;
 use TurnTo\SocialCommerce\Model\Product;
 
 /**
@@ -30,6 +32,11 @@ use TurnTo\SocialCommerce\Model\Product;
  */
 abstract class AbstractFeedGenerator implements FeedGeneratorInterface
 {
+    /**
+     * Product types priced from their children or selections
+     */
+    public const COMPOSITE_PRICE_TYPES = ['configurable', 'bundle', 'grouped'];
+
     /**
      * @var Config
      */
@@ -322,6 +329,38 @@ abstract class AbstractFeedGenerator implements FeedGeneratorInterface
     }
 
     /**
+     * Price to export, in the store's currency
+     *
+     * Configurable, bundle and grouped products have no price of their own until options are chosen, so their
+     * "from" price comes from the pricing framework, which already returns the store currency.
+     *
+     * @param CatalogProduct $product
+     * @param int|string|null $storeId
+     * @return float
+     */
+    protected function getExportPrice(CatalogProduct $product, $storeId)
+    {
+        if (in_array($product->getTypeId(), self::COMPOSITE_PRICE_TYPES, true)) {
+            try {
+                $price = $product->getPriceInfo()->getPrice(FinalPrice::PRICE_CODE)->getValue();
+
+                return $this->priceCurrency->round((float) $price);
+            } catch (Exception $e) {
+                $this->logger->error(
+                    'Error retrieving composite product price',
+                    [
+                        'exception' => $e,
+                        'productId' => $product->getId(),
+                        'store_id' => $storeId
+                    ]
+                );
+            }
+        }
+
+        return $this->priceCurrency->convertAndRound($product->getFinalPrice(), $storeId);
+    }
+
+    /**
      * Get item group ID for a given product
      *
      * @param CatalogProduct $product
@@ -336,6 +375,24 @@ abstract class AbstractFeedGenerator implements FeedGeneratorInterface
         } else {
             return $this->product->turnToSafeEncoding($product->getSku());
         }
+    }
+
+    /**
+     * Product whose URL is exported for the given product
+     *
+     * @param CatalogProduct $product
+     * @param CatalogProduct|bool|null $parent
+     * @return CatalogProduct
+     */
+    protected function getUrlProduct($product, $parent)
+    {
+        if ($parent) {
+            return $parent;
+        }
+
+        $urlProduct = $product->getData(ProductRelations::URL_PRODUCT_FIELD);
+
+        return $urlProduct instanceof CatalogProduct ? $urlProduct : $product;
     }
 
     /**

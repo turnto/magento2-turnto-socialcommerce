@@ -187,7 +187,7 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
             throw new Exception('Product must have a valid sku');
         }
 
-        $productUrl = $parent ? $this->exportProduct->getProductUrl($parent, $storeId) : $this->exportProduct->getProductUrl($product, $storeId);
+        $productUrl = $this->exportProduct->getProductUrl($this->getUrlProduct($product, $parent), $storeId);
         if (empty($productUrl)) {
             throw new Exception('Product must have a valid store-product url');
         }
@@ -249,7 +249,7 @@ class GoogleFeedGenerator extends AbstractFeedGenerator
         $productImageUrl = $this->getProductImageUrl($product);
         $entry->addChild('g:image_link', $this->sanitizeData($productImageUrl), $gNs);
         $entry->addChild('g:condition', 'new', $gNs);
-        $price = $this->priceCurrency->convertAndRound($product->getFinalPrice(), $storeId);
+        $price = $this->getExportPrice($product, $storeId);
         $currencyCode = $this->priceCurrency->getCurrency($storeId)->getCurrencyCode();
         $entry->addChild('g:price', $price . ' ' . $currencyCode, $gNs);
         $itemGroupId = $this->getItemGroupId($product, $parent);

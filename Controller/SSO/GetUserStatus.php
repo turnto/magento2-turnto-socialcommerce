@@ -10,8 +10,7 @@ namespace TurnTo\SocialCommerce\Controller\SSO;
 use Exception;
 use InvalidArgumentException;
 use Magento\Customer\Model\Session;
-use Magento\Framework\App\Action\Action;
-use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
 use TurnTo\SocialCommerce\Logger\Monolog;
@@ -19,7 +18,7 @@ use RuntimeException;
 use TurnTo\SocialCommerce\Api\SsoResponseCodeInterface;
 use TurnTo\SocialCommerce\Api\JwtInterface;
 
-class GetUserStatus extends Action implements SsoResponseCodeInterface
+class GetUserStatus implements SsoResponseCodeInterface, HttpGetActionInterface
 {
     /**
      * @var Session
@@ -42,14 +41,12 @@ class GetUserStatus extends Action implements SsoResponseCodeInterface
 
     /**
      * GetUserStatus constructor.
-     * @param Context $context
      * @param ResultFactory $resultFactory
      * @param Session $customerSession
      * @param JwtInterface $jwt
      * @param Monolog $logger
      */
     public function __construct(
-        Context $context,
         ResultFactory $resultFactory,
         Session $customerSession,
         JwtInterface $jwt,
@@ -59,7 +56,6 @@ class GetUserStatus extends Action implements SsoResponseCodeInterface
         $this->resultFactory = $resultFactory;
         $this->jwt = $jwt;
         $this->logger = $logger;
-        parent::__construct($context);
     }
 
     /**

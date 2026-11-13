@@ -11,15 +11,17 @@ use Exception;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\TransferException;
+use GuzzleHttp\Psr7\Utils;
 use GuzzleHttp\RequestOptions;
 use SimpleXMLElement;
 use TurnTo\SocialCommerce\Api\FeedClient;
+use TurnTo\SocialCommerce\Api\FeedFileClientInterface;
 use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Config\Source\FeedFormat;
 use TurnTo\SocialCommerce\Model\File;
 
-class Client implements FeedClient
+class Client implements FeedClient, FeedFileClientInterface
 {
     /**
      * Response body from TurnTo servers on successful operation
@@ -65,6 +67,58 @@ class Client implements FeedClient
      */
     public function transmitFeedFile($feedData, string $fileName, string $feedStyle, string $storeCode)
     {
+        $this->transmitWithRetries(
+            function () use ($feedData, $feedStyle, $storeCode) {
+                if ($feedStyle === FeedFormat::GOOGLE_PRODUCT) {
+                    if ($feedData instanceof SimpleXMLElement) {
+                        $feedData = $feedData->asXML();
+                    }
+                    $this->file->writeFile("turnto/google-product_storecode_$storeCode.xml", $feedData);
+                } elseif ($feedStyle === FeedFormat::COMMERCE) {
+                    $this->file->writeFile("turnto/commerce-product_storecode_$storeCode.tsv", $feedData);
+                }
+
+                return $feedData;
+            },
+            $fileName,
+            $feedStyle,
+            $storeCode
+        );
+    }
+
+    /**
+     * @inheritdoc
+     * @throws GuzzleException
+     */
+    public function transmitFeedFromPath(string $filePath, string $fileName, string $feedStyle, string $storeCode)
+    {
+        // Each attempt opens a fresh stream: Guzzle consumes and closes the previous one.
+        $this->transmitWithRetries(
+            static function () use ($filePath) {
+                return Utils::tryFopen($filePath, 'rb');
+            },
+            $fileName,
+            $feedStyle,
+            $storeCode
+        );
+    }
+
+    /**
+     * POST the feed to TurnTo, retrying transient failures with exponential backoff.
+     *
+     * @param callable $fileContentsProvider Returns the multipart file contents for one attempt
+     * @param string $fileName
+     * @param string $feedStyle
+     * @param string $storeCode
+     * @return void
+     * @throws Exception
+     */
+    protected function transmitWithRetries(
+        callable $fileContentsProvider,
+        string $fileName,
+        string $feedStyle,
+        string $storeCode
+    ): void {
         for ($attempt = 1; $attempt <= self::MAX_TRANSMISSION_ATTEMPTS; $attempt++) {
             $responseContents = '';
             $statusCode = null;
@@ -76,18 +130,10 @@ class Client implements FeedClient
                 'attempt' => $attempt,
                 'max_attempts' => self::MAX_TRANSMISSION_ATTEMPTS
             ];
+            $fileFieldContents = null;
 
             try {
-                if ($feedStyle === FeedFormat::GOOGLE_PRODUCT) {
-                    if ($feedData instanceof SimpleXMLElement) {
-                        $feedData = $feedData->asXML();
-                    }
-                    $path = "turnto/google-product_storecode_$storeCode.xml";
-                    $this->file->writeFile($path, $feedData);
-                } elseif ($feedStyle === FeedFormat::COMMERCE) {
-                    $path = "turnto/commerce-product_storecode_$storeCode.tsv";
-                    $this->file->writeFile($path, $feedData);
-                }
+                $fileFieldContents = $fileContentsProvider();
 
                 $response = $this->client->request(
                     'POST',
@@ -109,7 +155,7 @@ class Client implements FeedClient
                             ],
                             [
                                 'name' => 'file',
-                                'contents' => $feedData,
+                                'contents' => $fileFieldContents,
                                 'filename' => $fileName
                             ]
                         ]
@@ -169,6 +215,11 @@ class Client implements FeedClient
                 );
 
                 throw $e;
+            } finally {
+                if (is_resource($fileFieldContents)) {
+                    // phpcs:ignore Magento2.Functions.DiscouragedFunction
+                    fclose($fileFieldContents);
+                }
             }
         }
     }

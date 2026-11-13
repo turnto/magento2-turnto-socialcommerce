@@ -37,6 +37,16 @@ class TestableCommerceFeedGenerator extends CommerceFeedGenerator
     }
 
     /**
+     * @param CatalogProduct $product
+     * @param int|string|null $storeId
+     * @return float
+     */
+    public function callGetExportPrice($product, $storeId)
+    {
+        return $this->getExportPrice($product, $storeId);
+    }
+
+    /**
      * @inheritdoc
      */
     protected function getCategoryTreeString(CatalogProduct $product, $storeId)
@@ -68,11 +78,11 @@ class TestableCommerceFeedGenerator extends CommerceFeedGenerator
             /**
              * @var string
              */
-            private $name;
+            protected $name;
             /**
              * @var int
              */
-            private $id;
+            protected $id;
 
             /**
              * @param string $name

@@ -14,7 +14,9 @@ use Magento\Catalog\Model\Product as CatalogProduct;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Directory\Model\Currency;
 use Magento\Framework\Intl\DateTimeFactory;
+use Magento\Framework\Pricing\Price\PriceInterface;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
+use Magento\Framework\Pricing\PriceInfo\Base as PriceInfoBase;
 use Magento\Eav\Model\Config as EavConfig;
 use Magento\Eav\Model\Entity\Attribute\AbstractAttribute;
 use Magento\Store\Model\Store;
@@ -245,6 +247,54 @@ class GoogleFeedGeneratorTest extends TestCase
         $this->assertStringContainsString(
             '<g:price xmlns:g="http://base.google.com/ns/1.0">12.34 USD</g:price>',
             $xmlString
+        );
+    }
+
+    public function testAddProductToAtomFeedWritesTheFromPriceOfABundle()
+    {
+        $turntoProduct = $this->createMock(Product::class);
+        $turntoProduct->method('turnToSafeEncoding')->willReturnArgument(0);
+        $priceCurrency = $this->createMock(PriceCurrencyInterface::class);
+        $priceCurrency->expects($this->never())->method('convertAndRound');
+        $priceCurrency->method('round')->with(42.5)->willReturn(42.5);
+        $currencyMock = $this->createPartialMock(Currency::class, ['getCurrencyCode']);
+        $currencyMock->method('getCurrencyCode')->willReturn('USD');
+        $priceCurrency->method('getCurrency')->with(1)->willReturn($currencyMock);
+        $exportProduct = $this->createMock(ExportProduct::class);
+        $exportProduct->method('getProductUrl')->willReturn('https://example.com/bundle');
+
+        $generator = new TestableGoogleFeedGenerator(
+            $this->createMock(ConfigModel::class),
+            $this->createMock(Gtin::class),
+            $this->createMock(Image::class),
+            $turntoProduct,
+            $this->eavConfig,
+            $priceCurrency,
+            $this->createMock(Monolog::class),
+            $this->createMock(DateTimeFactory::class),
+            $this->categoryPathResolver,
+            $exportProduct
+        );
+
+        $price = $this->createMock(PriceInterface::class);
+        $price->method('getValue')->willReturn(42.5);
+        $priceInfo = $this->createMock(PriceInfoBase::class);
+        $priceInfo->method('getPrice')->with('final_price')->willReturn($price);
+
+        $product = $this->createMock(CatalogProduct::class);
+        $product->method('getSku')->willReturn('BUNDLE-1');
+        $product->method('getName')->willReturn('Bundle');
+        $product->method('getTypeId')->willReturn('bundle');
+        $product->method('getPriceInfo')->willReturn($priceInfo);
+        $product->method('getFinalPrice')->willReturn(0.0);
+        $product->method('getStatus')->willReturn(Status::STATUS_ENABLED);
+
+        $entry = new SimpleXMLElement('<entry />');
+        $generator->callAddProductToAtomFeed($entry, $product, 1, false);
+
+        $this->assertStringContainsString(
+            '<g:price xmlns:g="http://base.google.com/ns/1.0">42.5 USD</g:price>',
+            (string) $entry->asXML()
         );
     }
 
