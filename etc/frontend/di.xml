@@ -10,6 +10,9 @@
     <type name="Magento\Review\Block\Product\Review">
         <plugin sortOrder="1" name="turnToSocialCommerceReview" type="TurnTo\SocialCommerce\Plugin\Block\Product\ReviewPlugin"/>
     </type>
+    <type name="Magento\LayeredNavigation\Block\Navigation\FilterRenderer">
+        <plugin name="turnto_socialcommerce_rating_filter_renderer" type="TurnTo\SocialCommerce\Plugin\LayeredNavigation\Block\Navigation\FilterRenderer" sortOrder="1" />
+    </type>
     <type name="Magento\Swatches\Helper\Data">
         <plugin name="turnto_socialcommerce_swatch_media_sku" type="TurnTo\SocialCommerce\Plugin\AddSkuToSwatchMediaPlugin" sortOrder="1" />
     </type>

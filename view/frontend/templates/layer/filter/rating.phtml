@@ -1,0 +1,49 @@
+<?php
+/**
+ * Copyright © Emplifi, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+use Magento\Framework\Locale\LocaleFormatter;
+use TurnTo\SocialCommerce\Block\LayeredNavigation\RatingFilter;
+
+/** @var RatingFilter $block */
+/** @var LocaleFormatter $localeFormatter */
+$displayCount = $block->shouldDisplayProductCount();
+?>
+<ol class="items">
+    <?php foreach ($block->getFilterItems() as $filterItem): ?>
+        <?php
+        $percent = $block->getRatingPercent($filterItem);
+        $count = (int) $filterItem->getCount();
+        ?>
+        <li class="item">
+            <?php if ($count > 0): ?>
+                <a href="<?= $block->escapeUrl($filterItem->getUrl()) ?>" rel="nofollow">
+            <?php endif; ?>
+            <?php if ($percent !== null): ?>
+                <span class="rating-summary">
+                    <span class="rating-result" title="<?= /* @noEscape */ $percent ?>%">
+                        <span style="width:<?= /* @noEscape */ $percent ?>%;">
+                            <span><?= /* @noEscape */ $percent ?>%</span>
+                        </span>
+                    </span>
+                    <?= $block->escapeHtml($block->getRatingSuffix($percent)) ?>
+                </span>
+            <?php else: ?>
+                <?= $block->escapeHtml($filterItem->getLabel()) ?>
+            <?php endif; ?>
+            <?php if ($displayCount): ?>
+                <span class="count">
+                    <?= /* @noEscape */ isset($localeFormatter) ? $localeFormatter->formatNumber($count) : $count ?>
+                    <span class="filter-count-label">
+                        <?= $block->escapeHtml($count === 1 ? __('item') : __('items')) ?>
+                    </span>
+                </span>
+            <?php endif; ?>
+            <?php if ($count > 0): ?>
+                </a>
+            <?php endif; ?>
+        </li>
+    <?php endforeach; ?>
+</ol>

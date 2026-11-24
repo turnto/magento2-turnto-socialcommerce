@@ -10,9 +10,11 @@ namespace TurnTo\SocialCommerce\Test\Unit\Service\GoogleFeed;
 use Exception;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\TransferException;
+use GuzzleHttp\RequestOptions;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
+use RuntimeException;
 use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Model\Config\Source\FeedFormat;
@@ -37,12 +39,16 @@ class ClientTest extends TestCase
      * @var Monolog
      */
     protected $logger;
+    /**
+     * @var string[]
+     */
+    protected $feedFiles = [];
 
     protected function setUp(): void
     {
-        $this->config = $this->createMock(Config::class);
+        $this->config = $this->createStub(Config::class);
         $this->client = $this->createMock(GuzzleClient::class);
-        $this->file = $this->createMock(File::class);
+        $this->file = $this->createStub(File::class);
         $this->logger = $this->createMock(Monolog::class);
 
         $this->config->method('getConfigValue')->willReturn('https://feed.test/upload');
@@ -58,6 +64,7 @@ class ClientTest extends TestCase
             ->method('request')
             ->willReturn($response);
 
+        $this->file = $this->createMock(File::class);
         $this->file->expects($this->exactly(2))
             ->method('writeFile')
             ->willReturnCallback(function ($fileName, $contents) use (&$writeCalls) {
@@ -99,8 +106,6 @@ class ClientTest extends TestCase
         $this->logger->expects($this->once())->method('warning');
         $this->logger->expects($this->never())->method('error');
 
-        $this->file->expects($this->any())->method('writeFile');
-
         $client = new TestableClient(
             $this->config,
             $this->logger,
@@ -125,8 +130,6 @@ class ClientTest extends TestCase
 
         $this->logger->expects($this->once())->method('warning');
         $this->logger->expects($this->never())->method('error');
-
-        $this->file->expects($this->any())->method('writeFile');
 
         $client = new TestableClient(
             $this->config,
@@ -217,12 +220,97 @@ class ClientTest extends TestCase
         );
     }
 
+    public function testTransmitFeedFromPathStreamsTheFileAndClosesTheStream()
+    {
+        $feedPath = $this->createFeedFile("ORDERID\n100000001\n");
+        $sentStreams = [];
+        $sentContents = [];
+        $this->client->expects($this->once())
+            ->method('request')
+            ->willReturnCallback(function ($method, $uri, array $options) use (&$sentStreams, &$sentContents) {
+                $fileField = $options[RequestOptions::MULTIPART][3];
+                $this->assertSame('file', $fileField['name']);
+                $this->assertSame('historical-orders-feed.tsv', $fileField['filename']);
+                $sentStreams[] = $fileField['contents'];
+                $sentContents[] = stream_get_contents($fileField['contents']);
+
+                return $this->createResponse(200, 'SUCCESS');
+            });
+        $this->file = $this->createMock(File::class);
+        $this->file->expects($this->never())->method('writeFile');
+        $this->logger->expects($this->never())->method('error');
+
+        $client = new TestableClient($this->config, $this->logger, $this->client, $this->file);
+        $client->transmitFeedFromPath($feedPath, 'historical-orders-feed.tsv', 'tab-style.1', 'default');
+
+        $this->assertSame(["ORDERID\n100000001\n"], $sentContents);
+        $this->assertFalse(is_resource($sentStreams[0]), 'The file handle is closed after the request.');
+    }
+
+    public function testTransmitFeedFromPathReopensTheFileForEachRetry()
+    {
+        $feedPath = $this->createFeedFile("ORDERID\n");
+        $sentContents = [];
+        $this->client->expects($this->exactly(2))
+            ->method('request')
+            ->willReturnCallback(function ($method, $uri, array $options) use (&$sentContents) {
+                $sentContents[] = stream_get_contents($options[RequestOptions::MULTIPART][3]['contents']);
+
+                return count($sentContents) === 1
+                    ? $this->createResponse(503, 'Unavailable')
+                    : $this->createResponse(200, 'SUCCESS');
+            });
+        $this->logger->expects($this->once())->method('warning');
+        $this->logger->expects($this->never())->method('error');
+
+        $client = new TestableClient($this->config, $this->logger, $this->client, $this->file);
+        $client->transmitFeedFromPath($feedPath, 'historical-orders-feed.tsv', 'tab-style.1', 'default');
+
+        $this->assertSame(["ORDERID\n", "ORDERID\n"], $sentContents);
+    }
+
+    public function testTransmitFeedFromPathFailsWithoutRetryingWhenTheFileIsMissing()
+    {
+        $this->client->expects($this->never())->method('request');
+        $this->logger->expects($this->never())->method('warning');
+        $this->logger->expects($this->once())->method('error');
+
+        $this->expectException(RuntimeException::class);
+
+        $client = new TestableClient($this->config, $this->logger, $this->client, $this->file);
+        $client->transmitFeedFromPath(
+            sys_get_temp_dir() . '/turnto-missing-feed-' . uniqid() . '.tsv',
+            'historical-orders-feed.tsv',
+            'tab-style.1',
+            'default'
+        );
+    }
+
+    protected function createFeedFile(string $contents): string
+    {
+        $path = tempnam(sys_get_temp_dir(), 'turnto-feed-');
+        file_put_contents($path, $contents);
+        $this->feedFiles[] = $path;
+
+        return $path;
+    }
+
+    protected function tearDown(): void
+    {
+        foreach ($this->feedFiles as $path) {
+            if (is_file($path)) {
+                unlink($path);
+            }
+        }
+        $this->feedFiles = [];
+    }
+
     protected function createResponse(int $statusCode, string $body): ResponseInterface
     {
-        $stream = $this->createMock(StreamInterface::class);
+        $stream = $this->createStub(StreamInterface::class);
         $stream->method('getContents')->willReturn($body);
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn($statusCode);
         $response->method('getBody')->willReturn($stream);
 

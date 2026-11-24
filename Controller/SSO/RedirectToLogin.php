@@ -8,11 +8,16 @@ declare(strict_types=1);
 namespace TurnTo\SocialCommerce\Controller\SSO;
 
 use Magento\Customer\Model\SessionFactory;
-use Magento\Framework\App\Action\Action;
-use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\Action\HttpGetActionInterface;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\App\Response\RedirectInterface;
+use Magento\Framework\Controller\Result\Redirect;
+use Magento\Framework\Controller\Result\RedirectFactory;
+use Magento\Framework\Message\ManagerInterface;
+use Magento\Framework\UrlInterface;
 use TurnTo\SocialCommerce\Model\Config;
 
-class RedirectToLogin extends Action
+class RedirectToLogin implements HttpGetActionInterface
 {
     /**
      * @var SessionFactory
@@ -22,26 +27,61 @@ class RedirectToLogin extends Action
      * @var Config
      */
     protected $config;
+    /**
+     * @var RequestInterface
+     */
+    protected $request;
+    /**
+     * @var RedirectInterface
+     */
+    protected $redirect;
+    /**
+     * @var UrlInterface
+     */
+    protected $url;
+    /**
+     * @var RedirectFactory
+     */
+    protected $resultRedirectFactory;
+    /**
+     * @var ManagerInterface
+     */
+    protected $messageManager;
 
     /**
-     * @param Context $context
      * @param SessionFactory $customerSessionFactory
      * @param Config $config
+     * @param RequestInterface $request
+     * @param RedirectInterface $redirect
+     * @param UrlInterface $url
+     * @param RedirectFactory $resultRedirectFactory
+     * @param ManagerInterface $messageManager
      */
     public function __construct(
-        Context $context,
         SessionFactory $customerSessionFactory,
-        Config $config
+        Config $config,
+        RequestInterface $request,
+        RedirectInterface $redirect,
+        UrlInterface $url,
+        RedirectFactory $resultRedirectFactory,
+        ManagerInterface $messageManager
     ) {
-        parent::__construct($context);
         $this->customerSessionFactory = $customerSessionFactory;
         $this->config = $config;
+        $this->request = $request;
+        $this->redirect = $redirect;
+        $this->url = $url;
+        $this->resultRedirectFactory = $resultRedirectFactory;
+        $this->messageManager = $messageManager;
     }
 
+    /**
+     * @return Redirect
+     */
     public function execute()
     {
-        $url = $this->_redirect->getRefererUrl();
-        $login_url = $this->_url->getUrl(
+        $url = $this->redirect->getRefererUrl();
+        $login_url = $this->url->getUrl(
             'customer/account/login',
             ['referer' => base64_encode($url)]
         );
@@ -63,17 +103,17 @@ class RedirectToLogin extends Action
      */
     public function getMessage()
     {
-        $action = $this->getRequest()->getParam('action');
+        $action = $this->request->getParam('action');
         switch ($action) {
             case "QUESTION_CREATE":
-                if($this->getRequest()->getParam('authSetting') === 'ANONYMOUS'){
+                if ($this->request->getParam('authSetting') === 'ANONYMOUS') {
                     return $this->config->getConfigValue(Config::SSO_QUESTION_MSG_ANON);
                 }
                 return $this->config->getConfigValue(Config::SSO_QUESTION_MSG);
             case "ANSWER_CREATE":
                 return $this->config->getConfigValue(Config::SSO_ANSWER_MSG);
             case "REVIEW_CREATE":
-                if ($this->getRequest()->getParam('authSetting') === 'PURCHASE_REQUIRED') {
+                if ($this->request->getParam('authSetting') === 'PURCHASE_REQUIRED') {
                     return $this->config->getConfigValue(Config::SSO_REVIEW_MSG_PUR_REQ);
                 }
                 return $this->config->getConfigValue(Config::SSO_REVIEW_MSG);
@@ -84,4 +124,3 @@ class RedirectToLogin extends Action
         }
     }
 }
-

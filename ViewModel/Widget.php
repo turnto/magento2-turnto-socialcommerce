@@ -27,6 +27,11 @@ class Widget implements ArgumentInterface
      */
     protected $backendUrl;
 
+    /**
+     * @param ConfigModel $config
+     * @param Product $product
+     * @param UrlInterface $backendUrl
+     */
     public function __construct(
         ConfigModel $config,
         Product $product,

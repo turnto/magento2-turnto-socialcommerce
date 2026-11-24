@@ -8,10 +8,16 @@ declare(strict_types=1);
 namespace TurnTo\SocialCommerce\Model\Import;
 
 use Exception;
+use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\RequestOptions;
 use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Catalog\Model\Indexer\Product\Flat\Processor as ProductFlatIndexerProcessor;
+use Magento\Catalog\Model\Product\Action as ProductAction;
 use Magento\Catalog\Model\ProductFactory;
 use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
+use SimpleXMLElement;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use TurnTo\SocialCommerce\Model\Config;
@@ -67,6 +73,24 @@ class Ratings
      * @var ProductResource
      */
     protected $productResource;
+    /**
+     * @var HttpClient
+     */
+    protected $httpClient;
+    /**
+     * @var ProductAction
+     */
+    protected $productAction;
+    /**
+     * @var ProductFlatIndexerProcessor
+     */
+    protected $productFlatIndexerProcessor;
+    /**
+     * Cache of average-rating option text => option id, resolved once per request.
+     *
+     * @var array|null
+     */
+    protected $averageRatingOptionIds = null;
 
     /**
      * @param Config $config
@@ -76,15 +100,21 @@ class Ratings
      * @param StoreManagerInterface $storeManager
      * @param CollectionFactory $productCollectionFactory
      * @param Product $product
+     * @param HttpClient $httpClient
+     * @param ProductAction $productAction
+     * @param ProductFlatIndexerProcessor $productFlatIndexerProcessor
      */
     public function __construct(
-        Config                $config,
-        Monolog               $logger,
-        ProductFactory        $productFactory,
-        ProductResource       $productResource,
+        Config $config,
+        Monolog $logger,
+        ProductFactory $productFactory,
+        ProductResource $productResource,
         StoreManagerInterface $storeManager,
-        CollectionFactory     $productCollectionFactory,
-        Product               $product
+        CollectionFactory $productCollectionFactory,
+        Product $product,
+        HttpClient $httpClient,
+        ProductAction $productAction,
+        ProductFlatIndexerProcessor $productFlatIndexerProcessor
     ) {
         $this->config = $config;
         $this->logger = $logger;
@@ -93,6 +123,39 @@ class Ratings
         $this->storeManager = $storeManager;
         $this->productCollectionFactory = $productCollectionFactory;
         $this->product = $product;
+        $this->httpClient = $httpClient;
+        $this->productAction = $productAction;
+        $this->productFlatIndexerProcessor = $productFlatIndexerProcessor;
+    }
+
+    /**
+     * @param string $feedAddress
+     * @return string
+     * @throws GuzzleException
+     */
+    protected function fetchAggregateRatingsFeedBody(string $feedAddress): string
+    {
+        $response = $this->httpClient->request('GET', $feedAddress, [
+            RequestOptions::HTTP_ERRORS => true,
+            RequestOptions::TIMEOUT => 120,
+            RequestOptions::CONNECT_TIMEOUT => 15,
+            RequestOptions::ALLOW_REDIRECTS => [
+                'max' => 5,
+            ],
+        ]);
+
+        return (string) $response->getBody();
+    }
+
+    /**
+     * The feed carries the average rating as the product element's text content.
+     *
+     * @param SimpleXMLElement $turnToProduct
+     * @return float
+     */
+    protected function getAverageRatingFromFeedProduct(SimpleXMLElement $turnToProduct): float
+    {
+        return (float) trim((string) $turnToProduct);
     }
 
     /**
@@ -141,45 +204,136 @@ class Ratings
                 );
         }
 
-        if (!$product) {
+        if (!$product || !$product->getId()) {
             return false;
         }
 
         // Only proceed if product needs to be updated
-        if (
-            $product->getData(InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE) == $reviewCount
-            && $product->getData(InstallHelper::RATING_ATTRIBUTE_CODE) == $averageRating
-        ) {
+        if (!$this->ratingDataHasChanged($product, (int) $reviewCount, (float) $averageRating)) {
             return false;
         }
 
-        $product->setData(InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE, $reviewCount);
-        $this->productResource->saveAttribute($product, InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE);
-        $product->setData(InstallHelper::RATING_ATTRIBUTE_CODE, $averageRating);
-        $this->productResource->saveAttribute($product, InstallHelper::RATING_ATTRIBUTE_CODE);
-
-        // Set "3 stars and above" tags
-        $filterValues = [];
-        if ($averageRating == 0) {
-            $product->setData(InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE, "0");
-        } else {
-            foreach ($this->getRatingFilterAttributeValuesFromAverage($averageRating) as $optionText) {
-                $filterValues[] = $this->productResource->getAttribute(InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE)->getSource()->getOptionId($optionText);
-            }
-            $product->setData(InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE, implode(',', $filterValues));
-        }
-        $this->productResource->saveAttribute($product, InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE);
-
-        //Set website_ids in OrigData to fix issue with ProductProcessUrlRewriteSavingObserver
-        if (!$product->getOrigData(self::WEBSITE_IDS)) {
-            $websiteIds = $product->getWebsiteIds();
-            $product->setOrigData(self::WEBSITE_IDS, $websiteIds);
-        }
-
-        // Ensure product gets reindexed
-        $product->afterSave();
+        $this->writeRatingAttributes(
+            [(int) $product->getId()],
+            $this->buildRatingAttributeData((int) $reviewCount, (float) $averageRating),
+            (int) $store->getId()
+        );
 
         return true;
+    }
+
+    /**
+     * Persist attribute values for many products at once and refresh the affected indexes.
+     *
+     * Mirrors Magento's mass "Update attributes" consumer so EAV, category, search and flat
+     * indexes stay in sync without a full product save per product.
+     *
+     * @param int[] $entityIds
+     * @param array $attributeData
+     * @param int $storeId
+     * @return void
+     */
+    protected function writeRatingAttributes(array $entityIds, array $attributeData, int $storeId): void
+    {
+        $this->productAction->updateAttributes($entityIds, $attributeData, $storeId);
+        $this->productFlatIndexerProcessor->reindexList($entityIds);
+    }
+
+    /**
+     * Whether the product's stored rating data differs from the incoming feed values.
+     *
+     * @param ProductInterface $product
+     * @param int $reviewCount
+     * @param float $averageRating
+     * @return bool
+     */
+    protected function ratingDataHasChanged(ProductInterface $product, int $reviewCount, float $averageRating): bool
+    {
+        $currentReviewCount = (int) $product->getData(InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE);
+        $currentRating = (float) $product->getData(InstallHelper::RATING_ATTRIBUTE_CODE);
+
+        return $currentReviewCount !== $reviewCount || $currentRating !== $averageRating;
+    }
+
+    /**
+     * Build the attribute value map written for a product's rating data.
+     *
+     * @param int $reviewCount
+     * @param float $averageRating
+     * @return array Attribute code => value map.
+     */
+    protected function buildRatingAttributeData(int $reviewCount, float $averageRating): array
+    {
+        $attributeData = [
+            InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE => $reviewCount,
+            InstallHelper::RATING_ATTRIBUTE_CODE => $averageRating,
+        ];
+
+        if ($averageRating <= 0.0) {
+            $attributeData[InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE] = "0";
+
+            return $attributeData;
+        }
+
+        $optionIds = [];
+        $optionIdMap = $this->getAverageRatingOptionIds();
+        foreach ($this->getRatingFilterAttributeValuesFromAverage($averageRating) as $optionText) {
+            if (!empty($optionIdMap[$optionText])) {
+                $optionIds[] = $optionIdMap[$optionText];
+            }
+        }
+        $attributeData[InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE] = implode(',', $optionIds);
+
+        return $attributeData;
+    }
+
+    /**
+     * Resolve the average-rating attribute option ids once and cache them for the request.
+     *
+     * @return array Option text => option id map.
+     */
+    protected function getAverageRatingOptionIds(): array
+    {
+        if ($this->averageRatingOptionIds === null) {
+            $this->averageRatingOptionIds = [];
+            $source = $this->productResource
+                ->getAttribute(InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE)
+                ->getSource();
+            foreach (InstallHelper::RATING_FILTER_VALUES as $optionText) {
+                $this->averageRatingOptionIds[$optionText] = $source->getOptionId($optionText);
+            }
+        }
+
+        return $this->averageRatingOptionIds;
+    }
+
+    /**
+     * Group products that share identical attribute values and write each group in one bulk call.
+     *
+     * @param StoreInterface $store
+     * @param array $updatesByEntityId Entity id => attribute data map.
+     * @return void
+     * @throws \Exception
+     */
+    protected function applyBulkAttributeUpdates(StoreInterface $store, array $updatesByEntityId): void
+    {
+        if (empty($updatesByEntityId)) {
+            return;
+        }
+
+        $groups = [];
+        foreach ($updatesByEntityId as $entityId => $attributeData) {
+            $groupKey = json_encode($attributeData);
+            if (!isset($groups[$groupKey])) {
+                $groups[$groupKey] = ['attributeData' => $attributeData, 'entityIds' => []];
+            }
+            $groups[$groupKey]['entityIds'][] = (int) $entityId;
+        }
+
+        $storeId = (int) $store->getId();
+        foreach ($groups as $group) {
+            $this->writeRatingAttributes($group['entityIds'], $group['attributeData'], $storeId);
+        }
     }
 
     /**
@@ -219,9 +373,18 @@ class Ratings
 
                 try {
                     $feedAddress = $this->getAggregateRatingsFeedAddress($store);
+                    try {
+                        $xmlString = $this->fetchAggregateRatingsFeedBody($feedAddress);
+                    } catch (GuzzleException $e) {
+                        throw new UnexpectedValueException(
+                            'Unable to download TurnTo aggregate rating feed',
+                            0,
+                            $e
+                        );
+                    }
                     $previousLibxmlUseInternalErrors = libxml_use_internal_errors(true);
                     try {
-                        $xmlFeed = simplexml_load_file($feedAddress);
+                        $xmlFeed = simplexml_load_string($xmlString);
                     } finally {
                         libxml_clear_errors();
                         libxml_use_internal_errors($previousLibxmlUseInternalErrors);
@@ -261,7 +424,7 @@ class Ratings
 
                             $turnToProductsBySku[$sku] = [
                                 'reviewCount' => $reviewCount,
-                                'averageRating' => (float)$turnToProduct
+                                'averageRating' => $this->getAverageRatingFromFeedProduct($turnToProduct)
                             ];
                         } catch (Exception $e) {
                             $this->logger->error(
@@ -280,6 +443,9 @@ class Ratings
                         array_keys($turnToProductsBySku)
                     );
 
+                    // Collect the changes for every product first so they can be written in bulk
+                    // instead of issuing per-attribute writes for each product (avoids N+1 queries).
+                    $updatesByEntityId = [];
                     foreach ($turnToProductsBySku as $productSku => $productData) {
                         try {
                             $reviewCount = (int)$productData['reviewCount'];
@@ -292,12 +458,17 @@ class Ratings
                                     . 'number despite product having reviews');
                             }
 
-                            $this->updateProduct(
-                                $store,
-                                $productSku,
+                            $product = $productsToUpdate[$productSku] ?? null;
+                            if (!$product || !$product->getId()) {
+                                continue;
+                            }
+                            if (!$this->ratingDataHasChanged($product, $reviewCount, $averageRating)) {
+                                continue;
+                            }
+
+                            $updatesByEntityId[(int) $product->getId()] = $this->buildRatingAttributeData(
                                 $reviewCount,
-                                $averageRating,
-                                $productsToUpdate[$productSku] ?? null
+                                $averageRating
                             );
                         } catch (Exception $productFeedItemException) {
                             $this->logger->error(
@@ -310,6 +481,8 @@ class Ratings
                             );
                         }
                     }
+
+                    $this->applyBulkAttributeUpdates($store, $updatesByEntityId);
 
                     // Now reset all products not in the feed
                     $this->resetProducts($feedProducts, $store);
@@ -372,16 +545,7 @@ class Ratings
     protected function resetProducts($feedProducts, $store)
     {
         $collection = $this->productCollectionFactory->create()
-            ->addAttributeToSelect('id')
-            ->addAttributeToSelect('name')
             ->addAttributeToSelect('sku')
-            ->addAttributeToSelect('url_path')
-            ->addAttributeToSelect('url_key')
-            ->addAttributeToSelect('url_in_store')
-            ->addAttributeToSelect('image')
-            ->addAttributeToSelect('quantity_and_stock_status')
-            ->addAttributeToSelect('price')
-            ->addAttributeToSelect('status')
             ->addAttributeToSelect(InstallHelper::AVERAGE_RATING_ATTRIBUTE_CODE)
             ->addAttributeToSelect(InstallHelper::RATING_ATTRIBUTE_CODE)
             ->addAttributeToSelect(InstallHelper::REVIEW_COUNT_ATTRIBUTE_CODE)
@@ -403,11 +567,22 @@ class Ratings
             );
         $collection->addStoreFilter($store)->setFlag('has_stock_status_filter', false)->load();
 
-        // Loop over products and reset data if not found in $feedProducts
+        // Collect every product no longer present in the feed and reset them in a single bulk write,
+        // rather than issuing per-product attribute saves.
+        $resetData = $this->buildRatingAttributeData(0, 0.0);
+        $entityIdsToReset = [];
         foreach ($collection as $item) {
-            if (!isset($feedProducts[$store->getId()][$item->getSku()])) {
-                $this->updateProduct($store, $item->getSku(), 0, 0, $item);
+            if (isset($feedProducts[$store->getId()][$item->getSku()])) {
+                continue;
             }
+            if (!$this->ratingDataHasChanged($item, 0, 0.0)) {
+                continue;
+            }
+            $entityIdsToReset[] = (int) $item->getId();
+        }
+
+        if (!empty($entityIdsToReset)) {
+            $this->writeRatingAttributes($entityIdsToReset, $resetData, (int) $store->getId());
         }
     }
 }
