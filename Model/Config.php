@@ -33,7 +33,6 @@ class Config
     public const TEASER_ENABLE_QA_TEASER = 'turnto_socialcommerce_configuration/teaser/enable_qa_teaser';
     public const TEASER_ENABLE_COMMENTS_TEASER = 'turnto_socialcommerce_configuration/teaser/enable_comments_teaser';
 
-
     public const CHECKOUT_ENABLE_COMMENTS_CAPTURE = 'turnto_socialcommerce_configuration/checkout_comments/enable_checkout_comment_capture';
     public const CHECKOUT_ENABLE_COMMENTS_PINBOARD_TEASER = 'turnto_socialcommerce_configuration/checkout_comments/enable_comments_pinboard_teaser';
     public const CHECKOUT_ENABLE_COMMENTS_PDP = 'turnto_socialcommerce_configuration/checkout_comments/enable_comments_pdp';
@@ -42,6 +41,8 @@ class Config
 
     public const PRODUCT_ENABLE_AUTOMATIC_SUBMISSION = 'turnto_socialcommerce_configuration/product_feed/enable_automatic_submission';
     public const PRODUCT_FEED_FORMAT = 'turnto_socialcommerce_configuration/product_feed/feed_format';
+    public const PRODUCT_GROUPED_REVIEW_SHARING =
+        'turnto_socialcommerce_configuration/product_feed/grouped_review_sharing';
     public const PRODUCT_FEED_URL = 'turnto_socialcommerce_configuration/product_feed/product_feed_url';
     public const PRODUCT_FEED_SUBMISSION_URL = 'turnto_socialcommerce_configuration/product_feed/feed_submission_url';
     public const PRODUCT_REVIEW_URL = 'turnto_socialcommerce_configuration/product_feed/review_api_url';
@@ -49,10 +50,14 @@ class Config
     public const PRODUCT_API_URL = 'turnto_socialcommerce_configuration/product_feed/social_commerce_api_url';
     public const PRODUCT_STATIC_API_URL = 'turnto_socialcommerce_configuration/product_feed/social_commerce_static_api_url';
 
-    const ORDER_ENABLE_FEED = 'turnto_socialcommerce_configuration/historical_orders_feed/enable_historical_feed';
-    const ORDER_ENABLE_CANCELLED_FEED = 'turnto_socialcommerce_configuration/historical_orders_feed/enable_cancelled_feed';
-    const ORDER_EXCLUDE_ITEMS_WITHOUT_DELIVERY_DATE = 'turnto_socialcommerce_configuration/historical_orders_feed/exclude_items_without_delivery_date';
-    const ORDER_EXCLUDE_DELIVERY_DATE_ON_PARTIAL_SHIPMENT = 'turnto_socialcommerce_configuration/historical_orders_feed/exclude_delivery_date_until_all_items_shipped';
+    public const ORDER_ENABLE_FEED =
+        'turnto_socialcommerce_configuration/historical_orders_feed/enable_historical_feed';
+    public const ORDER_ENABLE_CANCELLED_FEED =
+        'turnto_socialcommerce_configuration/historical_orders_feed/enable_cancelled_feed';
+    public const ORDER_EXCLUDE_ITEMS_WITHOUT_DELIVERY_DATE =
+        'turnto_socialcommerce_configuration/historical_orders_feed/exclude_items_without_delivery_date';
+    public const ORDER_EXCLUDE_DELIVERY_DATE_ON_PARTIAL_SHIPMENT =
+        'turnto_socialcommerce_configuration/historical_orders_feed/exclude_delivery_date_until_all_items_shipped';
 
     public const AVERAGE_RATING_IMPORT_ENABLED = 'turnto_socialcommerce_configuration/average_rating_import/enable_average_rating';
     public const AVERAGE_RATING_IMPORT_AGGREGATE_DATA = 'turnto_socialcommerce_configuration/average_rating_import/import_aggregate_data';
@@ -83,6 +88,12 @@ class Config
      */
     protected $logger;
 
+    /**
+     * @param Encryptor $encryptor
+     * @param ScopeConfigInterface $scopeConfig
+     * @param StoreManagerInterface $storeManager
+     * @param Monolog $logger
+     */
     public function __construct(
         Encryptor $encryptor,
         ScopeConfigInterface $scopeConfig,
@@ -125,6 +136,7 @@ class Config
 
     /**
      * Gets the store code from the currently set/scoped store
+     *
      * @return string
      * @throws NoSuchEntityException
      */
@@ -191,5 +203,15 @@ class Config
     public function getFeedFormat($scopeCode = null, $scopeType = ScopeInterface::SCOPE_STORES)
     {
         return $this->getConfigValue(self::PRODUCT_FEED_FORMAT, $scopeCode, $scopeType);
+    }
+
+    /**
+     * @param string|int|null $scopeCode
+     * @param string $scopeType
+     * @return string
+     */
+    public function getGroupedReviewSharing($scopeCode = null, $scopeType = ScopeInterface::SCOPE_STORES)
+    {
+        return (string) $this->getConfigValue(self::PRODUCT_GROUPED_REVIEW_SHARING, $scopeCode, $scopeType);
     }
 }

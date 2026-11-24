@@ -89,6 +89,7 @@ class Export extends Action implements HttpPostActionInterface
         $storeId = $this->getRequest()->getParam('store_ids');
 
         try {
+            $store = $this->storeManager->getStore($storeId);
             $fromDate = $this->dateTimeFactory->create($fromDate, new DateTimeZone('UTC'));
             // Subtract one second
             $toDate = $this->dateTimeFactory
@@ -97,7 +98,6 @@ class Export extends Action implements HttpPostActionInterface
                 ->sub(new DateInterval('PT1S'));
 
             $feedPath = $this->ordersExport->createOrdersFeedFile($storeId, $fromDate, $toDate, true);
-            $store = $this->storeManager->getStore($storeId);
             $this->temporaryFeedFile->transmitAndDelete(
                 $feedPath,
                 Orders::FEED_NAME,

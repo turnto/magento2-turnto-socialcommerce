@@ -21,6 +21,7 @@ use TurnTo\SocialCommerce\Model\Config\Gtin;
 use TurnTo\SocialCommerce\Model\Config\Source\FeedFormat;
 use TurnTo\SocialCommerce\Model\Export\CategoryPathResolver;
 use TurnTo\SocialCommerce\Model\Export\Product as ExportProduct;
+use TurnTo\SocialCommerce\Model\Export\ProductRelations;
 use TurnTo\SocialCommerce\Model\Product;
 
 /**
@@ -181,7 +182,7 @@ class CommerceFeedGenerator extends AbstractFeedGenerator
             throw new Exception('Product must have a valid sku');
         }
 
-        $productUrl = $parent ? $this->exportProduct->getProductUrl($parent, $storeId) : $this->exportProduct->getProductUrl($product, $storeId);
+        $productUrl = $this->exportProduct->getProductUrl($this->getUrlProduct($product, $parent), $storeId);
         if (empty($productUrl)) {
             throw new Exception('Product must have a valid store-product url');
         }
@@ -200,8 +201,9 @@ class CommerceFeedGenerator extends AbstractFeedGenerator
         $stock = '0';
         $isInStock = (bool) $product->getData('is_in_stock');
         if ($isInStock) {
-            $qty = (float) $product->getData('qty');
-            $stock = (string)(int)$qty;
+            // Composite products and products without managed stock are salable with no tracked qty.
+            $qty = (int) (float) $product->getData('qty');
+            $stock = (string) max(1, $qty);
         }
 
         $categoryPathJson = '';
@@ -220,13 +222,14 @@ class CommerceFeedGenerator extends AbstractFeedGenerator
             $categoryPathJson = json_encode($catArray);
         }
 
+        $isPoolParent = (bool) $product->getData(ProductRelations::POOL_PARENT_FIELD);
         $virtualParentCode = '';
         $itemGroupId = $this->getItemGroupId($product, $parent);
-        if ($itemGroupId !== $sku) {
+        if ($itemGroupId !== $sku || $isPoolParent) {
             $virtualParentCode = $itemGroupId;
         }
 
-        $members = $this->getMembers($product);
+        $members = $isPoolParent ? '' : $this->getMembers($product);
 
         $brand = '';
         $upc = '';
@@ -248,7 +251,7 @@ class CommerceFeedGenerator extends AbstractFeedGenerator
             }
         }
 
-        $price = $this->priceCurrency->convertAndRound($product->getFinalPrice(), $storeId);
+        $price = $this->getExportPrice($product, $storeId);
         $currencyCode = $this->priceCurrency->getCurrency($storeId)->getCurrencyCode();
 
         $data = [

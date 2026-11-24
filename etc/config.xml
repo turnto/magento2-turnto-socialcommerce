@@ -37,6 +37,7 @@
             <product_feed>
                 <enable_automatic_submission>1</enable_automatic_submission>
                 <feed_format>google-product.xml</feed_format>
+                <grouped_review_sharing>members</grouped_review_sharing>
                 <product_feed_url>https://export.turnto.com/</product_feed_url>
                 <feed_submission_url>https://www.turnto.com/feedUpload/postfile</feed_submission_url>
                 <review_api_url>https://cdn-ws.turnto.com/v5/sitedata/</review_api_url>

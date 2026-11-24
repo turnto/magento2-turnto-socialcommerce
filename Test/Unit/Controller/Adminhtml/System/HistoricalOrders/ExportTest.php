@@ -16,6 +16,7 @@ use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Intl\DateTimeFactory;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Store\Model\Store;
@@ -50,6 +51,10 @@ class ExportTest extends TestCase
      * @var Redirect
      */
     protected $redirect;
+    /**
+     * @var StoreManagerInterface
+     */
+    protected $storeManager;
 
     protected function setUp(): void
     {
@@ -59,6 +64,10 @@ class ExportTest extends TestCase
         $this->logger = $this->createStub(Monolog::class);
         $this->redirect = $this->createStub(Redirect::class);
         $this->redirect->method('setPath')->willReturnSelf();
+        $store = $this->createStub(Store::class);
+        $store->method('getCode')->willReturn('default');
+        $this->storeManager = $this->createStub(StoreManagerInterface::class);
+        $this->storeManager->method('getStore')->willReturn($store);
     }
 
     public function testIsAPostOnlyAdminActionProtectedByTheHistoricalOrdersMenuAcl(): void
@@ -122,6 +131,18 @@ class ExportTest extends TestCase
         $this->assertSame($this->redirect, $this->createController()->execute());
     }
 
+    public function testExecuteDoesNotWriteAFeedFileWhenTheStoreCannotBeResolved(): void
+    {
+        $this->storeManager = $this->createStub(StoreManagerInterface::class);
+        $this->storeManager->method('getStore')->willThrowException(new NoSuchEntityException());
+        $this->ordersExport = $this->createMock(Orders::class);
+        $this->ordersExport->expects($this->never())->method('createOrdersFeedFile');
+        $this->messageManager = $this->createMock(ManagerInterface::class);
+        $this->messageManager->expects($this->once())->method('addErrorMessage');
+
+        $this->assertSame($this->redirect, $this->createController()->execute());
+    }
+
     protected function createController(): Export
     {
         $request = $this->createStub(RequestInterface::class);
@@ -139,17 +160,12 @@ class ExportTest extends TestCase
         $context->method('getMessageManager')->willReturn($this->messageManager);
         $context->method('getResultFactory')->willReturn($resultFactory);
 
-        $store = $this->createStub(Store::class);
-        $store->method('getCode')->willReturn('default');
-        $storeManager = $this->createStub(StoreManagerInterface::class);
-        $storeManager->method('getStore')->willReturn($store);
-
         return new Export(
             $context,
             $this->ordersExport,
             $this->logger,
             new DateTimeFactory(),
-            $storeManager,
+            $this->storeManager,
             $this->temporaryFeedFile
         );
     }

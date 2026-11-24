@@ -39,6 +39,12 @@ use Magento\Sales\Model\ResourceModel\Order\Address\Collection as AddressCollect
 use Magento\Sales\Model\ResourceModel\Order\Address\CollectionFactory as AddressCollectionFactory;
 use Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
+use Magento\Sales\Model\Order\Invoice;
+use Magento\Sales\Model\Order\Invoice\Item as InvoiceItem;
+use Magento\Sales\Model\ResourceModel\Order\Invoice\Collection as InvoiceCollection;
+use Magento\Sales\Model\ResourceModel\Order\Invoice\CollectionFactory as InvoiceCollectionFactory;
+use Magento\Sales\Model\ResourceModel\Order\Invoice\Item\Collection as InvoiceItemCollection;
+use Magento\Sales\Model\ResourceModel\Order\Invoice\Item\CollectionFactory as InvoiceItemCollectionFactory;
 use Magento\Sales\Model\ResourceModel\Order\Shipment\Item\Collection as ShipmentItemCollection;
 use Magento\Sales\Model\ResourceModel\Order\Shipment\Item\CollectionFactory as ShipmentItemCollectionFactory;
 use Magento\Store\Model\Store;
@@ -47,6 +53,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Config;
+use TurnTo\SocialCommerce\Model\Export\OrderLineItem;
 use TurnTo\SocialCommerce\Model\Export\Orders;
 use TurnTo\SocialCommerce\Model\Export\Product as ExportProduct;
 use TurnTo\SocialCommerce\Model\Export\TemporaryFeedFile;
@@ -140,9 +147,29 @@ class OrdersTest extends TestCase
      * @var int
      */
     private $addressQueries = 0;
+    /**
+     * @var bool
+     */
+    private $useChildSku = false;
+    /**
+     * @var Invoice[]
+     */
+    private $invoices = [];
+    /**
+     * @var InvoiceItem[]
+     */
+    private $invoiceItems = [];
+    /**
+     * @var array[] Each entry is the order_id filter of an invoice query
+     */
+    private $invoiceQueries = [];
 
     protected function setUp(): void
     {
+        $this->useChildSku = false;
+        $this->invoices = [];
+        $this->invoiceItems = [];
+        $this->invoiceQueries = [];
         $this->configFlags = [];
         $this->orderItems = [];
         $this->shipments = [];
@@ -317,6 +344,202 @@ class OrdersTest extends TestCase
             array_keys($orders->getItemData($order, true, [$shipment], $products)),
             'Forced exports include every item.'
         );
+    }
+
+    public function testGetItemDataForOrdersUsesTheInvoiceDateAsTheDeliveryDateOfVirtualItems(): void
+    {
+        $this->orderItems = [
+            $this->createVirtualOrderItem(11, 1, 101),
+            $this->createVirtualOrderItem(12, 1, 102),
+            $this->createOrderItem(13, 1, 103),
+            $this->createOrderItem(21, 2, 103),
+        ];
+        $this->products = [$this->createProduct(101), $this->createProduct(102), $this->createProduct(103)];
+        $this->invoices = [
+            $this->createInvoice(700, 1, '2026-01-03 09:00:00'),
+            $this->createInvoice(701, 1, '2026-01-02 09:00:00'),
+        ];
+        $this->invoiceItems = [
+            $this->createInvoiceItem(700, 11),
+            $this->createInvoiceItem(701, 11),
+            $this->createInvoiceItem(701, 12, 0.0),
+            $this->createInvoiceItem(701, 13),
+        ];
+
+        $itemData = $this->createOrders()->getItemDataForOrders(
+            new FakeOrderCollection([$this->createOrder(1, 1), $this->createOrder(2, 1)]),
+            true
+        );
+
+        $this->assertSame([[1]], $this->invoiceQueries, 'Invoices are only loaded for orders with virtual items.');
+        $this->assertSame(
+            '2026-01-02 09:00:00',
+            $itemData[1]['1.11'][Orders::SHIP_DATE_FIELD_ID],
+            'The earliest invoice containing the item is its delivery date.'
+        );
+        $this->assertSame(
+            '',
+            $itemData[1]['1.12'][Orders::SHIP_DATE_FIELD_ID],
+            'An invoice line with no quantity does not deliver the item.'
+        );
+        $this->assertSame(
+            '',
+            $itemData[1]['1.13'][Orders::SHIP_DATE_FIELD_ID],
+            'Physical items are only delivered by a shipment.'
+        );
+    }
+
+    public function testGetItemDataKeepsInvoicedVirtualItemsWhenItemsWithoutDeliveryDateAreExcluded(): void
+    {
+        $this->configFlags[Config::ORDER_EXCLUDE_ITEMS_WITHOUT_DELIVERY_DATE] = true;
+        $order = $this->createOrder(1, 1);
+        $order->setItems([$this->createVirtualOrderItem(11, 1, 101), $this->createVirtualOrderItem(12, 1, 102)]);
+        $products = [101 => $this->createProduct(101), 102 => $this->createProduct(102)];
+
+        $itemData = $this->createOrders()->getItemData(
+            $order,
+            false,
+            [],
+            $products,
+            [11 => '2026-01-02 09:00:00']
+        );
+
+        $this->assertSame(['1.11'], array_keys($itemData), 'Virtual items that are not invoiced yet are excluded.');
+        $this->assertSame('2026-01-02 09:00:00', $itemData['1.11'][Orders::SHIP_DATE_FIELD_ID]);
+    }
+
+    public function testGetItemDataLoadsInvoiceDatesWhenNotSupplied(): void
+    {
+        $order = $this->createOrder(1, 1);
+        $order->setItems([$this->createVirtualOrderItem(11, 1, 101)]);
+        $this->invoices = [$this->createInvoice(700, 1, '2026-01-02 09:00:00')];
+        $this->invoiceItems = [$this->createInvoiceItem(700, 11)];
+
+        $itemData = $this->createOrders()->getItemData($order, true, [], [101 => $this->createProduct(101)]);
+
+        $this->assertSame([[1]], $this->invoiceQueries);
+        $this->assertSame('2026-01-02 09:00:00', $itemData['1.11'][Orders::SHIP_DATE_FIELD_ID]);
+    }
+
+    public function testVirtualItemsDoNotHoldBackDeliveryDatesUntilAllItemsShip(): void
+    {
+        $this->configFlags[Config::ORDER_EXCLUDE_DELIVERY_DATE_ON_PARTIAL_SHIPMENT] = true;
+        $order = $this->createOrder(1, 1);
+        $order->setItems([
+            $this->createVirtualOrderItem(11, 1, 101),
+            $this->createOrderItem(12, 1, 102, null, 'simple', 'Item', 10.0, ['qty_shipped' => 1.0]),
+        ]);
+        $shipment = $this->createShipment(500, 1, '2026-01-04 10:00:00');
+        $shipment->setItems([$this->createShipmentItem(500, 12)]);
+        $products = [101 => $this->createProduct(101), 102 => $this->createProduct(102)];
+
+        $itemData = $this->createOrders()->getItemData(
+            $order,
+            true,
+            [$shipment],
+            $products,
+            [11 => '2026-01-02 09:00:00']
+        );
+
+        $this->assertSame('2026-01-02 09:00:00', $itemData['1.11'][Orders::SHIP_DATE_FIELD_ID]);
+        $this->assertSame('2026-01-04 10:00:00', $itemData['1.12'][Orders::SHIP_DATE_FIELD_ID]);
+    }
+
+    public function testVirtualItemsWaitForTheRestOfTheOrderToShipWhenConfigured(): void
+    {
+        $this->configFlags[Config::ORDER_EXCLUDE_DELIVERY_DATE_ON_PARTIAL_SHIPMENT] = true;
+        $order = $this->createOrder(1, 1);
+        $order->setItems([$this->createVirtualOrderItem(11, 1, 101), $this->createOrderItem(12, 1, 102)]);
+        $products = [101 => $this->createProduct(101), 102 => $this->createProduct(102)];
+
+        $itemData = $this->createOrders()->getItemData($order, true, [], $products, [11 => '2026-01-02 09:00:00']);
+
+        $this->assertSame('', $itemData['1.11'][Orders::SHIP_DATE_FIELD_ID]);
+    }
+
+    public function testGetItemDataAttributesGroupedLinesToTheGroupedParent(): void
+    {
+        $groupedOptions = [
+            'info_buyRequest' => ['super_product_config' => ['product_type' => 'grouped', 'product_id' => 200]],
+        ];
+        $this->orderItems = [
+            $this->createOrderItem(11, 1, 101, null, 'child-a', 'Item', 10.0, ['product_options' => $groupedOptions]),
+            $this->createOrderItem(12, 1, 102, null, 'child-b', 'Item', 10.0, [
+                'product_options' => [
+                    'info_buyRequest' => [
+                        'super_product_config' => ['product_type' => 'grouped', 'product_id' => 999],
+                    ],
+                ],
+            ]),
+        ];
+        $grouped = $this->createProduct(200);
+        $childA = $this->createProduct(101);
+        $childB = $this->createProduct(102);
+        $this->products = [$childA, $childB, $grouped];
+
+        $itemData = $this->createOrders()->getItemDataForOrders(new FakeOrderCollection([$this->createOrder(1, 1)]), true);
+
+        $this->assertSame([[1, [101, 200, 102, 999]]], $this->productQueries);
+        $this->assertSame($grouped, $itemData[1]['1.11'][Orders::PRODUCT_FIELD_ID]);
+        $this->assertSame($childA, $itemData[1]['1.11'][Orders::ORDERED_PRODUCT_FIELD_ID]);
+        $this->assertSame(
+            $childB,
+            $itemData[1]['1.12'][Orders::PRODUCT_FIELD_ID],
+            'Lines fall back to the ordered product when the grouped parent no longer exists.'
+        );
+    }
+
+    public function testWriteOrdersToFeedSendsTheGroupedParentUrlAndSku(): void
+    {
+        $row = $this->writeGroupedOrderLine();
+
+        $this->assertSame('https://example.test/grouped.html', $row[4]);
+        $this->assertSame('grouped-sku', $row[9]);
+    }
+
+    public function testWriteOrdersToFeedSendsTheGroupedParentUrlWithTheChildSkuInChildSkuMode(): void
+    {
+        $this->useChildSku = true;
+
+        $row = $this->writeGroupedOrderLine();
+
+        $this->assertSame('https://example.test/grouped.html', $row[4]);
+        $this->assertSame('child-sku', $row[9]);
+    }
+
+    /**
+     * @return array Feed row written for one line of grouped product 200, ordered as child 101
+     */
+    private function writeGroupedOrderLine(): array
+    {
+        $order = $this->createOrder(1, 1);
+        $this->orderItems = [
+            $this->createOrderItem(11, 1, 101, null, 'child-sku', 'Item', 10.0, [
+                'product_options' => [
+                    'super_product_config' => ['product_type' => 'grouped', 'product_id' => 200],
+                ],
+            ]),
+        ];
+        $grouped = $this->createProduct(200, 'grouped-sku');
+        $this->products = [$this->createProduct(101, 'child-sku'), $grouped];
+        $exportProduct = $this->createStub(ExportProduct::class);
+        $exportProduct->method('getProductUrl')->willReturnCallback(function ($product) use ($grouped) {
+            return $product === $grouped ? 'https://example.test/grouped.html' : 'https://example.test/child.html';
+        });
+        $this->exportProduct = $exportProduct;
+
+        $rows = [];
+        $outputFile = $this->createStub(WriteInterface::class);
+        $outputFile->method('writeCsv')->willReturnCallback(function (array $row) use (&$rows) {
+            $rows[] = $row;
+
+            return 1;
+        });
+
+        $this->createOrders()->callWriteOrdersToFeed($outputFile, new FakeOrderCollection([$order]), true);
+        $this->assertCount(1, $rows);
+
+        return $rows[0];
     }
 
     public function testGetProductsIndexedByIdDeduplicatesIdsAndKeysByEntityId(): void
@@ -500,7 +723,9 @@ class OrdersTest extends TestCase
     {
         $config = $this->createStub(Config::class);
         $config->method('getIsEnabled')->willReturn(true);
-        $config->method('getUseChildSku')->willReturn(false);
+        $config->method('getUseChildSku')->willReturnCallback(function () {
+            return $this->useChildSku;
+        });
         $config->method('getConfigBool')->willReturnCallback(function ($path) {
             return $this->configFlags[$path] ?? false;
         });
@@ -530,7 +755,10 @@ class OrdersTest extends TestCase
             $this->createOrderItemRepository(),
             $this->addressCollectionFactory,
             $this->shipmentItemCollectionFactory,
-            $this->temporaryFeedFile
+            $this->temporaryFeedFile,
+            $this->createInvoiceCollectionFactory(),
+            $this->createInvoiceItemCollectionFactory(),
+            new OrderLineItem($config)
         );
     }
 
@@ -590,7 +818,8 @@ class OrdersTest extends TestCase
         ?int $parentItemId = null,
         string $sku = 'simple',
         string $name = 'Item',
-        float $originalPrice = 10.0
+        float $originalPrice = 10.0,
+        array $data = []
     ): OrderItem {
         $item = $this->createStub(OrderItem::class);
         $item->method('getItemId')->willReturn($itemId);
@@ -601,8 +830,84 @@ class OrdersTest extends TestCase
         $item->method('getSku')->willReturn($sku);
         $item->method('getName')->willReturn($name);
         $item->method('getOriginalPrice')->willReturn($originalPrice);
+        $item->method('getIsVirtual')->willReturn($data['is_virtual'] ?? false);
+        $item->method('getProductType')->willReturn($data['product_type'] ?? 'simple');
+        $item->method('getProductOptions')->willReturn($data['product_options'] ?? []);
+        $item->method('getQtyOrdered')->willReturn($data['qty_ordered'] ?? 1.0);
+        $item->method('getQtyShipped')->willReturn($data['qty_shipped'] ?? 0.0);
+        $item->method('getQtyCanceled')->willReturn(0.0);
+        $item->method('getQtyRefunded')->willReturn(0.0);
+        $item->method('getQtyReturned')->willReturn(0.0);
 
         return $item;
+    }
+
+    private function createVirtualOrderItem(int $itemId, int $orderId, int $productId): OrderItem
+    {
+        return $this->createOrderItem($itemId, $orderId, $productId, null, 'simple', 'Item', 10.0, [
+            'is_virtual' => true,
+            'product_type' => 'virtual',
+        ]);
+    }
+
+    private function createInvoice(int $invoiceId, int $orderId, string $createdAt): Invoice
+    {
+        $invoice = $this->createStub(Invoice::class);
+        $invoice->method('getEntityId')->willReturn($invoiceId);
+        $invoice->method('getOrderId')->willReturn($orderId);
+        $invoice->method('getCreatedAt')->willReturn($createdAt);
+
+        return $invoice;
+    }
+
+    private function createInvoiceItem(int $invoiceId, int $orderItemId, float $qty = 1.0): InvoiceItem
+    {
+        $item = $this->createStub(InvoiceItem::class);
+        $item->method('getParentId')->willReturn($invoiceId);
+        $item->method('getOrderItemId')->willReturn($orderItemId);
+        $item->method('getQty')->willReturn($qty);
+
+        return $item;
+    }
+
+    private function createInvoiceCollectionFactory(): InvoiceCollectionFactory
+    {
+        $factory = $this->createStub(InvoiceCollectionFactory::class);
+        $factory->method('create')->willReturnCallback(function () {
+            $collection = $this->createStub(InvoiceCollection::class);
+            $collection->method('addFieldToFilter')->willReturnCallback(
+                function ($field, $condition) use ($collection) {
+                    if ($field === 'order_id') {
+                        $this->invoiceQueries[] = $condition['in'];
+                    }
+
+                    return $collection;
+                }
+            );
+            $collection->method('getIterator')->willReturnCallback(function () {
+                return new ArrayIterator($this->invoices);
+            });
+
+            return $collection;
+        });
+
+        return $factory;
+    }
+
+    private function createInvoiceItemCollectionFactory(): InvoiceItemCollectionFactory
+    {
+        $factory = $this->createStub(InvoiceItemCollectionFactory::class);
+        $factory->method('create')->willReturnCallback(function () {
+            $collection = $this->createStub(InvoiceItemCollection::class);
+            $collection->method('addFieldToFilter')->willReturnSelf();
+            $collection->method('getIterator')->willReturnCallback(function () {
+                return new ArrayIterator($this->invoiceItems);
+            });
+
+            return $collection;
+        });
+
+        return $factory;
     }
 
     /**
@@ -645,10 +950,13 @@ class OrdersTest extends TestCase
      * @param int $productId
      * @return CatalogProduct
      */
-    private function createProduct(int $productId): CatalogProduct
+    private function createProduct(int $productId, ?string $sku = null): CatalogProduct
     {
         $product = $this->createStub(CatalogProduct::class);
         $product->method('getId')->willReturn($productId);
+        if ($sku !== null) {
+            $product->method('getSku')->willReturn($sku);
+        }
 
         return $product;
     }

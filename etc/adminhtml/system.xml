@@ -212,8 +212,21 @@
                 </field>
                 <field id="feed_format" translate="label comment" type="select" sortOrder="15" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Feed Format</label>
-                    <comment><![CDATA[Recommend commerce feed for new installs. Should not be changed, without contacting your Emplifi customer success team.]]></comment>
+                    <comment><![CDATA[Recommend commerce feed for new installations. Should not be changed, without contacting your Emplifi customer success team.]]></comment>
                     <source_model>TurnTo\SocialCommerce\Model\Config\Source\FeedFormat</source_model>
+                    <depends>
+                        <field id="enable_automatic_submission">1</field>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="grouped_review_sharing" translate="label comment" type="select" sortOrder="17" showInStore="1" showInWebsite="1" showInDefault="1">
+                    <label>Grouped Product Review Sharing</label>
+                    <comment><![CDATA[
+                        Default: <b>Kit</b><br>
+                        <b>Kit</b>: The grouped product lists its products as members. Use for sets of distinct items.<br>
+                        <b>Pool</b>: The grouped product and its products share one virtual parent code. Use for variations or multi-packs.
+                    ]]></comment>
+                    <source_model>TurnTo\SocialCommerce\Model\Config\Source\GroupedReviewSharing</source_model>
                     <depends>
                         <field id="enable_automatic_submission">1</field>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>

@@ -7,11 +7,15 @@ declare(strict_types=1);
 
 namespace TurnTo\SocialCommerce\ViewModel;
 
+use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Helper\Image;
 use Magento\Checkout\Model\Session;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Sales\Model\Order\Item;
 use TurnTo\SocialCommerce\Model\Config;
+use TurnTo\SocialCommerce\Model\Export\OrderLineItem;
 use TurnTo\SocialCommerce\Model\Product;
 use TurnTo\SocialCommerce\Model\Config\Source\AddressFallback;
 use TurnTo\SocialCommerce\Logger\Monolog;
@@ -41,6 +45,14 @@ class JSOrderFeed implements ArgumentInterface
      * @var Monolog
      */
     protected $logger;
+    /**
+     * @var OrderLineItem
+     */
+    protected $orderLineItem;
+    /**
+     * @var ProductRepositoryInterface
+     */
+    protected $productRepository;
 
     /**
      * @param Config $config
@@ -48,19 +60,25 @@ class JSOrderFeed implements ArgumentInterface
      * @param Image $imageHelper
      * @param Product $product
      * @param Monolog $logger
+     * @param OrderLineItem $orderLineItem
+     * @param ProductRepositoryInterface $productRepository
      */
     public function __construct(
         Config $config,
         Session $checkoutSession,
         Image   $imageHelper,
         Product $product,
-        Monolog $logger
+        Monolog $logger,
+        OrderLineItem $orderLineItem,
+        ProductRepositoryInterface $productRepository
     ) {
         $this->config = $config;
         $this->checkoutSession = $checkoutSession;
         $this->imageHelper = $imageHelper;
         $this->product = $product;
         $this->logger = $logger;
+        $this->orderLineItem = $orderLineItem;
+        $this->productRepository = $productRepository;
     }
 
     /**
@@ -118,14 +136,15 @@ class JSOrderFeed implements ArgumentInterface
 
         /** @var Item $item */
         foreach ($order->getAllVisibleItems() as $item) {
-            $product = $item->getProduct();
-            if ($product === null) {
+            $orderedProduct = $item->getProduct();
+            if ($orderedProduct === null) {
                 continue;
             }
-            $product->setStoreId($storeId);
-            $sku = $this->config->getUseChildSku($storeId) ? $item->getSku() : $product->getSku();
+            $orderedProduct->setStoreId($storeId);
+            $product = $this->getFeedProduct($item, $orderedProduct, $storeId);
+            $sku = $this->orderLineItem->getFeedSku($item, $product, $storeId, $orderedProduct);
             $orderItems[] = [
-                'title' => $product->getName(),
+                'title' => $orderedProduct->getName(),
                 'url' => $product->getProductUrl(),
                 'sku' => $this->product->turnToSafeEncoding($sku),
                 'itemImageUrl' => $this->imageHelper->init($product, 'product_small_image')->getUrl(),
@@ -146,5 +165,27 @@ class JSOrderFeed implements ArgumentInterface
             ],
             JSON_PRETTY_PRINT
         );
+    }
+
+    /**
+     * Product the line is reviewed as, falling back to the ordered product when the grouped parent no longer exists
+     *
+     * @param Item $item
+     * @param ProductInterface $orderedProduct
+     * @param int|string $storeId
+     * @return ProductInterface
+     */
+    protected function getFeedProduct(Item $item, ProductInterface $orderedProduct, $storeId): ProductInterface
+    {
+        $feedProductId = $this->orderLineItem->getFeedProductId($item);
+        if ($feedProductId === (int) $orderedProduct->getId()) {
+            return $orderedProduct;
+        }
+
+        try {
+            return $this->productRepository->getById($feedProductId, false, $storeId);
+        } catch (NoSuchEntityException $e) {
+            return $orderedProduct;
+        }
     }
 }

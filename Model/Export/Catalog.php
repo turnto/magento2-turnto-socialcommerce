@@ -11,7 +11,6 @@ use Exception;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\Catalog\Model\ResourceModel\Product\Collection;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
-use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
@@ -78,6 +77,11 @@ class Catalog
     protected $categoryPathResolver;
 
     /**
+     * @var ProductRelations
+     */
+    protected $productRelations;
+
+    /**
      * @var Int
      */
     protected $totalPages;
@@ -96,6 +100,7 @@ class Catalog
      * @param ResourceConnection $resourceConnection
      * @param ExportProduct $exportProduct
      * @param CategoryPathResolver $categoryPathResolver
+     * @param ProductRelations $productRelations
      */
     public function __construct(
         Config                $config,
@@ -108,7 +113,8 @@ class Catalog
         FeedGeneratorFactory  $feedGeneratorFactory,
         ResourceConnection    $resourceConnection,
         ExportProduct         $exportProduct,
-        CategoryPathResolver  $categoryPathResolver
+        CategoryPathResolver  $categoryPathResolver,
+        ProductRelations      $productRelations
     ) {
         $this->config = $config;
         $this->gtinConfig = $gtinConfig;
@@ -121,6 +127,7 @@ class Catalog
         $this->resourceConnection = $resourceConnection;
         $this->exportProduct = $exportProduct;
         $this->categoryPathResolver = $categoryPathResolver;
+        $this->productRelations = $productRelations;
     }
 
     /**
@@ -195,64 +202,9 @@ class Catalog
                             $productIds[] = $product->getId();
                         }
 
-                        $childProducts = [];
-                        if ($this->config->getUseChildSku($storeId)) {
-                            $simpleIds = [];
-                            foreach ($products as $product) {
-                                if ($product->getTypeId() !== Configurable::TYPE_CODE) {
-                                    $simpleIds[] = $product->getId();
-                                }
-                            }
-
-                            if (!empty($simpleIds)) {
-                                $connection = $this->resourceConnection->getConnection();
-                                $select = $connection->select()
-                                    ->from(['l' => $connection->getTableName('catalog_product_super_link')], ['parent_id', 'product_id'])
-                                    ->join(['pe' => $connection->getTableName('catalog_product_entity')], 'pe.entity_id = l.parent_id', ['parent_sku' => 'sku'])
-                                    ->where('l.product_id IN (?)', $simpleIds);
-                                $rows = $connection->fetchAll($select);
-
-                                if (!empty($rows)) {
-                                    $parentMap = [];
-                                    $emptyCollection = $this->productCollectionFactory->create();
-                                    $parentIds = array_values(array_unique(array_map('intval', array_column($rows, 'parent_id'))));
-                                    $parentCollection = $this->productCollectionFactory->create();
-                                    $parentCollection->setStoreId($storeId)
-                                        ->addAttributeToSelect(['url_key', 'url_path'])
-                                        ->addFieldToFilter('entity_id', ['in' => $parentIds]);
-                                    $loadedParentProducts = [];
-                                    foreach ($parentCollection as $parentProduct) {
-                                        $loadedParentProducts[(int) $parentProduct->getId()] = $parentProduct;
-                                    }
-
-                                    foreach ($rows as $row) {
-                                        $parentId = (int) $row['parent_id'];
-
-                                        if (!isset($parentMap[$parentId])) {
-                                            if (isset($loadedParentProducts[$parentId])) {
-                                                $parentProduct = $loadedParentProducts[$parentId];
-                                            } else {
-                                                $parentProduct = $emptyCollection->getNewEmptyItem();
-                                                $parentProduct->setData([
-                                                    'entity_id' => $parentId,
-                                                    'sku' => $row['parent_sku'],
-                                                    'type_id' => 'configurable',
-                                                    'store_id' => $storeId
-                                                ]);
-                                            }
-
-                                            $parentMap[$parentId] = $parentProduct;
-                                        }
-
-                                        $childProducts[(int) $row['product_id']] = $parentMap[$parentId];
-                                    }
-
-                                    $productIds = array_merge($productIds, $parentIds);
-
-                                    unset($emptyCollection, $parentMap);
-                                }
-                            }
-                        }
+                        $relations = $this->productRelations->apply($storeId, $products);
+                        $childProducts = $relations[ProductRelations::PARENTS];
+                        $productIds = array_merge($productIds, $relations[ProductRelations::RELATED_PRODUCT_IDS]);
 
                         $categoryProductIds = $productIds;
                         $this->exportProduct->preloadRewriteUrls($storeId, $productIds);
@@ -263,7 +215,7 @@ class Catalog
                         }
 
                         foreach ($products as $product) {
-                            $parent = isset($childProducts[(int) $product->getId()]) ? $childProducts[(int) $product->getId()] : false;
+                            $parent = $childProducts[(int) $product->getId()] ?? false;
                             if ($generator->addProduct($product, $parent, $storeId)) {
                                 $productCount++;
                             }
@@ -363,7 +315,12 @@ class Catalog
             ->addAttributeToSelect('sku')
             ->addAttributeToSelect('image')
             ->addAttributeToSelect('price')
+            ->addAttributeToSelect('special_price')
+            ->addAttributeToSelect('special_from_date')
+            ->addAttributeToSelect('special_to_date')
+            ->addAttributeToSelect('price_type')
             ->addAttributeToSelect('status')
+            ->addAttributeToSelect('visibility')
             ->addAttributeToSelect('turnto_disabled')
             ->addUrlRewrite()
             ->setOrder('entity_id', 'ASC')

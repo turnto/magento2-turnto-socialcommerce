@@ -32,9 +32,12 @@ use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Api\Data\ShipmentInterface;
 use Magento\Sales\Api\OrderItemRepositoryInterface;
 use Magento\Sales\Api\ShipmentRepositoryInterface;
+use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\ResourceModel\Order\Address\CollectionFactory as OrderAddressCollectionFactory;
 use Magento\Sales\Model\ResourceModel\Order\Collection;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
+use Magento\Sales\Model\ResourceModel\Order\Invoice\CollectionFactory as InvoiceCollectionFactory;
+use Magento\Sales\Model\ResourceModel\Order\Invoice\Item\CollectionFactory as InvoiceItemCollectionFactory;
 use Magento\Sales\Model\ResourceModel\Order\Shipment\Item\CollectionFactory as ShipmentItemCollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
 use TurnTo\SocialCommerce\Model\Config;
@@ -60,6 +63,8 @@ class Orders
     public const SHIP_DATE_FIELD_ID = 'shipDate';
 
     public const LINE_ITEM_FIELD_ID = 'lineItem';
+
+    public const ORDERED_PRODUCT_FIELD_ID = 'orderedProduct';
     /**#@-*/
 
     /**#@+
@@ -158,6 +163,18 @@ class Orders
      * @var TemporaryFeedFile
      */
     protected $temporaryFeedFile;
+    /**
+     * @var InvoiceCollectionFactory
+     */
+    protected $invoiceCollectionFactory;
+    /**
+     * @var InvoiceItemCollectionFactory
+     */
+    protected $invoiceItemCollectionFactory;
+    /**
+     * @var OrderLineItem
+     */
+    protected $orderLineItem;
 
     /**
      * Orders constructor.
@@ -179,6 +196,9 @@ class Orders
      * @param OrderAddressCollectionFactory $orderAddressCollectionFactory
      * @param ShipmentItemCollectionFactory $shipmentItemCollectionFactory
      * @param TemporaryFeedFile $temporaryFeedFile
+     * @param InvoiceCollectionFactory $invoiceCollectionFactory
+     * @param InvoiceItemCollectionFactory $invoiceItemCollectionFactory
+     * @param OrderLineItem $orderLineItem
      */
     public function __construct(
         Config $config,
@@ -197,7 +217,10 @@ class Orders
         OrderItemRepositoryInterface $orderItemRepository,
         OrderAddressCollectionFactory $orderAddressCollectionFactory,
         ShipmentItemCollectionFactory $shipmentItemCollectionFactory,
-        TemporaryFeedFile $temporaryFeedFile
+        TemporaryFeedFile $temporaryFeedFile,
+        InvoiceCollectionFactory $invoiceCollectionFactory,
+        InvoiceItemCollectionFactory $invoiceItemCollectionFactory,
+        OrderLineItem $orderLineItem
     ) {
         $this->config = $config;
         $this->logger = $logger;
@@ -216,6 +239,9 @@ class Orders
         $this->orderAddressCollectionFactory = $orderAddressCollectionFactory;
         $this->shipmentItemCollectionFactory = $shipmentItemCollectionFactory;
         $this->temporaryFeedFile = $temporaryFeedFile;
+        $this->invoiceCollectionFactory = $invoiceCollectionFactory;
+        $this->invoiceItemCollectionFactory = $invoiceItemCollectionFactory;
+        $this->orderLineItem = $orderLineItem;
     }
 
     /**
@@ -367,7 +393,8 @@ class Orders
     /**
      * Resolve feed line items for a page of orders using one query per related entity type
      *
-     * Order items, shipments, shipment items and products are bulk-loaded for the whole page instead of per order.
+     * Order items, shipments, shipment items, invoices for virtual items and products are bulk-loaded for the whole
+     * page instead of per order.
      *
      * @param iterable|OrderInterface[] $orders
      * @param bool $forceIncludeAllItems
@@ -387,6 +414,9 @@ class Orders
         foreach ($ordersByStoreId as $storeId => $storeOrders) {
             $this->preloadOrderItems($storeOrders);
             $shipmentsByOrderId = $this->getShipmentsIndexedByOrderId(array_keys($storeOrders), $storeId);
+            $invoiceDatesByItemId = $this->getInvoiceDatesIndexedByOrderItemId(
+                $this->collectOrderIdsWithVirtualItems($storeOrders)
+            );
             $productsById = $this->getProductsIndexedById($this->collectProductIds($storeOrders), $storeId);
 
             foreach ($storeOrders as $orderId => $order) {
@@ -395,7 +425,8 @@ class Orders
                         $order,
                         $forceIncludeAllItems,
                         $shipmentsByOrderId[$orderId] ?? [],
-                        $productsById
+                        $productsById,
+                        $invoiceDatesByItemId
                     );
                 } catch (Exception $e) {
                     $this->logger->error(
@@ -488,7 +519,8 @@ class Orders
                 $item[self::LINE_ITEM_FIELD_ID],
                 $item[self::PRODUCT_FIELD_ID],
                 $itemNumber++,
-                $item[self::SHIP_DATE_FIELD_ID]
+                $item[self::SHIP_DATE_FIELD_ID],
+                $item[self::ORDERED_PRODUCT_FIELD_ID] ?? null
             );
         }
     }
@@ -496,13 +528,17 @@ class Orders
     /**
      * Resolve feed line items for one order
      *
-     * Batch callers should use getItemDataForOrders(); when shipments or products are not supplied they are
-     * loaded for this order alone.
+     * Batch callers should use getItemDataForOrders(); when shipments, products or invoice dates are not supplied
+     * they are loaded for this order alone.
+     *
+     * The product is the one reviews are collected for: the grouped parent for grouped lines, otherwise the ordered
+     * product. The ordered product is the product id on the line item itself.
      *
      * @param OrderInterface $order
      * @param bool $forceIncludeAllItems
      * @param ShipmentInterface[]|null $shipmentsForOrder
      * @param array|null $productsById Products keyed by entity id
+     * @param array|null $invoiceDatesByItemId Earliest invoice date keyed by order item id
      *
      * @return array
      */
@@ -510,7 +546,8 @@ class Orders
         OrderInterface $order,
         $forceIncludeAllItems,
         ?array $shipmentsForOrder = null,
-        ?array $productsById = null
+        ?array $productsById = null,
+        ?array $invoiceDatesByItemId = null
     ) {
         $items = [];
         $orderId = (int) $order->getEntityId();
@@ -522,22 +559,29 @@ class Orders
         if ($shipmentsForOrder === null) {
             $shipmentsForOrder = $this->getShipmentsIndexedByOrderId([$orderId], $storeId)[$orderId] ?? [];
         }
+        if ($invoiceDatesByItemId === null) {
+            $invoiceDatesByItemId = $this->getInvoiceDatesIndexedByOrderItemId(
+                $this->collectOrderIdsWithVirtualItems([$order])
+            );
+        }
 
         foreach ($order->getItems() as $item) {
             if ($this->isFeedLineItem($item)) {
-                $product = $productsById[(int) $item->getProductId()] ?? null;
+                $orderedProduct = $productsById[(int) $item->getProductId()] ?? null;
+                $product = $productsById[$this->getFeedProductId($item)] ?? $orderedProduct;
                 if (!$product) {
                     continue;
                 }
                 $items["$orderId.{$item->getItemId()}"] = [
                     self::LINE_ITEM_FIELD_ID => $item,
                     self::PRODUCT_FIELD_ID => $product,
+                    self::ORDERED_PRODUCT_FIELD_ID => $orderedProduct,
                     self::SHIP_DATE_FIELD_ID => ''
                 ];
             }
         }
 
-        $items = $this->addShipDateToItemData($items, $order, $shipmentsForOrder);
+        $items = $this->addShipDateToItemData($items, $order, $shipmentsForOrder, $invoiceDatesByItemId);
         if (
             !$forceIncludeAllItems
             && $this->config->getConfigBool(Config::ORDER_EXCLUDE_ITEMS_WITHOUT_DELIVERY_DATE, $order->getStore()->getCode())
@@ -553,7 +597,7 @@ class Orders
     }
 
     /**
-     * Product ids of the top-level line items across the given orders
+     * Product ids of the top-level line items, and their grouped parents, across the given orders
      *
      * @param iterable|OrderInterface[] $orders
      * @return int[]
@@ -563,14 +607,111 @@ class Orders
         $productIds = [];
         foreach ($orders as $order) {
             foreach ($order->getItems() as $item) {
+                if (!$this->isFeedLineItem($item)) {
+                    continue;
+                }
                 $productId = (int) $item->getProductId();
-                if ($productId > 0 && $this->isFeedLineItem($item)) {
+                if ($productId > 0) {
                     $productIds[] = $productId;
+                }
+                $feedProductId = $this->getFeedProductId($item);
+                if ($feedProductId > 0 && $feedProductId !== $productId) {
+                    $productIds[] = $feedProductId;
                 }
             }
         }
 
         return $productIds;
+    }
+
+    /**
+     * @param OrderItemInterface $item
+     * @return int
+     * @see OrderLineItem::getFeedProductId()
+     */
+    protected function getFeedProductId($item): int
+    {
+        return $this->orderLineItem->getFeedProductId($item);
+    }
+
+    /**
+     * @param OrderItemInterface $lineItem
+     * @param ProductInterface $product Product the line is reviewed as
+     * @param int|string $storeId
+     * @param ProductInterface|null $orderedProduct Product on the line item itself
+     * @return string
+     * @see OrderLineItem::getFeedSku()
+     */
+    public function getFeedSku($lineItem, $product, $storeId, $orderedProduct = null): string
+    {
+        return $this->orderLineItem->getFeedSku($lineItem, $product, $storeId, $orderedProduct);
+    }
+
+    /**
+     * Entity ids of the orders that contain at least one top-level virtual line item
+     *
+     * @param iterable|OrderInterface[] $orders
+     * @return int[]
+     */
+    protected function collectOrderIdsWithVirtualItems(iterable $orders): array
+    {
+        $orderIds = [];
+        foreach ($orders as $order) {
+            foreach ($order->getItems() as $item) {
+                if ($this->isFeedLineItem($item) && $item->getIsVirtual()) {
+                    $orderIds[] = (int) $order->getEntityId();
+                    break;
+                }
+            }
+        }
+
+        return $orderIds;
+    }
+
+    /**
+     * Earliest non-canceled invoice date of each invoiced order item, loaded in batches
+     *
+     * @param int[] $orderIds
+     * @return array<int, string>
+     */
+    protected function getInvoiceDatesIndexedByOrderItemId(array $orderIds): array
+    {
+        $orderIds = array_values(array_unique(array_filter($orderIds)));
+        if ($orderIds === []) {
+            return [];
+        }
+
+        $invoiceDatesById = [];
+        foreach (array_chunk($orderIds, self::ORDER_ID_CHUNK_SIZE) as $orderIdChunk) {
+            $invoices = $this->invoiceCollectionFactory->create()
+                ->addFieldToFilter('order_id', ['in' => $orderIdChunk])
+                ->addFieldToFilter('state', ['neq' => Invoice::STATE_CANCELED]);
+            foreach ($invoices as $invoice) {
+                $invoiceDatesById[(int) $invoice->getEntityId()] = (string) $invoice->getCreatedAt();
+            }
+        }
+        if ($invoiceDatesById === []) {
+            return [];
+        }
+
+        $invoiceDatesByItemId = [];
+        foreach (array_chunk(array_keys($invoiceDatesById), self::SHIPMENT_PAGE_SIZE) as $invoiceIdChunk) {
+            $invoiceItems = $this->invoiceItemCollectionFactory->create()
+                ->addFieldToFilter('parent_id', ['in' => $invoiceIdChunk]);
+            foreach ($invoiceItems as $invoiceItem) {
+                $itemId = (int) $invoiceItem->getOrderItemId();
+                $invoiceDate = $invoiceDatesById[(int) $invoiceItem->getParentId()] ?? '';
+                if ($invoiceDate === '' || (float) $invoiceItem->getQty() <= 0) {
+                    continue;
+                }
+                $earliestDate = $invoiceDatesByItemId[$itemId] ?? null;
+                if ($earliestDate === null || strcmp($invoiceDate, $earliestDate) < 0) {
+                    $invoiceDatesByItemId[$itemId] = $invoiceDate;
+                }
+            }
+        }
+
+        return $invoiceDatesByItemId;
     }
 
     /**
@@ -744,14 +885,21 @@ class Orders
     /**
      * Add shipping data
      *
-     * @param ShipmentInterface[] $shipments
-     * @param OrderInterface $order
+     * Virtual items never ship, so they are delivered on their invoice date instead.
+     *
      * @param array $itemData
+     * @param OrderInterface $order
+     * @param ShipmentInterface[] $shipments
+     * @param array $invoiceDatesByItemId Earliest invoice date keyed by order item id
      *
      * @return array
      */
-    protected function addShipDateToItemData($itemData, OrderInterface $order, array $shipments)
-    {
+    protected function addShipDateToItemData(
+        $itemData,
+        OrderInterface $order,
+        array $shipments,
+        array $invoiceDatesByItemId = []
+    ) {
         $orderId = (int) $order->getEntityId();
         $storeId = (int) $order->getStoreId();
 
@@ -775,6 +923,33 @@ class Orders
                 if (isset($itemData[$key]) && $includeShipped) {
                     $itemData[$key][self::SHIP_DATE_FIELD_ID] = $shipment->getCreatedAt();
                 }
+            }
+        }
+
+        if ($includeShipped) {
+            $itemData = $this->addInvoiceDateToItemData($itemData, $invoiceDatesByItemId);
+        }
+
+        return $itemData;
+    }
+
+    /**
+     * Use the invoice date as the delivery date of virtual items that have been invoiced
+     *
+     * @param array $itemData
+     * @param array $invoiceDatesByItemId Earliest invoice date keyed by order item id
+     * @return array
+     */
+    protected function addInvoiceDateToItemData(array $itemData, array $invoiceDatesByItemId): array
+    {
+        foreach ($itemData as $key => $item) {
+            $lineItem = $item[self::LINE_ITEM_FIELD_ID];
+            if (!$lineItem->getIsVirtual()) {
+                continue;
+            }
+            $invoiceDate = $invoiceDatesByItemId[(int) $lineItem->getItemId()] ?? '';
+            if ($invoiceDate !== '') {
+                $itemData[$key][self::SHIP_DATE_FIELD_ID] = $invoiceDate;
             }
         }
 
@@ -848,6 +1023,7 @@ class Orders
      * @param ProductInterface $product
      * @param int $lineItemNumber
      * @param string $shipmentDate
+     * @param ProductInterface|null $orderedProduct
      * @throws NoSuchEntityException
      */
     protected function writeLineToFeed(
@@ -856,7 +1032,8 @@ class Orders
         OrderItemInterface $lineItem,
         ProductInterface $product,
         $lineItemNumber,
-        $shipmentDate
+        $shipmentDate,
+        ?ProductInterface $orderedProduct = null
     ) {
         $row = [];
 
@@ -874,7 +1051,7 @@ class Orders
         $row[] = $order->getCustomerFirstname();
         $row[] = $order->getCustomerLastname();
 
-        $sku = $this->config->getUseChildSku($order->getStoreId()) ? $lineItem->getSku() : $product->getSku();
+        $sku = $this->getFeedSku($lineItem, $product, $order->getStoreId(), $orderedProduct);
         $row[] = $this->productModel->turnToSafeEncoding($sku);
 
         $row[] = $lineItem->getOriginalPrice();
@@ -950,6 +1127,10 @@ class Orders
             // If the item has a parent item, that means it's just the associated Simple product, which doesn't actually
             //   track shipping and such, so we want to skip it.
             if ($item->getParentItem()) {
+                continue;
+            }
+            // Virtual items are never shipped, so they can't hold back the rest of the order.
+            if ($item->getIsVirtual()) {
                 continue;
             }
 

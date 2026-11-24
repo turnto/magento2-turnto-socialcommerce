@@ -27,6 +27,7 @@ use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Model\Export\Catalog;
 use TurnTo\SocialCommerce\Model\Export\CategoryPathResolver;
 use TurnTo\SocialCommerce\Model\Export\Product;
+use TurnTo\SocialCommerce\Model\Export\ProductRelations;
 use TurnTo\SocialCommerce\Service\Feed\FeedGeneratorFactory;
 
 class CatalogTest extends TestCase
@@ -99,6 +100,14 @@ class CatalogTest extends TestCase
      * @var CategoryPathResolver
      */
     protected $categoryPathResolver;
+    /**
+     * @var ProductRelations
+     */
+    protected $productRelations;
+    /**
+     * @var array Result of ProductRelations::apply()
+     */
+    protected $relations = [ProductRelations::PARENTS => [], ProductRelations::RELATED_PRODUCT_IDS => []];
 
     protected function setUp(): void
     {
@@ -113,6 +122,10 @@ class CatalogTest extends TestCase
         $this->resourceConnection = $this->createMock(ResourceConnection::class);
         $this->exportProduct = $this->createMock(Product::class);
         $this->categoryPathResolver = $this->createMock(CategoryPathResolver::class);
+        $this->productRelations = $this->createStub(ProductRelations::class);
+        $this->productRelations->method('apply')->willReturnCallback(function () {
+            return $this->relations;
+        });
 
         $this->configValues = [
             ConfigModel::PRODUCT_ENABLE_AUTOMATIC_SUBMISSION => true,
@@ -160,7 +173,8 @@ class CatalogTest extends TestCase
             $this->feedGeneratorFactory,
             $this->resourceConnection,
             $this->exportProduct,
-            $this->categoryPathResolver
+            $this->categoryPathResolver,
+            $this->productRelations
         );
     }
 
@@ -177,7 +191,8 @@ class CatalogTest extends TestCase
             $this->feedGeneratorFactory,
             $this->resourceConnection,
             $this->exportProduct,
-            $this->categoryPathResolver
+            $this->categoryPathResolver,
+            $this->productRelations
         );
     }
 
@@ -543,6 +558,55 @@ class CatalogTest extends TestCase
 
         $this->catalog = $this->createCatalog();
         $this->catalog->cronUploadFeed();
+    }
+
+    public function testCronUploadFeedExportsProductsWithTheirResolvedParents()
+    {
+        $storeId = 1;
+        $store = $this->createStore($storeId);
+        $this->storeManager->method('getStores')->willReturn([$store]);
+
+        $child = $this->createStub(CatalogProduct::class);
+        $child->method('getId')->willReturn(1);
+        $standalone = $this->createStub(CatalogProduct::class);
+        $standalone->method('getId')->willReturn(2);
+        $parent = $this->createStub(CatalogProduct::class);
+        $this->relations = [
+            ProductRelations::PARENTS => [1 => $parent],
+            ProductRelations::RELATED_PRODUCT_IDS => [10, 20],
+        ];
+
+        $addedProducts = [];
+        $isFeedOpen = false;
+        $generator = $this->createStub(FeedGeneratorInterface::class);
+        $generator->method('getFeedStyle')->willReturn(FeedFormat::COMMERCE);
+        $generator->method('isFeedOpen')->willReturnCallback(function () use (&$isFeedOpen) {
+            return $isFeedOpen;
+        });
+        $generator->method('beginFeed')->willReturnCallback(function () use (&$isFeedOpen) {
+            $isFeedOpen = true;
+        });
+        $generator->method('addProduct')->willReturnCallback(
+            function ($product, $parent) use (&$addedProducts) {
+                $addedProducts[] = [$product, $parent];
+
+                return true;
+            }
+        );
+        $generator->method('finishFeed')->willReturnCallback(function () use (&$isFeedOpen) {
+            $isFeedOpen = false;
+
+            return 'feed';
+        });
+        $this->feedGeneratorFactory->method('create')->willReturn($generator);
+        $this->collectionFactory->method('create')
+            ->willReturn($this->createProductCollection([$child, $standalone]));
+
+        $this->exportProduct->expects($this->once())->method('preloadRewriteUrls')->with($storeId, [1, 2, 10, 20]);
+
+        $this->createCatalog()->cronUploadFeed();
+
+        $this->assertSame([[$child, $parent], [$standalone, false]], $addedProducts);
     }
 
     public function testCronUploadFeedTransmitsOnePartPerPageBatchEvenWhenNoProductsAreWritten()

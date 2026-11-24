@@ -15,14 +15,18 @@ use Magento\Bundle\Model\Product\Type as BundleType;
 use Magento\GroupedProduct\Model\Product\Type\Grouped as GroupedType;
 use Magento\Directory\Model\Currency;
 use Magento\Eav\Model\Config as EavConfig;
+use Magento\Framework\Pricing\Price\PriceInterface;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
+use Magento\Framework\Pricing\PriceInfo\Base as PriceInfoBase;
 use Magento\Store\Model\Store;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 use TurnTo\SocialCommerce\Model\Config as ConfigModel;
 use TurnTo\SocialCommerce\Model\Config\Gtin;
 use TurnTo\SocialCommerce\Model\Export\CategoryPathResolver;
 use TurnTo\SocialCommerce\Model\Export\Product as ExportProduct;
+use TurnTo\SocialCommerce\Model\Export\ProductRelations;
 use TurnTo\SocialCommerce\Model\Product;
 use TurnTo\SocialCommerce\Logger\Monolog;
 use TurnTo\SocialCommerce\Service\Feed\AbstractFeedGenerator;
@@ -509,6 +513,259 @@ class CommerceFeedGeneratorTest extends TestCase
         ]);
 
         $this->assertEquals($expectedLine, $line);
+    }
+
+    /**
+     * @dataProvider finalPriceTypeProvider
+     */
+    #[DataProvider('finalPriceTypeProvider')]
+    public function testGetExportPriceConvertsTheFinalPriceOfTypesWithTheirOwnPrice(string $typeId): void
+    {
+        $priceCurrency = $this->createMock(PriceCurrencyInterface::class);
+        $priceCurrency->expects($this->once())
+            ->method('convertAndRound')
+            ->with(12.34, 1)
+            ->willReturn(15.0);
+        $priceCurrency->expects($this->never())->method('round');
+
+        $product = $this->createMock(CatalogProduct::class);
+        $product->method('getTypeId')->willReturn($typeId);
+        $product->method('getFinalPrice')->willReturn(12.34);
+        $product->expects($this->never())->method('getPriceInfo');
+
+        $this->assertSame(15.0, $this->createGenerator($priceCurrency)->callGetExportPrice($product, 1));
+    }
+
+    public static function finalPriceTypeProvider(): array
+    {
+        return [
+            'simple' => ['simple'],
+            'virtual' => ['virtual'],
+            'downloadable' => ['downloadable'],
+        ];
+    }
+
+    /**
+     * @dataProvider compositePriceTypeProvider
+     */
+    #[DataProvider('compositePriceTypeProvider')]
+    public function testGetExportPriceUsesThePricingFrameworkForCompositeTypes(string $typeId): void
+    {
+        $priceCurrency = $this->createMock(PriceCurrencyInterface::class);
+        $priceCurrency->expects($this->never())->method('convertAndRound');
+        $priceCurrency->expects($this->once())->method('round')->with(9.99)->willReturn(9.99);
+
+        $product = $this->createMock(CatalogProduct::class);
+        $product->method('getTypeId')->willReturn($typeId);
+        $product->expects($this->never())->method('getFinalPrice');
+        $product->method('getPriceInfo')->willReturn($this->createPriceInfo(9.99));
+
+        $this->assertSame(9.99, $this->createGenerator($priceCurrency)->callGetExportPrice($product, 1));
+    }
+
+    public static function compositePriceTypeProvider(): array
+    {
+        return [
+            'configurable' => ['configurable'],
+            'bundle' => ['bundle'],
+            'grouped' => ['grouped'],
+        ];
+    }
+
+    public function testGetExportPriceFallsBackToTheFinalPriceWhenThePricingFrameworkFails(): void
+    {
+        $priceCurrency = $this->createStub(PriceCurrencyInterface::class);
+        $priceCurrency->method('convertAndRound')->willReturnMap([[5.0, 1, 5.0]]);
+        $logger = $this->createMock(Monolog::class);
+        $logger->expects($this->once())->method('error');
+
+        $product = $this->createStub(CatalogProduct::class);
+        $product->method('getTypeId')->willReturn('bundle');
+        $product->method('getPriceInfo')->willThrowException(new \Exception('no selections'));
+        $product->method('getFinalPrice')->willReturn(5.0);
+
+        $this->assertSame(5.0, $this->createGenerator($priceCurrency, $logger)->callGetExportPrice($product, 1));
+    }
+
+    /**
+     * @dataProvider stockProvider
+     */
+    #[DataProvider('stockProvider')]
+    public function testGenerateProductLineStock(string $typeId, int $isInStock, $qty, string $expectedStock): void
+    {
+        $priceCurrency = $this->createStub(PriceCurrencyInterface::class);
+        $priceCurrency->method('convertAndRound')->willReturn(10.0);
+        $priceCurrency->method('round')->willReturn(10.0);
+        $currency = $this->createStub(Currency::class);
+        $currency->method('getCurrencyCode')->willReturn('USD');
+        $priceCurrency->method('getCurrency')->willReturn($currency);
+
+        $product = $this->createStub(CatalogProduct::class);
+        $product->method('getSku')->willReturn('SKU-1');
+        $product->method('getName')->willReturn('Product Name');
+        $product->method('getTypeId')->willReturn($typeId);
+        $product->method('getFinalPrice')->willReturn(10.0);
+        $product->method('getPriceInfo')->willReturn($this->createPriceInfo(10.0));
+        $product->method('getStatus')->willReturn(Status::STATUS_ENABLED);
+        if ($typeId === 'bundle') {
+            $typeInstance = $this->createStub(BundleType::class);
+            $typeInstance->method('getOptionsIds')->willReturn([]);
+            $typeInstance->method('getSelectionsCollection')->willReturn([]);
+            $product->method('getTypeInstance')->willReturn($typeInstance);
+        } elseif ($typeId === 'grouped') {
+            $typeInstance = $this->createStub(GroupedType::class);
+            $typeInstance->method('getAssociatedProducts')->willReturn([]);
+            $product->method('getTypeInstance')->willReturn($typeInstance);
+        }
+        $product->method('getData')->willReturnCallback(function ($key) use ($isInStock, $qty) {
+            if ($key === 'is_in_stock') {
+                return $isInStock;
+            }
+            if ($key === 'qty') {
+                return $qty;
+            }
+            return null;
+        });
+
+        $line = explode("\t", $this->createGenerator($priceCurrency)->callGenerateProductLine($product, 1, false));
+
+        $this->assertSame($expectedStock, $line[4]);
+    }
+
+    public static function stockProvider(): array
+    {
+        return [
+            'simple in stock sends its quantity' => ['simple', 1, '7.0000', '7'],
+            'simple out of stock' => ['simple', 0, '7.0000', '0'],
+            'virtual without managed stock is available' => ['virtual', 1, '0.0000', '1'],
+            'downloadable without a stock row is unavailable' => ['downloadable', 0, null, '0'],
+            'configurable in stock has no quantity of its own' => ['configurable', 1, '0.0000', '1'],
+            'bundle in stock has no quantity of its own' => ['bundle', 1, '0.0000', '1'],
+            'grouped in stock has no quantity of its own' => ['grouped', 1, '0.0000', '1'],
+            'grouped out of stock' => ['grouped', 0, '0.0000', '0'],
+        ];
+    }
+
+    public function testGenerateProductLineSharesThePoolParentsOwnSkuInsteadOfListingMembers(): void
+    {
+        $child = $this->createStub(CatalogProduct::class);
+        $child->method('getSku')->willReturn('CHILD-1');
+        $typeInstance = $this->createStub(GroupedType::class);
+        $typeInstance->method('getAssociatedProducts')->willReturn([$child]);
+        $kit = $this->createFeedProduct('GROUP-1', 'grouped');
+        $kit->method('getTypeInstance')->willReturn($typeInstance);
+        $pool = $this->createFeedProduct('GROUP-1', 'grouped', [ProductRelations::POOL_PARENT_FIELD => true]);
+        $pool->method('getTypeInstance')->willReturn($typeInstance);
+        $generator = $this->createGenerator($this->createFeedPriceCurrency());
+
+        $kitLine = explode("\t", $generator->callGenerateProductLine($kit, 1, false));
+        $poolLine = explode("\t", $generator->callGenerateProductLine($pool, 1, false));
+
+        $this->assertSame(['', 'CHILD-1'], [$kitLine[7], $kitLine[8]]);
+        $this->assertSame(['GROUP-1', ''], [$poolLine[7], $poolLine[8]]);
+    }
+
+    public function testGenerateProductLineExportsTheUrlOfTheParentOrUrlProduct(): void
+    {
+        $parent = $this->createFeedProduct('PARENT-1', 'configurable');
+        $urlProduct = $this->createFeedProduct('GROUP-1', 'grouped');
+        $product = $this->createFeedProduct('CHILD-1', 'simple', [ProductRelations::URL_PRODUCT_FIELD => $urlProduct]);
+        $exportProduct = $this->createStub(ExportProduct::class);
+        $exportProduct->method('getProductUrl')->willReturnCallback(function ($urlSource) {
+            return 'https://example.com/' . $urlSource->getSku();
+        });
+        $generator = $this->createGenerator($this->createFeedPriceCurrency(), null, $exportProduct);
+
+        $withUrlProduct = explode("\t", $generator->callGenerateProductLine($product, 1, false));
+        $withParent = explode("\t", $generator->callGenerateProductLine($product, 1, $parent));
+
+        $this->assertSame('https://example.com/GROUP-1', $withUrlProduct[2]);
+        $this->assertSame('', $withUrlProduct[7], 'Borrowing a URL does not share reviews.');
+        $this->assertSame('https://example.com/PARENT-1', $withParent[2]);
+        $this->assertSame('PARENT-1', $withParent[7]);
+    }
+
+    /**
+     * @param string $sku
+     * @param string $typeId
+     * @param array $data
+     * @return CatalogProduct
+     */
+    private function createFeedProduct(string $sku, string $typeId, array $data = []): CatalogProduct
+    {
+        $data += ['is_in_stock' => 1, 'qty' => '1.0000'];
+        $product = $this->createStub(CatalogProduct::class);
+        $product->method('getSku')->willReturn($sku);
+        $product->method('getName')->willReturn('Product Name');
+        $product->method('getTypeId')->willReturn($typeId);
+        $product->method('getFinalPrice')->willReturn(10.0);
+        $product->method('getPriceInfo')->willReturn($this->createPriceInfo(10.0));
+        $product->method('getStatus')->willReturn(Status::STATUS_ENABLED);
+        $product->method('getData')->willReturnCallback(function ($key) use ($data) {
+            return $data[$key] ?? null;
+        });
+
+        return $product;
+    }
+
+    private function createFeedPriceCurrency(): PriceCurrencyInterface
+    {
+        $priceCurrency = $this->createStub(PriceCurrencyInterface::class);
+        $priceCurrency->method('convertAndRound')->willReturn(10.0);
+        $priceCurrency->method('round')->willReturn(10.0);
+        $currency = $this->createStub(Currency::class);
+        $currency->method('getCurrencyCode')->willReturn('USD');
+        $priceCurrency->method('getCurrency')->willReturn($currency);
+
+        return $priceCurrency;
+    }
+
+    /**
+     * @param PriceCurrencyInterface $priceCurrency
+     * @param Monolog|null $logger
+     * @param ExportProduct|null $exportProduct
+     * @return TestableCommerceFeedGenerator
+     */
+    private function createGenerator(
+        PriceCurrencyInterface $priceCurrency,
+        ?Monolog $logger = null,
+        ?ExportProduct $exportProduct = null
+    ): TestableCommerceFeedGenerator {
+        $turntoProduct = $this->createStub(Product::class);
+        $turntoProduct->method('turnToSafeEncoding')->willReturnCallback(function ($value) {
+            return (string) $value;
+        });
+        if ($exportProduct === null) {
+            $exportProduct = $this->createStub(ExportProduct::class);
+            $exportProduct->method('getProductUrl')->willReturn('https://example.com/p');
+        }
+        $categoryPathResolver = $this->createStub(CategoryPathResolver::class);
+
+        return new TestableCommerceFeedGenerator(
+            $this->createStub(ConfigModel::class),
+            $this->createStub(Gtin::class),
+            $this->createStub(Image::class),
+            $turntoProduct,
+            $this->createStub(EavConfig::class),
+            $priceCurrency,
+            $logger ?? $this->createStub(Monolog::class),
+            $categoryPathResolver,
+            $exportProduct
+        );
+    }
+
+    /**
+     * @param float $finalPrice
+     * @return PriceInfoBase
+     */
+    private function createPriceInfo(float $finalPrice): PriceInfoBase
+    {
+        $price = $this->createStub(PriceInterface::class);
+        $price->method('getValue')->willReturn($finalPrice);
+        $priceInfo = $this->createStub(PriceInfoBase::class);
+        $priceInfo->method('getPrice')->willReturnMap([['final_price', $price]]);
+
+        return $priceInfo;
     }
 
     public function testAddProductReturnsFalseIfProductCanNotBeAddedToFeed()

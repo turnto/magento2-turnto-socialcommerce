@@ -105,6 +105,10 @@ If the **Enable Automated Feed Submission** configuration option is set to **Yes
     2. For the **Base URLS (Secure) > Secure Base URL for User Media Files** field, ensure a value is entered. If the field is blank, enter this value: `{{secure_base_url}}media/`
        Here is a screenshot of an example configuration:
 
+* **Grouped Product Review Sharing**
+    * **Kit (default):** The grouped product lists its products as members. The grouped product shows their reviews, and each product shows the grouped product's reviews, but the products do not share reviews with each other. Use for sets of distinct items.
+    * **Pool:** The grouped product and its products share one virtual parent code, so every product in the group shows the same reviews. Use for variations or multi-packs. A product can only share one virtual parent code, so a grouped product is exported as a kit when any of its products also belongs to another grouped product, or to a configurable product while child SKUs are used.
+
 #### Product Detail Pages
 
 Reviews displayed on product detail pages are loaded directly from Emplifi. The method used to retrieve and display review content is determined by the **Setup Type** configuration setting.
@@ -125,7 +129,7 @@ After a review is approved in Emplifi, changes will not appear on the product li
 
 ### Historical Orders Feed Export to Emplifi
 
-This feed exports order data for any order that has been modified in the previous two days will be sent to Emplifi nightly. Emplifi uses this order feed data to populate owner pools for Q&A and to schedule review solicitation emails based optionally on ship date instead of order date. In the feed file, the ship date (DELIVERYDATE) column is the creation date of the shipment that contains that specific order item.
+This feed exports order data for any order that has been modified in the previous two days will be sent to Emplifi nightly. Emplifi uses this order feed data to populate owner pools for Q&A and to schedule review solicitation emails based optionally on ship date instead of order date. In the feed file, the ship date (DELIVERYDATE) column is the creation date of the shipment that contains that specific order item. Virtual and downloadable items are never shipped, so their DELIVERYDATE is the creation date of their first invoice.
 
 * **Enable Automated Feed Submission** – Enable the order export run nightly by the cron.
 * **Enable Cancelled Order Feed Submission** – Enable the canceled order export run nightly by the cron.
