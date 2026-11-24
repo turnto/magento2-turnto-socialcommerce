@@ -65,6 +65,20 @@ class Pinboard extends Template implements BlockInterface
     }
 
     /**
+     * Render nothing when the extension is disabled
+     *
+     * @return string
+     */
+    protected function _toHtml()
+    {
+        if (!$this->config->getIsEnabled()) {
+            return '';
+        }
+
+        return parent::_toHtml();
+    }
+
+    /**
      * Return an array of product SKUs from the pinboard widget configuration.
      *
      * @return array

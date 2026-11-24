@@ -10,7 +10,6 @@ namespace TurnTo\SocialCommerce\Test\Unit\Block;
 use Magento\Catalog\Helper\Data;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Serialize\Serializer\Json;
-use Magento\Framework\View\Element\Template\Context;
 use PHPUnit\Framework\TestCase;
 use TurnTo\SocialCommerce\Api\TurnToConfigDataSourceInterface;
 use TurnTo\SocialCommerce\Block\TurnToConfig;
@@ -20,6 +19,8 @@ use TurnTo\SocialCommerce\Model\Version;
 
 class TurnToConfigTest extends TestCase
 {
+    use RenderableContextTrait;
+
     public function testConfigJsonIsPlainJsonWithoutTeaserCallbacks(): void
     {
         $config = json_decode($this->createBlock()->getConfigJson(), true);
@@ -80,9 +81,15 @@ class TurnToConfigTest extends TestCase
         $this->assertStringContainsString('"locale":"en_US"', $javaScript);
     }
 
+    public function testRendersNothingWhenTheExtensionIsDisabled(): void
+    {
+        $this->assertSame('', $this->createBlock()->toHtml());
+    }
+
     protected function createBlock(array $data = []): TurnToConfig
     {
         $config = $this->createStub(Config::class);
+        $config->method('getIsEnabled')->willReturn(false);
         $config->method('getConfigBool')->willReturn(false);
         $config->method('getConfigValue')->willReturnCallback(function ($path) {
             return $path === Config::PRODUCT_WIDGET_URL ? 'https://widgets.turnto.test/' : null;
@@ -97,7 +104,7 @@ class TurnToConfigTest extends TestCase
         $version->method('getModuleVersion')->willReturn('3.9.1');
 
         return new TurnToConfig(
-            $this->createStub(Context::class),
+            $this->createRenderableContext(),
             $config,
             $localeResolver,
             $this->createStub(Data::class),

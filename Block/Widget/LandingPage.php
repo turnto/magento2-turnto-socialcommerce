@@ -41,6 +41,20 @@ class LandingPage extends Template implements BlockInterface
     }
 
     /**
+     * Render nothing when the extension is disabled
+     *
+     * @return string
+     */
+    protected function _toHtml()
+    {
+        if (!$this->getViewModel()->getIsEnabled()) {
+            return '';
+        }
+
+        return parent::_toHtml();
+    }
+
+    /**
      * Creates a TurnTo config block and outputs its html content
      *
      * @return string

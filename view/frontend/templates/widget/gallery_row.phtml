@@ -5,9 +5,14 @@
  */
 
 use Magento\Framework\View\Element\Template;
+use TurnTo\SocialCommerce\ViewModel\Widget as ViewModel;
 
 /**
  * @var Template $block
+ * @var ViewModel|null $viewModel
  */
+$viewModel = $block->getViewModel();
 ?>
+<?php if ($viewModel && $viewModel->getIsEnabled()): ?>
 <div id="tt-gallery-row"></div>
+<?php endif; ?>

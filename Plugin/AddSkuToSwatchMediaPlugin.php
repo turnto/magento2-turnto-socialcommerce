@@ -59,15 +59,21 @@ class AddSkuToSwatchMediaPlugin
     }
 
     /**
+     * Add SKU to results
+     *
      * @param Data $subject
-     * @param $result
+     * @param array $result
      * @return array
      */
     public function afterGetProductMediaGallery(Data $subject, $result)
     {
+        if (empty($result) || !$this->config->getIsEnabled() || !$this->config->getUseChildSku()) {
+            return $result;
+        }
+
         try {
             $productId = (int)$this->request->getParam('product_id');
-            if (!empty($productId) && !empty($result) && $this->config->getUseChildSku()) {
+            if (!empty($productId)) {
                 $product = $this->productRepository->getById($productId);
                 $childProduct = $this->swatchHelper->loadVariationByFallback($product, []);
                 $result['sku'] = $this->product->turnToSafeEncoding(
