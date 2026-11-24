@@ -10,6 +10,7 @@ namespace TurnTo\SocialCommerce\Plugin\Product\View\Type;
 use InvalidArgumentException;
 use Magento\ConfigurableProduct\Block\Product\View\Type\Configurable as ConfigurableProductTypeBlock;
 use Magento\Framework\Serialize\Serializer\Json;
+use TurnTo\SocialCommerce\Model\Config;
 use TurnTo\SocialCommerce\Model\Product;
 
 class Configurable
@@ -22,17 +23,24 @@ class Configurable
      * @var Json
      */
     protected $json;
+    /**
+     * @var Config
+     */
+    protected $config;
 
     /**
      * @param Product $product
      * @param Json $json
+     * @param Config $config
      */
     public function __construct(
         Product $product,
-        Json $json
+        Json $json,
+        Config $config
     ) {
         $this->product = $product;
         $this->json = $json;
+        $this->config = $config;
     }
 
     /**
@@ -44,6 +52,10 @@ class Configurable
         ConfigurableProductTypeBlock $subject,
         $result
     ) {
+        if (!$this->config->getIsEnabled()) {
+            return $result;
+        }
+
         try {
             $data = $this->json->unserialize($result);
         } catch (InvalidArgumentException $e) {

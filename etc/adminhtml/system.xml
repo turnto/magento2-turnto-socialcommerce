@@ -88,6 +88,9 @@
                         Enable the visual content gallery row widget on the product detail page.
                     ]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
             </group>
              <group id="teaser" translate="label" sortOrder="45" showInStore="1" showInWebsite="1" showInDefault="1">
@@ -99,6 +102,9 @@
                        <b>Use Teaser Widget</b>: Use Javascript to add teaser content configured in and sent from Emplifi.
                     ]]></comment>
                     <source_model>TurnTo\SocialCommerce\Model\Config\Source\TeaserType</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
                  <field id="enable_reviews_teaser" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1">
                     <label>Enable Reviews Teaser</label>
@@ -142,6 +148,9 @@
                         Enable Javascript on the Order Success page used to send order information to Emplifi. *Required for Checkout Comment Capture
                     ]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
                 <field id="enable_checkout_comment_capture" translate="label comment" type="select" sortOrder="15" showInDefault="1" showInStore="1" showInWebsite="1">
                     <label>Enable Checkout Comment Capture</label>
@@ -150,17 +159,20 @@
                     ]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
                         <field id="turnto_socialcommerce_configuration/checkout_comments/enable_js_order_feed">1</field>
                     </depends>
                 </field>
                 <field id="enable_comments_pdp" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInStore="1" showInWebsite="1">
                     <label>Enable Comments Display</label>
                     <comment><![CDATA[
-                        Enable viewing checkout comments on the product details page.
+                        Enable viewing checkout comments on the product details page. Comments are displayed in the
+                        Q&amp;A tab, so Q&amp;A must be enabled.
                     ]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                        <field id="turnto_socialcommerce_configuration/qa/enable_qa">1</field>
                     </depends>
                 </field>
                 <field id="enable_top_comments" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInStore="1" showInWebsite="1">
@@ -279,6 +291,9 @@
                 <field id="export_catalog_feed_button" translate="Export Catalog" type="button" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                     <frontend_model>TurnTo\SocialCommerce\Block\System\Config\ExportCatalog</frontend_model>
                     <label>Export Product Catalog to the Emplifi</label>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
             </group>
             <group id="product_attribute_mappings" translate="label comment" sortOrder="80" showInStore="1" showInWebsite="1" showInDefault="1">
@@ -446,26 +461,44 @@
                 <field id="review_msg" canRestore="1" type="textarea" translate="label comment" sortOrder="20" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Review Login Message</label>
                     <comment>The default message shown to a user on the login screen when they attempt to leave a review while not logged in.</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
                 <field id="review_msg_pur_req" canRestore="1" type="textarea" translate="label comment" sortOrder="30" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Review Login Message (Purchase Required)</label>
                     <comment>The default message shown to a user on the login screen when a purchase is required to leave a review.</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
                 <field id="question_msg" canRestore="1" type="textarea" translate="label comment" sortOrder="40" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Question Login Message</label>
                     <comment>The default message shown to a user on the login screen after asking a question.</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
                 <field id="question_msg_anon" canRestore="1" type="textarea" translate="label comment" sortOrder="50" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Question Login Message (Anonymous Allowed)</label>
                     <comment>The default message shown to a user on the login screen after asking a question when login is not required.</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
                 <field id="answer_msg" canRestore="1" type="textarea" translate="label comment" sortOrder="60" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Answer Login Message</label>
                     <comment>The default message shown to a user on the login screen after answering a question.</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
                 <field id="reply_msg" canRestore="1" type="textarea" translate="label comment" sortOrder="60" showInStore="1" showInWebsite="1" showInDefault="1">
                     <label>Reply Login Message</label>
                     <comment>The default message shown to a user on the login screen after replying to an answer.</comment>
+                    <depends>
+                        <field id="turnto_socialcommerce_configuration/general/enabled">1</field>
+                    </depends>
                 </field>
             </group>
 

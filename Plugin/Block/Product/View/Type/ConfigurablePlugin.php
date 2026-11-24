@@ -62,6 +62,10 @@ class ConfigurablePlugin
         Configurable $subject,
         $result
     ): string {
+        if (!$this->config->getIsEnabled()) {
+            return $result;
+        }
+
         try {
             $decodedResult = $this->json->unserialize($result);
         } catch (InvalidArgumentException $e) {

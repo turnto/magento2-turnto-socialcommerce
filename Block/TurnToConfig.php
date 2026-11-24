@@ -93,6 +93,20 @@ class TurnToConfig extends Template
     }
 
     /**
+     * Render nothing, including child blocks, when the extension is disabled
+     *
+     * @return string
+     */
+    protected function _toHtml()
+    {
+        if (!$this->config->getIsEnabled()) {
+            return '';
+        }
+
+        return parent::_toHtml();
+    }
+
+    /**
      * The turnToConfig object as plain JSON
      *
      * Configuration data set on the block takes precedence over the generated values.

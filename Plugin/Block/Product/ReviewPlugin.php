@@ -49,7 +49,7 @@ class ReviewPlugin
      */
     public function afterSetTabTitle(Review $subject, $result)
     {
-        if ($this->config->getIsEnabled()) {
+        if ($this->config->getIsEnabled() && $this->config->getConfigBool(Config::REVIEWS_ENABLE)) {
             $subject->setTitle(__('Reviews '));
         }
     }

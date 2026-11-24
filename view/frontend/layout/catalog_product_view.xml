@@ -31,7 +31,7 @@
 
         <!-- Review Teaser Content -->
         <referenceBlock name="product.info.review">
-            <action method="setTemplate">
+            <action method="setTemplate" ifconfig="turnto_socialcommerce_configuration/general/enabled">
                 <argument name="template" xsi:type="string">TurnTo_SocialCommerce::product/view/teaser-conditional.phtml</argument>
             </action>
             <arguments>
@@ -66,7 +66,11 @@
 
         <!-- Gallery Row PDP Content -->
         <referenceContainer name="content">
-            <block name="gallery_row_widget" template="TurnTo_SocialCommerce::widget/gallery_row.phtml" after="product.info.details" ifconfig="turnto_socialcommerce_configuration/visual_content/visual_content_gallery_row"/>
+            <block name="gallery_row_widget" template="TurnTo_SocialCommerce::widget/gallery_row.phtml" after="product.info.details" ifconfig="turnto_socialcommerce_configuration/visual_content/visual_content_gallery_row">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">TurnTo\SocialCommerce\ViewModel\Widget</argument>
+                </arguments>
+            </block>
         </referenceContainer>
     </body>
 </page>
